@@ -54,7 +54,7 @@ def normalize_connection(value):
 def parse_last_connection(text):
     m = re.search(
         r"Dernière connexion\s*:\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-        text
+        text,
     )
     if not m:
         return None
@@ -166,6 +166,45 @@ def parse_gateway_row(values, raw, cluster_name):
     }
 
 
+def login(page, cluster):
+    page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_timeout(3000)
+
+    inputs = page.locator("input")
+    input_count = inputs.count()
+
+    debug_lines.append(f"{cluster['name']} LOGIN URL BEFORE={page.url}")
+    debug_lines.append(f"{cluster['name']} INPUTS={input_count}")
+
+    if input_count < 2:
+        raise Exception("Page login non détectée ou champs introuvables")
+
+    inputs.nth(0).fill(cluster["login"])
+    inputs.nth(1).fill(cluster["password"])
+
+    page.wait_for_timeout(1000)
+
+    buttons = page.locator("button")
+    button_count = buttons.count()
+
+    debug_lines.append(f"{cluster['name']} BUTTONS={button_count}")
+
+    if button_count > 0:
+        buttons.nth(0).click()
+    else:
+        page.keyboard.press("Enter")
+
+    page.wait_for_timeout(10000)
+
+    debug_lines.append(f"{cluster['name']} AFTER LOGIN URL={page.url}")
+
+    body_after_login = page.locator("body").inner_text()
+    debug_lines.append(f"{cluster['name']} AFTER LOGIN BODY={body_after_login[:500]}")
+
+    if "Mot de passe oublié" in body_after_login:
+        raise Exception("Connexion échouée : toujours sur la page login")
+
+
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
 
@@ -173,18 +212,12 @@ with sync_playwright() as p:
         page = browser.new_page()
 
         try:
-            page.goto(cluster["url"], wait_until="networkidle", timeout=60000)
-
-            page.fill('input[type="text"]', cluster["login"])
-            page.fill('input[type="password"]', cluster["password"])
-            page.click('button[type="submit"]')
-
-            page.wait_for_timeout(8000)
+            login(page, cluster)
 
             page.goto(
                 f'{cluster["url"]}/page/Network_Gateways',
                 wait_until="domcontentloaded",
-                timeout=60000
+                timeout=60000,
             )
 
             page.wait_for_timeout(15000)
@@ -200,11 +233,12 @@ with sync_playwright() as p:
             rows = page.locator("tr")
             count = rows.count()
 
-            debug_lines.append(f"{cluster['name']} URL={page.url} ROWS={count}")
+            debug_lines.append(f"{cluster['name']} GATEWAY URL={page.url}")
+            debug_lines.append(f"{cluster['name']} ROWS={count}")
 
             try:
-                body_preview = page.locator("body").inner_text()[:3000]
-                debug_lines.append(body_preview)
+                body_preview = page.locator("body").inner_text()[:2000]
+                debug_lines.append(f"{cluster['name']} BODY PREVIEW={body_preview}")
             except Exception as e:
                 debug_lines.append(str(e))
 
@@ -250,7 +284,7 @@ with sync_playwright() as p:
                 if key not in history:
                     history[key] = {
                         "down_since": None,
-                        "samples": []
+                        "samples": [],
                     }
 
                 if gateway["down"]:
@@ -263,7 +297,7 @@ with sync_playwright() as p:
 
                 history[key]["samples"].append({
                     "time": NOW.isoformat(),
-                    "up": not gateway["down"]
+                    "up": not gateway["down"],
                 })
 
                 history[key]["samples"] = [
@@ -277,7 +311,10 @@ with sync_playwright() as p:
                     down_hours = round((NOW - down_start).total_seconds() / 3600, 1)
 
                 samples = history[key]["samples"]
-                service_24h = round((sum(1 for s in samples if s["up"]) / len(samples)) * 100, 1) if samples else 0
+                service_24h = round(
+                    (sum(1 for s in samples if s["up"]) / len(samples)) * 100,
+                    1,
+                ) if samples else 0
 
                 gateway["down_since"] = history[key]["down_since"]
                 gateway["down_hours"] = down_hours
@@ -311,8 +348,8 @@ gateways_sorted = sorted(
         not g["maintenance"],
         not g["down"],
         g["cluster"],
-        g["name"]
-    )
+        g["name"],
+    ),
 )
 
 html_page = f"""
