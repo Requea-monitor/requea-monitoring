@@ -36,6 +36,14 @@ jobs:
         env:
           REQUEA_CONFIG: ${{ secrets.REQUEA_CONFIG }}
 
+      - name: Save history
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add history.json
+          git commit -m "Update monitoring history" || echo "No history change"
+          git push
+          
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
