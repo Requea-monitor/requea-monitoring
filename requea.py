@@ -6,9 +6,11 @@ import json
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
 
-URL = CONFIG["url"]
-LOGIN = CONFIG["login"]
-PASSWORD = CONFIG["password"]
+SITE = CONFIG[0]
+
+URL = SITE["url"]
+LOGIN = SITE["login"]
+PASSWORD = SITE["password"]
 
 all_gateways = []
 
