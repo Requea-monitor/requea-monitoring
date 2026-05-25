@@ -1,9 +1,14 @@
+from playwright.sync_api import sync_playwright
+from bs4 import BeautifulSoup
+from datetime import datetime
 import os
 import json
-from datetime import datetime
-from playwright.sync_api import sync_playwright
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
+
+URL = CONFIG["url"]
+LOGIN = CONFIG["login"]
+PASSWORD = CONFIG["password"]
 
 all_gateways = []
 
@@ -11,194 +16,286 @@ with sync_playwright() as p:
 
     browser = p.chromium.launch(headless=True)
 
-    for site in CONFIG:
+    page = browser.new_page()
 
-        page = browser.new_page()
+    # LOGIN
+    page.goto(URL)
 
-        try:
+    page.fill('input[type="text"]', LOGIN)
+    page.fill('input[type="password"]', PASSWORD)
 
-            page.goto(site["url"], wait_until="networkidle")
+    page.click('button[type="submit"]')
 
-            page.fill('input[type="text"]', site["login"])
-            page.fill('input[type="password"]', site["password"])
+    page.wait_for_timeout(5000)
 
-            page.click('button[type="submit"]')
+    # PAGE GATEWAYS
+    page.goto(f"{URL}/page/Network_Gateways")
 
-            page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(5000)
 
-            page.goto(
-                f'{site["url"]}/page/Network_Gateways',
-                wait_until="networkidle"
-            )
-
-            page.wait_for_timeout(5000)
-
-            rows = page.locator("tr")
-
-            count = rows.count()
-
-            for i in range(count):
-
-                txt = rows.nth(i).inner_text()
-
-                if "Connectée" in txt or "Déconnectée" in txt:
-
-                    status = "OK"
-
-                    if "Déconnectée" in txt:
-                        status = "MAINTENANCE"
-
-                    gateway = {
-                        "cluster": site["name"],
-                        "status": status,
-                        "details": txt
-                    }
-
-                    all_gateways.append(gateway)
-
-        except Exception as e:
-
-            all_gateways.append({
-                "cluster": site["name"],
-                "status": "ERREUR",
-                "details": str(e)
-            })
-
-        page.close()
+    html = page.content()
 
     browser.close()
 
-updated = datetime.now().strftime("%d/%m/%Y %H:%M")
+# PARSE HTML
+soup = BeautifulSoup(html, "html.parser")
 
-critical = sum(1 for g in all_gateways if g["status"] == "MAINTENANCE")
+rows = soup.find_all("tr")
 
+for row in rows:
+
+    cols = row.find_all("td")
+
+    if len(cols) < 6:
+        continue
+
+    try:
+
+        values = [c.get_text(strip=True) for c in cols]
+
+        name = values[1] if len(values) > 1 else ""
+        status = values[2] if len(values) > 2 else ""
+        gateway_id = values[3] if len(values) > 3 else ""
+        model = values[4] if len(values) > 4 else ""
+        connection = values[5] if len(values) > 5 else ""
+        firmware = values[7] if len(values) > 7 else ""
+        city = values[-1] if len(values) > 8 else ""
+
+        down = False
+
+        txt = f"{status} {connection}".lower()
+
+        if (
+            "déconnect" in txt
+            or "inactive" in txt
+            or "maintenance" in txt
+            or "depose" in txt
+            or "dépos" in txt
+            or "offline" in txt
+            or "down" in txt
+        ):
+            down = True
+
+        gateway = {
+            "name": name,
+            "status": status,
+            "connection": connection,
+            "gateway_id": gateway_id,
+            "model": model,
+            "firmware": firmware,
+            "city": city,
+            "down": down
+        }
+
+        all_gateways.append(gateway)
+
+    except:
+        pass
+
+# STATS
+total = len(all_gateways)
+down_count = len([g for g in all_gateways if g["down"]])
+up_count = total - down_count
+
+availability = 0
+
+if total > 0:
+    availability = round((up_count / total) * 100, 2)
+
+# HTML
 html = f"""
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Monitoring Requea</title>
+<title>Requea Monitoring</title>
 
 <style>
 
 body {{
-    font-family: Arial;
-    margin: 20px;
-    background: #f5f7fa;
+    background:#0f172a;
+    color:white;
+    font-family:Arial;
+    margin:0;
+    padding:20px;
 }}
 
 h1 {{
-    margin-bottom: 10px;
+    margin-bottom:10px;
 }}
 
-.summary {{
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+.stats {{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-bottom:30px;
 }}
 
-.alert {{
-    background: #ffdddd;
-    color: #900;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    font-size: 18px;
+.card {{
+    background:#1e293b;
+    padding:20px;
+    border-radius:15px;
+}}
+
+.big {{
+    font-size:42px;
+    margin-top:10px;
+    font-weight:bold;
+}}
+
+.green {{
+    color:#22c55e;
+}}
+
+.red {{
+    color:#ef4444;
+}}
+
+.orange {{
+    color:#f59e0b;
 }}
 
 table {{
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
 }}
 
 th {{
-    background: #222;
-    color: white;
-    padding: 12px;
+    background:#1e293b;
+    padding:12px;
+    text-align:left;
 }}
 
 td {{
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+    padding:12px;
+    border-bottom:1px solid #334155;
 }}
 
-.good {{
-    background: #e8ffe8;
+tr.down {{
+    background:#450a0a;
 }}
 
-.bad {{
-    background: #ffe5e5;
+.badge-ok {{
+    background:#166534;
+    padding:6px 10px;
+    border-radius:20px;
 }}
 
-.ok {{
-    color: green;
-    font-weight: bold;
-}}
-
-.ko {{
-    color: red;
-    font-weight: bold;
+.badge-down {{
+    background:#991b1b;
+    padding:6px 10px;
+    border-radius:20px;
 }}
 
 </style>
-
 </head>
 
 <body>
 
-<h1>Monitoring Requea LoRaWAN</h1>
+<h1>📡 Requea Monitoring</h1>
 
-<div class="summary">
-Dernière mise à jour : {updated}
+<p>Dernière mise à jour : {datetime.now()}</p>
+
+<div class="stats">
+
+<div class="card">
+<div>Total passerelles</div>
+<div class="big">{total}</div>
 </div>
 
-<div class="alert">
-Passerelles nécessitant une maintenance : {critical}
+<div class="card">
+<div>Taux de service</div>
+<div class="big green">{availability}%</div>
 </div>
+
+<div class="card">
+<div>Passerelles OK</div>
+<div class="big green">{up_count}</div>
+</div>
+
+<div class="card">
+<div>Défaillantes</div>
+<div class="big red">{down_count}</div>
+</div>
+
+</div>
+
+<h2>🚨 Passerelles en défaut</h2>
 
 <table>
 
 <tr>
-<th>Cluster</th>
-<th>Statut</th>
-<th>Détails</th>
+<th>Nom</th>
+<th>Ville</th>
+<th>Status</th>
+<th>Connexion</th>
+<th>Firmware</th>
 </tr>
 """
 
 for g in all_gateways:
 
-    row = "good"
+    if g["down"]:
 
-    if g["status"] != "OK":
-        row = "bad"
+        html += f"""
+        <tr class="down">
+            <td>{g['name']}</td>
+            <td>{g['city']}</td>
+            <td><span class="badge-down">{g['status']}</span></td>
+            <td>{g['connection']}</td>
+            <td>{g['firmware']}</td>
+        </tr>
+        """
 
-    color = "ok"
+html += """
+</table>
 
-    if g["status"] != "OK":
-        color = "ko"
+<h2>📋 Toutes les passerelles</h2>
 
-    html += f"""
-<tr class="{row}">
-<td>{g["cluster"]}</td>
-<td class="{color}">{g["status"]}</td>
-<td>{g["details"]}</td>
+<table>
+
+<tr>
+<th>Nom</th>
+<th>Ville</th>
+<th>Status</th>
+<th>Connexion</th>
+<th>Firmware</th>
+<th>ID</th>
 </tr>
 """
 
+for g in all_gateways:
+
+    badge = "badge-ok"
+    row = ""
+
+    if g["down"]:
+        badge = "badge-down"
+        row = "down"
+
+    html += f"""
+    <tr class="{row}">
+        <td>{g['name']}</td>
+        <td>{g['city']}</td>
+        <td><span class="{badge}">{g['status']}</span></td>
+        <td>{g['connection']}</td>
+        <td>{g['firmware']}</td>
+        <td>{g['gateway_id']}</td>
+    </tr>
+    """
+
 html += """
+
 </table>
 
 </body>
 </html>
 """
 
-os.makedirs("public", exist_ok=True)
-
-with open("public/index.html", "w") as f:
+with open("index.html", "w") as f:
     f.write(html)
 
 print("Dashboard généré")
