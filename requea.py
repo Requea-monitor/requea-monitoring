@@ -179,11 +179,34 @@ with sync_playwright() as p:
             page.click('button[type="submit"]')
             page.wait_for_timeout(6000)
 
-            page.goto(f'{cluster["url"]}/page/Network_Gateways', wait_until="networkidle", timeout=60000)
-            page.wait_for_timeout(10000)
+page.goto(
+    f'{cluster["url"]}/page/Network_Gateways',
+    wait_until="domcontentloaded",
+    timeout=60000
+)
 
-            rows = page.locator("tr")
-            count = rows.count()
+page.wait_for_timeout(15000)
+
+try:
+    page.click("text=Passerelles", timeout=5000)
+    page.wait_for_timeout(5000)
+except:
+    pass
+
+page.wait_for_timeout(10000)
+
+rows = page.locator("tr")
+count = rows.count()
+
+debug_lines.append(
+    f"{cluster['name']} URL={page.url} ROWS={count}"
+)
+
+try:
+    body_preview = page.locator("body").inner_text()[:3000]
+    debug_lines.append(body_preview)
+except Exception as e:
+    debug_lines.append(str(e))
 
             debug_lines.append(f"{cluster['name']} : {count} lignes HTML détectées")
 
