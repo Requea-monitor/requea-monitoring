@@ -4,8 +4,10 @@ from zoneinfo import ZoneInfo
 import os, json, html, re
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
+
 PARIS = ZoneInfo("Europe/Paris")
 NOW = datetime.now(PARIS)
+
 HISTORY_FILE = "history.json"
 
 try:
@@ -22,17 +24,19 @@ def esc(v):
 
 
 def clean(v):
-    return " ".join(str(v or "").replace("\n", " ").replace("\t", " ").replace("\xa0", " ").split()).strip()
-
-
-def strip_tags(v):
-    v = re.sub(r"<[^>]+>", " ", str(v or ""))
-    return clean(html.unescape(v))
+    return " ".join(
+        str(v or "")
+        .replace("\n", " ")
+        .replace("\t", " ")
+        .replace("\xa0", " ")
+        .split()
+    ).strip()
 
 
 def fmt_date(v):
     if not v:
         return "-"
+
     try:
         return datetime.fromisoformat(v).astimezone(PARIS).strftime("%d/%m/%Y %H:%M:%S")
     except Exception:
@@ -42,72 +46,107 @@ def fmt_date(v):
 def normalize_connection(v):
     t = str(v or "").lower()
 
-    if "déconnect" in t or "deconnect" in t or "closed" in t or "offline" in t:
+    if (
+        "déconnect" in t
+        or "deconnect" in t
+        or "closed" in t
+        or "offline" in t
+    ):
         return "Déconnectée", True
 
-    if "connectée" in t or "connectee" in t or "connected" in t:
+    if (
+        "connectée" in t
+        or "connectee" in t
+        or "connected" in t
+    ):
         return "Connectée", False
 
     return clean(v) or "Inconnue", True
 
 
 def parse_last_connection(text):
+
     text = clean(text)
+
     patterns = [
-        r"Dernière\s+connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-        r"Derniere\s+connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-        r"Last\s+connection\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Dernière connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Derniere connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Last connection\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
     ]
 
     for pattern in patterns:
+
         m = re.search(pattern, text, re.IGNORECASE)
-        if m:
-            try:
-                return datetime.strptime(m.group(1), "%d/%m/%Y %H:%M:%S").replace(tzinfo=PARIS)
-            except Exception:
-                return None
+
+        if not m:
+            continue
+
+        try:
+            dt = datetime.strptime(
+                m.group(1),
+                "%d/%m/%Y %H:%M:%S"
+            )
+
+            return dt.replace(tzinfo=PARIS)
+
+        except Exception:
+            pass
 
     return None
 
 
 def geoloc_from_text(text):
-    m = re.search(r"([0-9]{2}\.[0-9]+)[,\s]+([0-9]{1,2}\.[0-9]+)", text)
+
+    m = re.search(
+        r"([0-9]{2}\.[0-9]+)[,\s]+([0-9]{1,2}\.[0-9]+)",
+        text
+    )
+
     if not m:
         return ""
+
     return f"{m.group(1)}, {m.group(2)}"
 
 
 def login(page, cluster):
-    page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
+
+    page.goto(
+        cluster["url"],
+        wait_until="domcontentloaded",
+        timeout=60000
+    )
+
     page.wait_for_timeout(3000)
 
-    username = page.locator('input:visible:not([type="password"]):not([type="hidden"])').first
-    password = page.locator('input[type="password"]:visible').first
+    username = page.locator(
+        'input:visible:not([type="password"]):not([type="hidden"])'
+    ).first
+
+    password = page.locator(
+        'input[type="password"]:visible'
+    ).first
 
     username.fill(cluster["login"])
     password.fill(cluster["password"])
+
     page.wait_for_timeout(500)
+
     password.press("Enter")
+
     page.wait_for_timeout(10000)
 
-    body = page.locator("body").inner_text()
-    if "Mot de passe oublié" in body or "Forgot your password" in body:
-        raise Exception("Connexion refusée")
 
+def parse_gateway(values, raw, cluster_name, detail_url=""):
 
-def parse_row_from_values(values, raw, cluster_name, detail_url=""):
     values = [clean(v) for v in values if clean(v)]
 
     if len(values) < 5:
         return None
 
-    raw_low = raw.lower()
-
-    if "list of gateways" in raw_low or "status new" in raw_low or "potential" in raw_low:
-        return None
-
     gateway_id = ""
+
     for v in values:
+
         if re.fullmatch(r"[0-9A-Fa-f]{12,32}", v):
             gateway_id = v
             break
@@ -115,66 +154,80 @@ def parse_row_from_values(values, raw, cluster_name, detail_url=""):
     if not gateway_id:
         return None
 
-    status = "Inconnu"
+    status = ""
+
     for v in values:
-        if v.lower() in ["active", "inactive", "deposée", "déposée", "deposee", "disabled"]:
+
+        if v.lower() in [
+            "active",
+            "inactive",
+            "disabled",
+            "deposée",
+            "déposée",
+        ]:
             status = v
             break
 
+    # IMPORTANT :
+    # on garde UNIQUEMENT Active
+    # sinon Val Vanoise passe à 14
+
+    if status.lower() != "active":
+        return None
+
     connection_raw = ""
+
     for v in values:
+
         low = v.lower()
-        if "connect" in low or "closed" in low or "offline" in low or "déconnect" in low:
+
+        if (
+            "connect" in low
+            or "closed" in low
+            or "offline" in low
+            or "déconnect" in low
+        ):
             connection_raw = v
             break
 
     connection, is_down = normalize_connection(connection_raw)
 
     firmware = ""
+
     for v in values:
         if "mtcdt" in v.lower():
             firmware = v
             break
 
     model = ""
+
     for v in values:
         if "multitech" in v.lower() or "kerlink" in v.lower():
             model = v
             break
 
-    network = ""
-    for v in values:
-        if "lorawan" in v.lower() or "requea" in v.lower():
-            network = v
-            break
-
     geolocation = geoloc_from_text(raw)
 
     name = ""
+
     if "Active" in values:
+
         idx = values.index("Active")
+
         if idx > 0:
             name = values[idx - 1]
 
-    if not name or name == gateway_id:
-        name = values[0] if values[0] != gateway_id else gateway_id
+    if not name:
+        name = gateway_id
 
     city = ""
+
     if firmware and firmware in values:
+
         idx = values.index(firmware)
+
         if len(values) > idx + 1:
             city = values[idx + 1]
-
-    if not city:
-        for v in reversed(values):
-            if (
-                v
-                and v not in [name, gateway_id, model, connection_raw, network, firmware, status]
-                and not re.search(r"[0-9]{2}\.[0-9]+", v)
-                and len(v) < 80
-            ):
-                city = v
-                break
 
     return {
         "cluster": cluster_name,
@@ -183,74 +236,65 @@ def parse_row_from_values(values, raw, cluster_name, detail_url=""):
         "gateway_id": gateway_id,
         "model": model,
         "connection": connection,
-        "network": network,
         "firmware": firmware,
         "city": city,
         "geolocation": geolocation,
         "down": is_down,
-        "last_connection": None,
         "detail_url": detail_url,
+        "last_connection": None,
     }
 
 
-def parse_ajax_html(html_text, cluster_name, base_url):
+def collect_rows(page, cluster):
+
     found = {}
-    rows = re.findall(r"<tr[^>]*>.*?</tr>", html_text, flags=re.I | re.S)
 
-    for row_html in rows:
-        raw = strip_tags(row_html)
-
-        if "iotGateway" not in row_html and not re.search(r"[0-9A-Fa-f]{12,32}", raw):
-            continue
-
-        href = ""
-        m = re.search(r'href="([^"]*(?:/do/Network/iotGateway:|iotGateway:)[^"]+)"', row_html, flags=re.I)
-        if m:
-            href = html.unescape(m.group(1))
-            if href.startswith("/"):
-                href = base_url.rstrip("/") + href
-            elif not href.startswith("http"):
-                href = base_url.rstrip("/") + "/" + href.lstrip("/")
-
-        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.I | re.S)
-        values = [strip_tags(c) for c in cells]
-
-        gateway = parse_row_from_values(values, raw, cluster_name, href)
-        if gateway:
-            found[gateway["gateway_id"]] = gateway
-
-    return found
-
-
-def collect_dom_rows(page, cluster):
-    found = {}
     rows = page.locator("tr")
     count = rows.count()
 
     for i in range(count):
+
         row = rows.nth(i)
+
         raw = clean(row.inner_text())
 
         if not re.search(r"[0-9A-Fa-f]{12,32}", raw):
             continue
 
         cells = row.locator("td")
-        values = [cells.nth(j).inner_text() for j in range(cells.count())]
+
+        values = [
+            cells.nth(j).inner_text()
+            for j in range(cells.count())
+        ]
 
         detail_url = ""
+
         try:
+
             href = row.locator("a").first.get_attribute("href")
+
             if href:
+
                 if href.startswith("/"):
                     detail_url = cluster["url"].rstrip("/") + href
+
                 elif href.startswith("http"):
                     detail_url = href
+
                 else:
-                    detail_url = cluster["url"].rstrip("/") + "/" + href.lstrip("/")
+                    detail_url = cluster["url"].rstrip("/") + "/" + href
+
         except Exception:
             pass
 
-        gateway = parse_row_from_values(values, raw, cluster["name"], detail_url)
+        gateway = parse_gateway(
+            values,
+            raw,
+            cluster["name"],
+            detail_url
+        )
+
         if gateway:
             found[gateway["gateway_id"]] = gateway
 
@@ -258,41 +302,39 @@ def collect_dom_rows(page, cluster):
 
 
 def click_next_page(page):
+
     clicked = page.evaluate("""
         () => {
-            const candidates = Array.from(document.querySelectorAll('a, button, span, div'));
-            const visible = el => {
-                const r = el.getBoundingClientRect();
-                const s = window.getComputedStyle(el);
-                return r.width > 0 && r.height > 0 && s.display !== 'none' && s.visibility !== 'hidden';
-            };
 
-            for (const el of candidates) {
-                const txt = (el.innerText || el.textContent || '').trim().toLowerCase();
-                const cls = (el.className || '').toString().toLowerCase();
-                const title = (el.getAttribute('title') || '').toLowerCase();
-                const aria = (el.getAttribute('aria-label') || '').toLowerCase();
+            const all = Array.from(
+                document.querySelectorAll("a,button,span,div")
+            )
 
-                if (!visible(el)) continue;
-                if (cls.includes('disabled')) continue;
-                if (el.getAttribute('disabled') !== null) continue;
+            for (const el of all) {
+
+                const txt =
+                    (el.innerText || "").trim().toLowerCase()
+
+                const cls =
+                    (el.className || "").toString().toLowerCase()
 
                 if (
-                    txt === 'suivant' ||
-                    txt === 'next' ||
-                    txt === '>' ||
-                    txt === '›' ||
-                    title.includes('suivant') ||
-                    title.includes('next') ||
-                    aria.includes('suivant') ||
-                    aria.includes('next') ||
-                    cls.includes('next')
+                    txt === "suivant"
+                    || txt === ">"
+                    || txt === "›"
+                    || cls.includes("next")
                 ) {
-                    el.click();
-                    return true;
+
+                    if (cls.includes("disabled")) {
+                        continue
+                    }
+
+                    el.click()
+                    return true
                 }
             }
-            return false;
+
+            return false
         }
     """)
 
@@ -302,99 +344,56 @@ def click_next_page(page):
     return clicked
 
 
-def collect_all_gateways(page, cluster, ajax_payloads):
-    seen = {}
-    visited_counts = set()
+def read_last_connection(page, gateway):
 
-    for _ in range(20):
-        for k, v in collect_dom_rows(page, cluster).items():
-            seen[k] = v
-
-        for payload in ajax_payloads:
-            for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
-                seen[k] = v
-
-        signature = "|".join(sorted(seen.keys()))
-        if signature in visited_counts:
-            break
-        visited_counts.add(signature)
-
-        moved = click_next_page(page)
-
-        page.wait_for_timeout(3000)
-
-        for payload in ajax_payloads:
-            for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
-                seen[k] = v
-
-        for k, v in collect_dom_rows(page, cluster).items():
-            seen[k] = v
-
-        if not moved:
-            break
-
-    return seen
-
-
-def read_last_connection(page, cluster, gateway):
-    if gateway.get("detail_url"):
-        try:
-            page.goto(gateway["detail_url"], wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_timeout(5000)
-            body = page.locator("body").inner_text()
-            last = parse_last_connection(body)
-            if last:
-                return last
-        except Exception:
-            pass
+    if not gateway["detail_url"]:
+        return None
 
     try:
-        page.goto(f'{cluster["url"]}/page/Network_Gateways', wait_until="domcontentloaded", timeout=60000)
-        page.wait_for_timeout(7000)
 
-        for _ in range(20):
-            rows = page.locator("tr")
-            count = rows.count()
+        page.goto(
+            gateway["detail_url"],
+            wait_until="domcontentloaded",
+            timeout=60000
+        )
 
-            for i in range(count):
-                row = rows.nth(i)
-                raw = clean(row.inner_text())
+        page.wait_for_timeout(5000)
 
-                if gateway["gateway_id"] not in raw:
-                    continue
+        body = page.locator("body").inner_text()
 
-                link = row.locator("a").first
-                if link.count() > 0:
-                    link.click()
-                else:
-                    row.click()
+        last = parse_last_connection(body)
 
-                page.wait_for_timeout(5000)
-                body = page.locator("body").inner_text()
-                return parse_last_connection(body)
-
-            if not click_next_page(page):
-                break
+        return last
 
     except Exception:
-        pass
-
-    return None
+        return None
 
 
 def apply_history(gateway):
+
     key = gateway["gateway_id"]
 
     if key not in history:
+
         history[key] = {
             "down_since": None,
             "samples": []
         }
 
+    # IMPORTANT :
+    # on prend EXCLUSIVEMENT
+    # la vraie dernière connexion
+
     if gateway["down"]:
+
         if gateway["last_connection"]:
-            history[key]["down_since"] = gateway["last_connection"]
+
+            history[key]["down_since"] = (
+                gateway["last_connection"]
+            )
+
     else:
+
         history[key]["down_since"] = None
 
     history[key]["samples"].append({
@@ -404,79 +403,129 @@ def apply_history(gateway):
 
     history[key]["samples"] = [
         s for s in history[key]["samples"]
-        if (NOW - datetime.fromisoformat(s["time"])).total_seconds() <= 86400
+        if (
+            NOW -
+            datetime.fromisoformat(s["time"])
+        ).total_seconds() <= 86400
     ]
 
     samples = history[key]["samples"]
 
-    gateway["service_24h"] = round(
-        sum(1 for s in samples if s["up"]) / len(samples) * 100,
+    service_24h = round(
+        (
+            sum(1 for s in samples if s["up"])
+            / len(samples)
+        ) * 100,
         1
     ) if samples else 0
 
-    gateway["down_since"] = history[key]["down_since"]
-    gateway["down_hours"] = 0
+    down_hours = 0
 
-    if gateway["down_since"]:
-        start = datetime.fromisoformat(gateway["down_since"])
-        gateway["down_hours"] = round((NOW - start).total_seconds() / 3600, 1)
+    if history[key]["down_since"]:
 
-    gateway["maintenance"] = gateway["down_hours"] >= 24
+        start = datetime.fromisoformat(
+            history[key]["down_since"]
+        )
+
+        down_hours = round(
+            (NOW - start).total_seconds() / 3600,
+            1
+        )
+
+    gateway["down_since"] = (
+        history[key]["down_since"]
+    )
+
+    gateway["down_hours"] = down_hours
+    gateway["service_24h"] = service_24h
+    gateway["maintenance"] = down_hours >= 24
 
     return gateway
 
 
 with sync_playwright() as p:
+
     browser = p.chromium.launch(headless=True)
 
     for cluster in CONFIG:
+
         context = browser.new_context()
         page = context.new_page()
-        ajax_payloads = []
-
-        def on_response(response):
-            try:
-                if "/ajax" in response.url:
-                    txt = response.text()
-                    if "iotGateway" in txt or "mtcdt" in txt or re.search(r"[0-9A-Fa-f]{12,32}", txt):
-                        ajax_payloads.append(txt)
-            except Exception:
-                pass
-
-        page.on("response", on_response)
 
         try:
+
             login(page, cluster)
 
-            page.goto(f'{cluster["url"]}/page/Network_Gateways', wait_until="domcontentloaded", timeout=60000)
+            page.goto(
+                f'{cluster["url"]}/page/Network_Gateways',
+                wait_until="domcontentloaded",
+                timeout=60000
+            )
+
             page.wait_for_timeout(12000)
 
-            seen = collect_all_gateways(page, cluster, ajax_payloads)
+            seen = {}
+
+            visited = set()
+
+            for _ in range(20):
+
+                current = collect_rows(
+                    page,
+                    cluster
+                )
+
+                for k, v in current.items():
+                    seen[k] = v
+
+                sig = "|".join(sorted(seen.keys()))
+
+                if sig in visited:
+                    break
+
+                visited.add(sig)
+
+                moved = click_next_page(page)
+
+                if not moved:
+                    break
 
             for gateway_id, gateway in seen.items():
+
                 if gateway["down"]:
+
                     detail_page = context.new_page()
-                    last = read_last_connection(detail_page, cluster, gateway)
+
+                    last = read_last_connection(
+                        detail_page,
+                        gateway
+                    )
+
                     detail_page.close()
 
                     if last:
-                        gateway["last_connection"] = last.isoformat()
+                        gateway["last_connection"] = (
+                            last.isoformat()
+                        )
 
-                gateways.append(apply_history(gateway))
+                gateways.append(
+                    apply_history(gateway)
+                )
 
         except Exception as e:
+
             gateways.append({
                 "cluster": cluster["name"],
-                "name": "ERREUR CONNEXION",
+                "name": "ERREUR",
                 "status": "Erreur",
                 "gateway_id": "",
                 "model": "",
                 "connection": str(e),
-                "network": "",
                 "firmware": "",
                 "city": "",
                 "geolocation": "",
                 "down": True,
+                "detail_url": "",
                 "last_connection": None,
                 "down_since": None,
                 "down_hours": 0,
@@ -490,46 +539,85 @@ with sync_playwright() as p:
 
 
 with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-    json.dump(history, f, indent=2, ensure_ascii=False)
+    json.dump(
+        history,
+        f,
+        indent=2,
+        ensure_ascii=False
+    )
 
 
-all_gateways = [g for g in gateways if g["status"] != "Erreur"]
-active_gateways = [g for g in all_gateways if str(g["status"]).lower() == "active"]
+active_gateways = gateways
 
-total_all = len(all_gateways)
-total_active = len(active_gateways)
-down = len([g for g in active_gateways if g["down"]])
-ok = total_active - down
-maintenance = len([g for g in active_gateways if g.get("maintenance")])
-service = round(ok / total_active * 100, 1) if total_active else 0
-clusters = sorted(set(g["cluster"] for g in all_gateways))
+total = len(active_gateways)
+
+down = len([
+    g for g in active_gateways
+    if g["down"]
+])
+
+ok = total - down
+
+maintenance = len([
+    g for g in active_gateways
+    if g["maintenance"]
+])
+
+service = round(
+    ok / total * 100,
+    1
+) if total else 0
+
+clusters = sorted(
+    set(g["cluster"] for g in active_gateways)
+)
 
 cluster_stats = {}
+
 for c in clusters:
-    cg_all = [g for g in all_gateways if g["cluster"] == c]
-    cg_active = [g for g in active_gateways if g["cluster"] == c]
-    c_total = len(cg_all)
-    c_active = len(cg_active)
-    c_down = len([g for g in cg_active if g["down"]])
-    c_ok = c_active - c_down
+
+    cg = [
+        g for g in active_gateways
+        if g["cluster"] == c
+    ]
+
+    c_total = len(cg)
+
+    c_down = len([
+        g for g in cg
+        if g["down"]
+    ])
+
+    c_ok = c_total - c_down
+
     cluster_stats[c] = {
         "total": c_total,
-        "active": c_active,
         "ok": c_ok,
         "down": c_down,
-        "service": round(c_ok / c_active * 100, 1) if c_active else 0
+        "service": round(
+            c_ok / c_total * 100,
+            1
+        ) if c_total else 0
     }
 
 
 html_page = f"""
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+>
+
 <title>Monitoring Requea LoRaWAN</title>
 
 <style>
+
 body {{
     background:#0f172a;
     color:white;
@@ -540,7 +628,8 @@ body {{
 
 .cards {{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    grid-template-columns:
+        repeat(auto-fit,minmax(180px,1fr));
     gap:12px;
     margin:20px 0;
 }}
@@ -556,9 +645,17 @@ body {{
     font-weight:bold;
 }}
 
-.green {{ color:#22c55e; }}
-.red {{ color:#ef4444; }}
-.orange {{ color:#f59e0b; }}
+.green {{
+    color:#22c55e;
+}}
+
+.red {{
+    color:#ef4444;
+}}
+
+.orange {{
+    color:#f59e0b;
+}}
 
 button {{
     padding:9px 13px;
@@ -604,54 +701,115 @@ tr.maintenance {{
     border-radius:20px;
 }}
 
-.ok {{ background:#166534; }}
-.ko {{ background:#991b1b; }}
-.warn {{ background:#92400e; }}
+.ok {{
+    background:#166534;
+}}
+
+.ko {{
+    background:#991b1b;
+}}
+
 </style>
 
 <script>
+
 function filterCluster(cluster) {{
-    document.querySelectorAll(".gateway-row").forEach(row => {{
-        row.style.display =
-            cluster === "ALL" || row.dataset.cluster === cluster
-            ? ""
-            : "none";
-    }});
+
+    document
+        .querySelectorAll(".gateway-row")
+        .forEach(row => {{
+
+            row.style.display =
+                cluster === "ALL"
+                || row.dataset.cluster === cluster
+                ? ""
+                : "none"
+        }})
 }}
+
 </script>
+
 </head>
 
 <body>
 
 <h1>📡 Monitoring Requea LoRaWAN</h1>
-<p>Dernière mise à jour : {NOW.strftime("%d/%m/%Y %H:%M")}</p>
+
+<p>
+Dernière mise à jour :
+{NOW.strftime("%d/%m/%Y %H:%M")}
+</p>
 
 <div class="cards">
-<div class="card">Clusters<div class="big">{len(clusters)}</div></div>
-<div class="card">Passerelles totales<div class="big">{total_all}</div></div>
-<div class="card">Passerelles Active<div class="big">{total_active}</div></div>
-<div class="card">Taux service instantané<div class="big green">{service}%</div></div>
-<div class="card">Connectées<div class="big green">{ok}</div></div>
-<div class="card">Défaillantes<div class="big red">{down}</div></div>
-<div class="card">Maintenance >24h<div class="big orange">{maintenance}</div></div>
+
+<div class="card">
+Clusters
+<div class="big">{len(clusters)}</div>
+</div>
+
+<div class="card">
+Passerelles Active
+<div class="big">{total}</div>
+</div>
+
+<div class="card">
+Taux service
+<div class="big green">{service}%</div>
+</div>
+
+<div class="card">
+Connectées
+<div class="big green">{ok}</div>
+</div>
+
+<div class="card">
+Défaillantes
+<div class="big red">{down}</div>
+</div>
+
+<div class="card">
+Maintenance >24h
+<div class="big orange">{maintenance}</div>
+</div>
+
 </div>
 
 <h2>🌍 Synthèse clusters</h2>
+
 <div class="cards">
 """
 
 for c in clusters:
+
     s = cluster_stats[c]
-    color = "green" if s["down"] == 0 else "red"
+
+    color = (
+        "green"
+        if s["down"] == 0
+        else "red"
+    )
 
     html_page += f"""
 <div class="card">
+
 <strong>{esc(c)}</strong>
-<div>Total détecté : {s["total"]}</div>
-<div>Active : {s["active"]}</div>
-<div>Connectées : {s["ok"]}</div>
-<div>Défaillantes : {s["down"]}</div>
-<div class="{color}">Service : {s["service"]}%</div>
+
+<div>
+Passerelles : {s["total"]}
+</div>
+
+<div>
+Connectées : {s["ok"]}
+</div>
+
+<div>
+Défaillantes : {s["down"]}
+</div>
+
+<div class="{color}">
+Service : {s["service"]}%
+</div>
+
 </div>
 """
 
@@ -659,18 +817,27 @@ html_page += """
 </div>
 
 <h2>🌍 Filtre cluster</h2>
-<button onclick="filterCluster('ALL')">Tous</button>
+
+<button onclick="filterCluster('ALL')">
+Tous
+</button>
 """
 
 for c in clusters:
+
     html_page += f"""
-<button onclick="filterCluster('{esc(c)}')">{esc(c)}</button>
+<button onclick="filterCluster('{esc(c)}')">
+{esc(c)}
+</button>
 """
 
 html_page += """
 <h2>🚨 Passerelles à traiter</h2>
+
 <div class="table-wrap">
+
 <table>
+
 <tr>
 <th>Cluster</th>
 <th>Passerelle</th>
@@ -687,24 +854,50 @@ html_page += """
 """
 
 for g in active_gateways:
+
     if not g["down"]:
         continue
 
-    row_class = "maintenance" if g.get("maintenance") else "down"
+    row_class = (
+        "maintenance"
+        if g["maintenance"]
+        else "down"
+    )
 
     html_page += f"""
-<tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+<tr
+    class="gateway-row {row_class}"
+    data-cluster="{esc(g["cluster"])}"
+>
+
 <td>{esc(g["cluster"])}</td>
+
 <td>{esc(g["name"])}</td>
+
 <td>{esc(g["city"])}</td>
+
 <td>{esc(g["geolocation"])}</td>
-<td><span class="badge ko">{esc(g["connection"])}</span></td>
+
+<td>
+<span class="badge ko">
+{esc(g["connection"])}
+</span>
+</td>
+
 <td>{fmt_date(g["last_connection"])}</td>
+
 <td>{fmt_date(g["down_since"])}</td>
+
 <td>{g["down_hours"]} h</td>
+
 <td>{g["service_24h"]}%</td>
-<td>{"OUI" if g.get("maintenance") else "Non"}</td>
+
+<td>
+{"OUI" if g["maintenance"] else "Non"}
+</td>
+
 <td>{esc(g["firmware"])}</td>
+
 </tr>
 """
 
@@ -712,9 +905,12 @@ html_page += """
 </table>
 </div>
 
-<h2>📋 Toutes les passerelles détectées</h2>
+<h2>📋 Toutes les passerelles</h2>
+
 <div class="table-wrap">
+
 <table>
+
 <tr>
 <th>Cluster</th>
 <th>Passerelle</th>
@@ -728,21 +924,52 @@ html_page += """
 </tr>
 """
 
-for g in all_gateways:
-    badge = "ko" if g["down"] else "ok"
-    row_class = "maintenance" if g.get("maintenance") else ("down" if g["down"] else "")
+for g in active_gateways:
+
+    badge = (
+        "ko"
+        if g["down"]
+        else "ok"
+    )
+
+    row_class = (
+        "maintenance"
+        if g["maintenance"]
+        else (
+            "down"
+            if g["down"]
+            else ""
+        )
+    )
 
     html_page += f"""
-<tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+<tr
+    class="gateway-row {row_class}"
+    data-cluster="{esc(g["cluster"])}"
+>
+
 <td>{esc(g["cluster"])}</td>
+
 <td>{esc(g["name"])}</td>
+
 <td>{esc(g["city"])}</td>
+
 <td>{esc(g["geolocation"])}</td>
+
 <td>{esc(g["status"])}</td>
-<td><span class="badge {badge}">{esc(g["connection"])}</span></td>
+
+<td>
+<span class="badge {badge}">
+{esc(g["connection"])}
+</span>
+</td>
+
 <td>{g["service_24h"]}%</td>
+
 <td>{esc(g["firmware"])}</td>
+
 <td>{esc(g["gateway_id"])}</td>
+
 </tr>
 """
 
@@ -754,9 +981,19 @@ html_page += """
 </html>
 """
 
-os.makedirs("public", exist_ok=True)
+os.makedirs(
+    "public",
+    exist_ok=True
+)
 
-with open("public/index.html", "w", encoding="utf-8") as f:
+with open(
+    "public/index.html",
+    "w",
+    encoding="utf-8"
+) as f:
+
     f.write(html_page)
 
-print(f"Dashboard généré : {total_all} passerelles détectées, {total_active} actives")
+print(
+    f"Dashboard généré : {total} passerelles actives"
+)
