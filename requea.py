@@ -22,7 +22,7 @@ def esc(v):
 
 
 def clean(v):
-    return " ".join(str(v or "").replace("\n", " ").split()).strip()
+    return " ".join(str(v or "").replace("\n", " ").replace("\xa0", " ").split()).strip()
 
 
 def fmt_date(v):
@@ -44,16 +44,23 @@ def normalize_connection(v):
 
 
 def parse_last_connection(text):
-    m = re.search(
-        r"Dernière connexion\s*:\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-        text
-    )
-    if not m:
-        return None
-    try:
-        return datetime.strptime(m.group(1), "%d/%m/%Y %H:%M:%S").replace(tzinfo=PARIS)
-    except Exception:
-        return None
+    text = clean(text)
+
+    patterns = [
+        r"Dernière\s+connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Derniere\s+connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Last\s+connection\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+    ]
+
+    for pattern in patterns:
+        m = re.search(pattern, text, re.IGNORECASE)
+        if m:
+            try:
+                return datetime.strptime(m.group(1), "%d/%m/%Y %H:%M:%S").replace(tzinfo=PARIS)
+            except Exception:
+                return None
+
+    return None
 
 
 def geoloc_from_text(text):
@@ -149,7 +156,6 @@ def parse_row_from_cells(cells, raw, cluster_name):
     geolocation = geoloc_from_text(raw)
 
     name = ""
-    # Nom = cellule avant Active si elle existe, sinon identifiant
     try:
         active_idx = values.index("Active")
         if active_idx > 0:
@@ -158,7 +164,6 @@ def parse_row_from_cells(cells, raw, cluster_name):
         pass
 
     if not name or name == gateway_id:
-        # Certains clusters mettent l’identifiant dans la colonne nom
         name = values[0] if values[0] != "Active" else gateway_id
 
     city = ""
@@ -192,6 +197,45 @@ def parse_row_from_cells(cells, raw, cluster_name):
         "down": is_down,
         "last_connection": None
     }
+
+
+def click_gateway_and_get_last_connection(page, gateway_id):
+    try:
+        rows = page.locator("tr")
+        count = rows.count()
+
+        for i in range(count):
+            row = rows.nth(i)
+            raw = clean(row.inner_text())
+
+            if gateway_id not in raw:
+                continue
+
+            link = row.locator("a").first
+
+            if link.count() > 0:
+                link.click()
+            else:
+                row.click()
+
+            page.wait_for_timeout(5000)
+
+            body = page.locator("body").inner_text()
+            last = parse_last_connection(body)
+
+            page.go_back(wait_until="domcontentloaded")
+            page.wait_for_timeout(7000)
+
+            return last
+
+    except Exception:
+        try:
+            page.go_back(wait_until="domcontentloaded")
+            page.wait_for_timeout(7000)
+        except Exception:
+            pass
+
+    return None
 
 
 with sync_playwright() as p:
@@ -234,30 +278,25 @@ with sync_playwright() as p:
                     if not gateway:
                         continue
 
-                    seen[gateway["gateway_id"]] = (gateway, row)
+                    seen[gateway["gateway_id"]] = gateway
 
                 scroll_all(page)
                 page.wait_for_timeout(2500)
 
-            for gateway_id, item in seen.items():
-                gateway, row = item
+            for gateway_id, gateway in seen.items():
 
                 if gateway["down"]:
-                    try:
-                        link = row.locator("a").first
-                        link.click()
-                        page.wait_for_timeout(5000)
+                    page.goto(
+                        f'{cluster["url"]}/page/Network_Gateways',
+                        wait_until="domcontentloaded",
+                        timeout=60000
+                    )
+                    page.wait_for_timeout(8000)
 
-                        detail = page.locator("body").inner_text()
-                        last = parse_last_connection(detail)
+                    last = click_gateway_and_get_last_connection(page, gateway_id)
 
-                        if last:
-                            gateway["last_connection"] = last.isoformat()
-
-                        page.go_back(wait_until="domcontentloaded")
-                        page.wait_for_timeout(7000)
-                    except Exception:
-                        pass
+                    if last:
+                        gateway["last_connection"] = last.isoformat()
 
                 key = gateway["gateway_id"]
 
