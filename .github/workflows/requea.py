@@ -3,14 +3,7 @@ import json
 from datetime import datetime
 from playwright.sync_api import sync_playwright
 
-CONFIG = [
-    {
-        "name": "Valvanoise",
-        "url": "https://valvanoise.requea.com",
-        "login": "julien.ronjat@sogetrel.fr",
-        "password": "Virus@334246"
-    }
-]
+CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
 
 all_gateways = []
 
