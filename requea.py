@@ -599,145 +599,514 @@ html_page = f"""
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Monitoring Requea</title>
 
 <style>
+
+:root {{
+    --bg:#f5f7fb;
+    --card:rgba(255,255,255,.58);
+    --card-strong:rgba(255,255,255,.78);
+    --line:rgba(255,255,255,.65);
+    --text:#0f172a;
+    --muted:#64748b;
+    --shadow:0 20px 60px rgba(15,23,42,.12);
+
+    --blue:#3b82f6;
+    --green:#10b981;
+    --red:#ef4444;
+    --orange:#f59e0b;
+    --purple:#8b5cf6;
+}}
+
+* {{
+    box-sizing:border-box;
+}}
+
 body {{
-    background:#0f172a;
-    color:white;
-    font-family:Arial;
     margin:0;
-    padding:20px;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+    background:
+        radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(139,92,246,.16), transparent 30%),
+        linear-gradient(180deg,#ffffff,#eef4ff);
+    color:var(--text);
+    padding:24px;
+}}
+
+.container {{
+    max-width:1600px;
+    margin:auto;
+}}
+
+.hero {{
+    background:rgba(255,255,255,.45);
+    backdrop-filter:blur(28px) saturate(180%);
+    -webkit-backdrop-filter:blur(28px) saturate(180%);
+    border:1px solid rgba(255,255,255,.7);
+    box-shadow:var(--shadow);
+    border-radius:34px;
+    padding:34px;
+    margin-bottom:24px;
+}}
+
+.title {{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}}
+
+.logo {{
+    width:70px;
+    height:70px;
+    border-radius:24px;
+    background:linear-gradient(135deg,#60a5fa,#8b5cf6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:34px;
+    color:white;
+    box-shadow:0 10px 30px rgba(59,130,246,.35);
+}}
+
+h1 {{
+    margin:0;
+    font-size:40px;
+    letter-spacing:-1px;
+}}
+
+.subtitle {{
+    color:var(--muted);
+    margin-top:4px;
 }}
 
 .cards {{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:16px;
-    margin-bottom:24px;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+    margin:28px 0;
 }}
 
 .card {{
-    background:#1e293b;
-    border-radius:16px;
-    padding:20px;
+    position:relative;
+    overflow:hidden;
+    padding:24px;
+    border-radius:28px;
+    color:white;
+    min-height:160px;
+    box-shadow:0 18px 45px rgba(15,23,42,.14);
 }}
 
-.big {{
-    font-size:34px;
-    font-weight:bold;
+.card::before {{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(145deg,rgba(255,255,255,.25),rgba(255,255,255,.05));
 }}
 
-.green {{ color:#22c55e; }}
-.red {{ color:#ef4444; }}
-.orange {{ color:#f59e0b; }}
-
-table {{
-    width:100%;
-    border-collapse:collapse;
-    min-width:1500px;
+.card > * {{
+    position:relative;
+    z-index:2;
 }}
 
-th {{
-    background:#334155;
-    padding:12px;
-    text-align:left;
+.card .icon {{
+    width:52px;
+    height:52px;
+    border-radius:18px;
+    background:rgba(255,255,255,.22);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    margin-bottom:18px;
 }}
 
-td {{
-    padding:12px;
-    border-bottom:1px solid #334155;
+.card .label {{
+    font-size:15px;
+    font-weight:700;
+}}
+
+.card .big {{
+    font-size:42px;
+    font-weight:900;
+    margin-top:8px;
+}}
+
+.blue {{
+    background:linear-gradient(135deg,#3b82f6,#60a5fa);
+}}
+
+.green {{
+    background:linear-gradient(135deg,#10b981,#34d399);
+}}
+
+.red {{
+    background:linear-gradient(135deg,#ef4444,#fb7185);
+}}
+
+.orange {{
+    background:linear-gradient(135deg,#f59e0b,#fbbf24);
+}}
+
+.purple {{
+    background:linear-gradient(135deg,#8b5cf6,#a78bfa);
+}}
+
+.cyan {{
+    background:linear-gradient(135deg,#06b6d4,#67e8f9);
+}}
+
+.panel {{
+    background:var(--card);
+    backdrop-filter:blur(28px);
+    -webkit-backdrop-filter:blur(28px);
+    border:1px solid var(--line);
+    border-radius:32px;
+    box-shadow:var(--shadow);
+    padding:24px;
+    margin-bottom:24px;
+}}
+
+.panel-title {{
+    font-size:22px;
+    font-weight:800;
+    margin-bottom:18px;
+}}
+
+.segmented {{
+    position:relative;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    background:rgba(255,255,255,.65);
+    padding:8px;
+    border-radius:999px;
+    width:max-content;
+    border:1px solid rgba(255,255,255,.8);
+}}
+
+.segmented button {{
+    position:relative;
+    z-index:2;
+    border:0;
+    background:transparent;
+    color:#334155;
+    font-weight:700;
+    padding:12px 20px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:.25s;
+}}
+
+.segmented button.active {{
+    color:white;
+}}
+
+.slider {{
+    position:absolute;
+    top:8px;
+    left:8px;
+    height:calc(100% - 16px);
+    border-radius:999px;
+    background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+    transition:.3s cubic-bezier(.2,.8,.2,1);
+    z-index:1;
+    box-shadow:0 10px 25px rgba(59,130,246,.35);
 }}
 
 .table-wrap {{
     overflow:auto;
-    margin-bottom:40px;
+    border-radius:26px;
+    border:1px solid rgba(255,255,255,.8);
+}}
+
+table {{
+    width:100%;
+    min-width:1500px;
+    border-collapse:collapse;
+}}
+
+th {{
+    background:rgba(255,255,255,.75);
+    backdrop-filter:blur(20px);
+    color:#475569;
+    padding:16px;
+    text-align:left;
+    font-size:13px;
+}}
+
+td {{
+    padding:16px;
+    border-bottom:1px solid rgba(148,163,184,.16);
+    white-space:nowrap;
+}}
+
+tr:hover {{
+    background:rgba(255,255,255,.55);
 }}
 
 .badge {{
-    padding:6px 10px;
+    padding:8px 12px;
     border-radius:999px;
+    font-size:12px;
+    font-weight:800;
 }}
 
-.ok {{ background:#166534; }}
-.ko {{ background:#991b1b; }}
-
-tr.down {{ background:#451a1a; }}
-tr.maintenance {{ background:#7f1d1d; }}
-
-button {{
-    border:0;
-    padding:10px 14px;
-    border-radius:12px;
-    margin-right:6px;
-    margin-bottom:10px;
+.ok {{
+    background:#dcfce7;
+    color:#166534;
 }}
+
+.ko {{
+    background:#fee2e2;
+    color:#991b1b;
+}}
+
+.down {{
+    background:rgba(254,226,226,.45);
+}}
+
+.maintenance {{
+    background:rgba(255,237,213,.55);
+}}
+
+.cluster-grid {{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+}}
+
+.cluster-card {{
+    background:rgba(255,255,255,.7);
+    border-radius:24px;
+    padding:20px;
+    border:1px solid rgba(255,255,255,.8);
+}}
+
+.cluster-card h3 {{
+    margin-top:0;
+}}
+
+.progress {{
+    height:10px;
+    background:#e2e8f0;
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:12px;
+}}
+
+.progress span {{
+    display:block;
+    height:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg,#3b82f6,#60a5fa);
+}}
+
+@media(max-width:900px) {{
+
+    body {{
+        padding:10px;
+    }}
+
+    .hero,
+    .panel {{
+        border-radius:24px;
+        padding:18px;
+    }}
+
+    h1 {{
+        font-size:28px;
+    }}
+
+    .cards {{
+        grid-template-columns:1fr 1fr;
+    }}
+
+}}
+
 </style>
 
 <script>
-function filterCluster(cluster) {{
-    document.querySelectorAll(".gateway-row").forEach(row => {{
-        row.style.display =
-            cluster === "ALL" || row.dataset.cluster === cluster
-            ? ""
-            : "none";
+
+function initSegmented() {{
+
+    const buttons = document.querySelectorAll(".seg-btn");
+    const slider = document.querySelector(".slider");
+
+    function move(btn) {{
+        slider.style.width = btn.offsetWidth + "px";
+        slider.style.transform = `translateX(${{btn.offsetLeft}}px)`;
+    }}
+
+    buttons.forEach(btn => {{
+
+        btn.addEventListener("click", () => {{
+
+            buttons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            move(btn);
+
+            const cluster = btn.dataset.cluster;
+
+            document.querySelectorAll(".gateway-row").forEach(row => {{
+
+                row.style.display =
+                    cluster === "ALL" || row.dataset.cluster === cluster
+                    ? ""
+                    : "none";
+
+            }});
+
+        }});
+
     }});
+
+    move(document.querySelector(".seg-btn.active"));
 }}
+
+window.addEventListener("load", initSegmented);
+
 </script>
+
 </head>
 
 <body>
 
-<h1>📡 Monitoring Requea LoRaWAN</h1>
-<p>Dernière mise à jour : {NOW.strftime("%d/%m/%Y %H:%M")}</p>
+<div class="container">
 
-<div class="cards">
-<div class="card">Clusters<div class="big">{len(clusters)}</div></div>
-<div class="card">Passerelles<div class="big">{total}</div></div>
-<div class="card">Connectées<div class="big green">{ok}</div></div>
-<div class="card">Déconnectées<div class="big red">{down}</div></div>
-<div class="card">Service<div class="big green">{service}%</div></div>
-<div class="card">Maintenance >24h<div class="big orange">{maintenance}</div></div>
+<div class="hero">
+
+<div class="title">
+<div class="logo">📡</div>
+
+<div>
+<h1>Monitoring Requea</h1>
+<div class="subtitle">
+Infrastructure LoRaWAN — Dashboard supervision temps réel
+</div>
+</div>
 </div>
 
-<h2>🌍 Synthèse clusters</h2>
 <div class="cards">
+
+<div class="card blue">
+<div class="icon">🌐</div>
+<div class="label">Clusters</div>
+<div class="big">{len(clusters)}</div>
+</div>
+
+<div class="card cyan">
+<div class="icon">📡</div>
+<div class="label">Passerelles</div>
+<div class="big">{total}</div>
+</div>
+
+<div class="card green">
+<div class="icon">✅</div>
+<div class="label">Connectées</div>
+<div class="big">{ok}</div>
+</div>
+
+<div class="card red">
+<div class="icon">🚨</div>
+<div class="label">Déconnectées</div>
+<div class="big">{down}</div>
+</div>
+
+<div class="card orange">
+<div class="icon">📈</div>
+<div class="label">Service</div>
+<div class="big">{service}%</div>
+</div>
+
+<div class="card purple">
+<div class="icon">🛠</div>
+<div class="label">Maintenance</div>
+<div class="big">{maintenance}</div>
+</div>
+
+</div>
+
+</div>
+
+<div class="panel">
+
+<div class="panel-title">
+🌍 Filtre clusters
+</div>
+
+<div class="segmented">
+
+<div class="slider"></div>
+
+<button class="seg-btn active" data-cluster="ALL">
+Tous
+</button>
 """
 
 for c in clusters:
+    html_page += f"""
+<button class="seg-btn" data-cluster="{esc(c)}">
+{esc(c)}
+</button>
+"""
+
+html_page += """
+</div>
+
+</div>
+
+<div class="panel">
+
+<div class="panel-title">
+🌍 Synthèse clusters
+</div>
+
+<div class="cluster-grid">
+"""
+
+for c in clusters:
+
     s = cluster_stats[c]
 
     html_page += f"""
-<div class="card">
-<strong>{esc(c)}</strong>
-<div>Passerelles : {s["total"]}</div>
-<div>Connectées : {s["ok"]}</div>
-<div>Déconnectées : {s["down"]}</div>
-<div>Service : {s["service"]}%</div>
+<div class="cluster-card">
+
+<h3>{esc(c)}</h3>
+
+<div>Passerelles : <strong>{s["total"]}</strong></div>
+<div>Connectées : <strong>{s["ok"]}</strong></div>
+<div>Déconnectées : <strong>{s["down"]}</strong></div>
+<div>Service : <strong>{s["service"]}%</strong></div>
+
+<div class="progress">
+<span style="width:{s["service"]}%"></span>
+</div>
+
 </div>
 """
 
 html_page += """
 </div>
 
-<h2>🌍 Filtre cluster</h2>
-<button onclick="filterCluster('ALL')">Tous</button>
-"""
+</div>
 
-for c in clusters:
-    html_page += f"""
-<button onclick="filterCluster('{esc(c)}')">{esc(c)}</button>
-"""
+<div class="panel">
 
-html_page += """
-<h2>🚨 Passerelles HS</h2>
+<div class="panel-title">
+🚨 Passerelles HS
+</div>
+
 <div class="table-wrap">
 <table>
+
 <tr>
 <th>Cluster</th>
 <th>Passerelle</th>
 <th>Ville</th>
-<th>Coordonnées GPS</th>
+<th>GPS</th>
 <th>Connexion</th>
 <th>Dernière connexion</th>
 <th>HS depuis</th>
@@ -748,6 +1117,7 @@ html_page += """
 """
 
 for g in active_gateways:
+
     if not g["down"]:
         continue
 
@@ -755,16 +1125,24 @@ for g in active_gateways:
 
     html_page += f"""
 <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+
 <td>{esc(g["cluster"])}</td>
-<td>{esc(g["name"])}</td>
+<td><strong>{esc(g["name"])}</strong></td>
 <td>{esc(g["city"])}</td>
 <td>{esc(g["geolocation"])}</td>
-<td><span class="badge ko">{esc(g["connection"])}</span></td>
+
+<td>
+<span class="badge ko">
+{esc(g["connection"])}
+</span>
+</td>
+
 <td>{fmt_date(g["last_connection"])}</td>
 <td>{fmt_date(g["down_since"])}</td>
 <td>{g["down_hours"]} h</td>
 <td>{g["service_24h"]}%</td>
 <td>{esc(g["firmware"])}</td>
+
 </tr>
 """
 
@@ -772,14 +1150,22 @@ html_page += """
 </table>
 </div>
 
-<h2>📋 Toutes les passerelles</h2>
+</div>
+
+<div class="panel">
+
+<div class="panel-title">
+📋 Toutes les passerelles
+</div>
+
 <div class="table-wrap">
 <table>
+
 <tr>
 <th>Cluster</th>
 <th>Passerelle</th>
 <th>Ville</th>
-<th>Coordonnées GPS</th>
+<th>GPS</th>
 <th>Statut</th>
 <th>Connexion</th>
 <th>Connecté depuis</th>
@@ -790,27 +1176,52 @@ html_page += """
 """
 
 for g in active_gateways:
+
     badge = "ko" if g["down"] else "ok"
-    row_class = "maintenance" if g["maintenance"] else ("down" if g["down"] else "")
+
+    row_class = (
+        "maintenance"
+        if g["maintenance"]
+        else ("down" if g["down"] else "")
+    )
+
     connected_since = g["connected_since"] if not g["down"] else None
 
     html_page += f"""
 <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+
 <td>{esc(g["cluster"])}</td>
-<td>{esc(g["name"])}</td>
+<td><strong>{esc(g["name"])}</strong></td>
 <td>{esc(g["city"])}</td>
 <td>{esc(g["geolocation"])}</td>
-<td>{esc(g["status"])}</td>
-<td><span class="badge {badge}">{esc(g["connection"])}</span></td>
+
+<td>
+<span class="badge ok">
+{esc(g["status"])}
+</span>
+</td>
+
+<td>
+<span class="badge {badge}">
+{esc(g["connection"])}
+</span>
+</td>
+
 <td>{fmt_date(connected_since)}</td>
 <td>{fmt_date(g["last_connection"])}</td>
 <td>{esc(g["firmware"])}</td>
 <td>{esc(g["gateway_id"])}</td>
+
 </tr>
 """
 
 html_page += """
+
 </table>
+</div>
+
+</div>
+
 </div>
 
 </body>
