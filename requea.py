@@ -46,7 +46,7 @@ def normalize_connection(v):
 def parse_last_connection(text):
     m = re.search(
         r"Dernière connexion\s*:\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-        text,
+        text
     )
     if not m:
         return None
@@ -84,20 +84,28 @@ def login(page, cluster):
 def scroll_all(page):
     page.evaluate("""
         () => {
-            window.scrollBy(0, 900);
+            window.scrollTo(0, document.body.scrollHeight);
             document.querySelectorAll('*').forEach(e => {
                 if (e.scrollHeight > e.clientHeight) {
-                    e.scrollTop += 900;
+                    e.scrollTop = e.scrollHeight;
                 }
             });
         }
     """)
 
 
-def parse_gateway(values, raw, cluster_name):
-    values = [clean(v) for v in values if clean(v) and clean(v) not in [">", "›"]]
+def parse_row_from_cells(cells, raw, cluster_name):
+    values = [clean(v) for v in cells if clean(v)]
 
-    if "Active" not in raw:
+    if len(values) < 7:
+        return None
+
+    raw_low = raw.lower()
+
+    if "active" not in raw_low:
+        return None
+
+    if "list of gateways" in raw_low or "status new" in raw_low or "potential" in raw_low:
         return None
 
     gateway_id = ""
@@ -109,14 +117,7 @@ def parse_gateway(values, raw, cluster_name):
     if not gateway_id:
         return None
 
-    name = ""
-    if "Active" in values:
-        idx = values.index("Active")
-        if idx > 0:
-            name = values[idx - 1]
-
-    if not name or name == gateway_id:
-        name = values[0]
+    status = "Active"
 
     connection_raw = ""
     for v in values:
@@ -147,17 +148,30 @@ def parse_gateway(values, raw, cluster_name):
 
     geolocation = geoloc_from_text(raw)
 
+    name = ""
+    # Nom = cellule avant Active si elle existe, sinon identifiant
+    try:
+        active_idx = values.index("Active")
+        if active_idx > 0:
+            name = values[active_idx - 1]
+    except Exception:
+        pass
+
+    if not name or name == gateway_id:
+        # Certains clusters mettent l’identifiant dans la colonne nom
+        name = values[0] if values[0] != "Active" else gateway_id
+
     city = ""
     if firmware and firmware in values:
-        i = values.index(firmware)
-        if len(values) > i + 1:
-            city = values[i + 1]
+        idx = values.index(firmware)
+        if len(values) > idx + 1:
+            city = values[idx + 1]
 
     if not city:
         for v in reversed(values):
             if (
                 v
-                and v not in [name, gateway_id, model, connection_raw, network, firmware]
+                and v not in [name, status, gateway_id, model, connection_raw, network, firmware]
                 and not re.search(r"[0-9]{2}\.[0-9]+", v)
                 and len(v) < 80
             ):
@@ -167,7 +181,7 @@ def parse_gateway(values, raw, cluster_name):
     return {
         "cluster": cluster_name,
         "name": name,
-        "status": "Active",
+        "status": status,
         "gateway_id": gateway_id,
         "model": model,
         "connection": connection,
@@ -176,69 +190,8 @@ def parse_gateway(values, raw, cluster_name):
         "city": city,
         "geolocation": geolocation,
         "down": is_down,
-        "last_connection": None,
+        "last_connection": None
     }
-
-
-def read_last_connection_from_detail(page, row):
-    try:
-        link = row.locator("a").first
-        if link.count() == 0:
-            return None
-
-        link.click()
-        page.wait_for_timeout(5000)
-
-        body = page.locator("body").inner_text()
-        last = parse_last_connection(body)
-
-        page.go_back(wait_until="domcontentloaded")
-        page.wait_for_timeout(6000)
-
-        return last
-    except Exception:
-        try:
-            page.go_back(wait_until="domcontentloaded")
-            page.wait_for_timeout(6000)
-        except Exception:
-            pass
-        return None
-
-
-def collect_gateways(page, cluster):
-    seen = {}
-
-    for _ in range(90):
-        rows = page.locator("tr")
-        count = rows.count()
-
-        for i in range(count):
-            row = rows.nth(i)
-            raw = clean(row.inner_text())
-
-            if "Active" not in raw:
-                continue
-
-            cells = row.locator("td")
-            values = [cells.nth(j).inner_text() for j in range(cells.count())]
-
-            gateway = parse_gateway(values, raw, cluster["name"])
-            if not gateway:
-                continue
-
-            if gateway["gateway_id"] not in seen:
-                if gateway["down"]:
-                    last = read_last_connection_from_detail(page, row)
-                    if last:
-                        gateway["last_connection"] = last.isoformat()
-
-                seen[gateway["gateway_id"]] = gateway
-
-        scroll_all(page)
-        page.keyboard.press("PageDown")
-        page.wait_for_timeout(700)
-
-    return list(seen.values())
 
 
 with sync_playwright() as p:
@@ -253,17 +206,66 @@ with sync_playwright() as p:
             page.goto(
                 f'{cluster["url"]}/page/Network_Gateways',
                 wait_until="domcontentloaded",
-                timeout=60000,
+                timeout=60000
             )
-            page.wait_for_timeout(15000)
+            page.wait_for_timeout(12000)
 
-            cluster_gateways = collect_gateways(page, cluster)
+            seen = {}
 
-            for gateway in cluster_gateways:
+            for _ in range(10):
+                rows = page.locator("tr")
+                count = rows.count()
+
+                for i in range(count):
+                    row = rows.nth(i)
+                    raw = clean(row.inner_text())
+
+                    if "Active" not in raw:
+                        continue
+
+                    cells = row.locator("td")
+                    cell_values = [
+                        cells.nth(j).inner_text()
+                        for j in range(cells.count())
+                    ]
+
+                    gateway = parse_row_from_cells(cell_values, raw, cluster["name"])
+
+                    if not gateway:
+                        continue
+
+                    seen[gateway["gateway_id"]] = (gateway, row)
+
+                scroll_all(page)
+                page.wait_for_timeout(2500)
+
+            for gateway_id, item in seen.items():
+                gateway, row = item
+
+                if gateway["down"]:
+                    try:
+                        link = row.locator("a").first
+                        link.click()
+                        page.wait_for_timeout(5000)
+
+                        detail = page.locator("body").inner_text()
+                        last = parse_last_connection(detail)
+
+                        if last:
+                            gateway["last_connection"] = last.isoformat()
+
+                        page.go_back(wait_until="domcontentloaded")
+                        page.wait_for_timeout(7000)
+                    except Exception:
+                        pass
+
                 key = gateway["gateway_id"]
 
                 if key not in history:
-                    history[key] = {"down_since": None, "samples": []}
+                    history[key] = {
+                        "down_since": None,
+                        "samples": []
+                    }
 
                 if gateway["down"]:
                     if gateway["last_connection"]:
@@ -275,7 +277,7 @@ with sync_playwright() as p:
 
                 history[key]["samples"].append({
                     "time": NOW.isoformat(),
-                    "up": not gateway["down"],
+                    "up": not gateway["down"]
                 })
 
                 history[key]["samples"] = [
@@ -284,23 +286,42 @@ with sync_playwright() as p:
                 ]
 
                 samples = history[key]["samples"]
-                gateway["service_24h"] = (
-                    round(sum(1 for s in samples if s["up"]) / len(samples) * 100, 1)
-                    if samples else 0
-                )
+                service_24h = round(
+                    sum(1 for s in samples if s["up"]) / len(samples) * 100,
+                    1
+                ) if samples else 0
 
-                gateway["down_hours"] = 0
+                down_hours = 0
                 if history[key]["down_since"]:
                     start = datetime.fromisoformat(history[key]["down_since"])
-                    gateway["down_hours"] = round((NOW - start).total_seconds() / 3600, 1)
+                    down_hours = round((NOW - start).total_seconds() / 3600, 1)
 
                 gateway["down_since"] = history[key]["down_since"]
-                gateway["maintenance"] = gateway["down_hours"] >= 24
+                gateway["down_hours"] = down_hours
+                gateway["service_24h"] = service_24h
+                gateway["maintenance"] = down_hours >= 24
 
                 gateways.append(gateway)
 
-        except Exception:
-            pass
+        except Exception as e:
+            gateways.append({
+                "cluster": cluster["name"],
+                "name": "ERREUR CONNEXION",
+                "status": "Erreur",
+                "gateway_id": "",
+                "model": "",
+                "connection": str(e),
+                "network": "",
+                "firmware": "",
+                "city": "",
+                "geolocation": "",
+                "down": True,
+                "last_connection": None,
+                "down_since": None,
+                "down_hours": 0,
+                "service_24h": 0,
+                "maintenance": False
+            })
 
         page.close()
 
@@ -311,25 +332,26 @@ with open(HISTORY_FILE, "w", encoding="utf-8") as f:
     json.dump(history, f, indent=2, ensure_ascii=False)
 
 
-active = [g for g in gateways if g["status"] == "Active"]
-total = len(active)
-down = len([g for g in active if g["down"]])
+active_gateways = [g for g in gateways if g["status"] == "Active"]
+total = len(active_gateways)
+down = len([g for g in active_gateways if g["down"]])
 ok = total - down
-maintenance = len([g for g in active if g.get("maintenance")])
+maintenance = len([g for g in active_gateways if g.get("maintenance")])
 service = round(ok / total * 100, 1) if total else 0
-clusters = sorted(set(g["cluster"] for g in active))
+clusters = sorted(set(g["cluster"] for g in active_gateways))
 
 cluster_stats = {}
 for c in clusters:
-    cg = [g for g in active if g["cluster"] == c]
+    cg = [g for g in active_gateways if g["cluster"] == c]
     c_total = len(cg)
     c_down = len([g for g in cg if g["down"]])
     c_ok = c_total - c_down
+    c_service = round(c_ok / c_total * 100, 1) if c_total else 0
     cluster_stats[c] = {
         "total": c_total,
         "ok": c_ok,
         "down": c_down,
-        "service": round(c_ok / c_total * 100, 1) if c_total else 0,
+        "service": c_service
     }
 
 
@@ -339,7 +361,8 @@ html_page = f"""
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Monitoring Requea</title>
+<title>Monitoring Requea LoRaWAN</title>
+
 <style>
 body {{
     background:#0f172a;
@@ -493,7 +516,7 @@ html_page += """
 </tr>
 """
 
-for g in active:
+for g in active_gateways:
     if not g["down"]:
         continue
 
@@ -535,7 +558,7 @@ html_page += """
 </tr>
 """
 
-for g in active:
+for g in active_gateways:
     badge = "ko" if g["down"] else "ok"
     row_class = "maintenance" if g.get("maintenance") else ("down" if g["down"] else "")
 
