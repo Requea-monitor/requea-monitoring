@@ -22,13 +22,7 @@ def esc(v):
 
 
 def clean(v):
-    return " ".join(
-        str(v or "")
-        .replace("\n", " ")
-        .replace("\t", " ")
-        .replace("\xa0", " ")
-        .split()
-    ).strip()
+    return " ".join(str(v or "").replace("\n", " ").replace("\t", " ").replace("\xa0", " ").split()).strip()
 
 
 def strip_tags(v):
@@ -54,12 +48,11 @@ def normalize_connection(v):
     if "connectée" in t or "connectee" in t or "connected" in t:
         return "Connectée", False
 
-    return clean(v), False
+    return clean(v) or "Inconnue", True
 
 
 def parse_last_connection(text):
     text = clean(text)
-
     patterns = [
         r"Dernière\s+connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
         r"Derniere\s+connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
@@ -88,13 +81,8 @@ def login(page, cluster):
     page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(3000)
 
-    username = page.locator(
-        'input:visible:not([type="password"]):not([type="hidden"])'
-    ).first
-
-    password = page.locator(
-        'input[type="password"]:visible'
-    ).first
+    username = page.locator('input:visible:not([type="password"]):not([type="hidden"])').first
+    password = page.locator('input[type="password"]:visible').first
 
     username.fill(cluster["login"])
     password.fill(cluster["password"])
@@ -103,7 +91,6 @@ def login(page, cluster):
     page.wait_for_timeout(10000)
 
     body = page.locator("body").inner_text()
-
     if "Mot de passe oublié" in body or "Forgot your password" in body:
         raise Exception("Connexion refusée")
 
@@ -111,13 +98,10 @@ def login(page, cluster):
 def parse_row_from_values(values, raw, cluster_name, detail_url=""):
     values = [clean(v) for v in values if clean(v)]
 
-    if len(values) < 6:
+    if len(values) < 5:
         return None
 
     raw_low = raw.lower()
-
-    if "active" not in raw_low:
-        return None
 
     if "list of gateways" in raw_low or "status new" in raw_low or "potential" in raw_low:
         return None
@@ -130,6 +114,12 @@ def parse_row_from_values(values, raw, cluster_name, detail_url=""):
 
     if not gateway_id:
         return None
+
+    status = "Inconnu"
+    for v in values:
+        if v.lower() in ["active", "inactive", "deposée", "déposée", "deposee", "disabled"]:
+            status = v
+            break
 
     connection_raw = ""
     for v in values:
@@ -161,18 +151,15 @@ def parse_row_from_values(values, raw, cluster_name, detail_url=""):
     geolocation = geoloc_from_text(raw)
 
     name = ""
-    try:
-        active_idx = values.index("Active")
-        if active_idx > 0:
-            name = values[active_idx - 1]
-    except Exception:
-        pass
+    if "Active" in values:
+        idx = values.index("Active")
+        if idx > 0:
+            name = values[idx - 1]
 
     if not name or name == gateway_id:
-        name = values[0] if values[0] != "Active" else gateway_id
+        name = values[0] if values[0] != gateway_id else gateway_id
 
     city = ""
-
     if firmware and firmware in values:
         idx = values.index(firmware)
         if len(values) > idx + 1:
@@ -182,7 +169,7 @@ def parse_row_from_values(values, raw, cluster_name, detail_url=""):
         for v in reversed(values):
             if (
                 v
-                and v not in [name, gateway_id, model, connection_raw, network, firmware]
+                and v not in [name, gateway_id, model, connection_raw, network, firmware, status]
                 and not re.search(r"[0-9]{2}\.[0-9]+", v)
                 and len(v) < 80
             ):
@@ -192,7 +179,7 @@ def parse_row_from_values(values, raw, cluster_name, detail_url=""):
     return {
         "cluster": cluster_name,
         "name": name,
-        "status": "Active",
+        "status": status,
         "gateway_id": gateway_id,
         "model": model,
         "connection": connection,
@@ -208,27 +195,27 @@ def parse_row_from_values(values, raw, cluster_name, detail_url=""):
 
 def parse_ajax_html(html_text, cluster_name, base_url):
     found = {}
-
     rows = re.findall(r"<tr[^>]*>.*?</tr>", html_text, flags=re.I | re.S)
 
     for row_html in rows:
         raw = strip_tags(row_html)
 
-        if "Active" not in raw:
+        if "iotGateway" not in row_html and not re.search(r"[0-9A-Fa-f]{12,32}", raw):
             continue
 
-        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.I | re.S)
-        values = [strip_tags(c) for c in cells]
-
         href = ""
-        m = re.search(r'href="([^"]*/do/Network/iotGateway:[^"]+)"', row_html, flags=re.I)
+        m = re.search(r'href="([^"]*(?:/do/Network/iotGateway:|iotGateway:)[^"]+)"', row_html, flags=re.I)
         if m:
             href = html.unescape(m.group(1))
             if href.startswith("/"):
                 href = base_url.rstrip("/") + href
+            elif not href.startswith("http"):
+                href = base_url.rstrip("/") + "/" + href.lstrip("/")
+
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.I | re.S)
+        values = [strip_tags(c) for c in cells]
 
         gateway = parse_row_from_values(values, raw, cluster_name, href)
-
         if gateway:
             found[gateway["gateway_id"]] = gateway
 
@@ -237,7 +224,6 @@ def parse_ajax_html(html_text, cluster_name, base_url):
 
 def collect_dom_rows(page, cluster):
     found = {}
-
     rows = page.locator("tr")
     count = rows.count()
 
@@ -245,29 +231,26 @@ def collect_dom_rows(page, cluster):
         row = rows.nth(i)
         raw = clean(row.inner_text())
 
-        if "Active" not in raw:
+        if not re.search(r"[0-9A-Fa-f]{12,32}", raw):
             continue
 
         cells = row.locator("td")
-        values = [
-            cells.nth(j).inner_text()
-            for j in range(cells.count())
-        ]
+        values = [cells.nth(j).inner_text() for j in range(cells.count())]
 
         detail_url = ""
-
         try:
             href = row.locator("a").first.get_attribute("href")
             if href:
                 if href.startswith("/"):
                     detail_url = cluster["url"].rstrip("/") + href
-                else:
+                elif href.startswith("http"):
                     detail_url = href
+                else:
+                    detail_url = cluster["url"].rstrip("/") + "/" + href.lstrip("/")
         except Exception:
             pass
 
         gateway = parse_row_from_values(values, raw, cluster["name"], detail_url)
-
         if gateway:
             found[gateway["gateway_id"]] = gateway
 
@@ -309,7 +292,6 @@ def click_next_page(page):
                     return true;
                 }
             }
-
             return false;
         }
     """)
@@ -322,6 +304,7 @@ def click_next_page(page):
 
 def collect_all_gateways(page, cluster, ajax_payloads):
     seen = {}
+    visited_counts = set()
 
     for _ in range(20):
         for k, v in collect_dom_rows(page, cluster).items():
@@ -331,7 +314,10 @@ def collect_all_gateways(page, cluster, ajax_payloads):
             for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
                 seen[k] = v
 
-        before_ids = set(seen.keys())
+        signature = "|".join(sorted(seen.keys()))
+        if signature in visited_counts:
+            break
+        visited_counts.add(signature)
 
         moved = click_next_page(page)
 
@@ -341,30 +327,59 @@ def collect_all_gateways(page, cluster, ajax_payloads):
             for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
                 seen[k] = v
 
-        after_ids = set(seen.keys())
+        for k, v in collect_dom_rows(page, cluster).items():
+            seen[k] = v
 
         if not moved:
-            break
-
-        if before_ids == after_ids:
             break
 
     return seen
 
 
 def read_last_connection(page, cluster, gateway):
-    if not gateway.get("detail_url"):
-        return None
+    if gateway.get("detail_url"):
+        try:
+            page.goto(gateway["detail_url"], wait_until="domcontentloaded", timeout=60000)
+            page.wait_for_timeout(5000)
+            body = page.locator("body").inner_text()
+            last = parse_last_connection(body)
+            if last:
+                return last
+        except Exception:
+            pass
 
     try:
-        page.goto(gateway["detail_url"], wait_until="domcontentloaded", timeout=60000)
-        page.wait_for_timeout(5000)
+        page.goto(f'{cluster["url"]}/page/Network_Gateways', wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(7000)
 
-        body = page.locator("body").inner_text()
-        return parse_last_connection(body)
+        for _ in range(20):
+            rows = page.locator("tr")
+            count = rows.count()
+
+            for i in range(count):
+                row = rows.nth(i)
+                raw = clean(row.inner_text())
+
+                if gateway["gateway_id"] not in raw:
+                    continue
+
+                link = row.locator("a").first
+                if link.count() > 0:
+                    link.click()
+                else:
+                    row.click()
+
+                page.wait_for_timeout(5000)
+                body = page.locator("body").inner_text()
+                return parse_last_connection(body)
+
+            if not click_next_page(page):
+                break
 
     except Exception:
-        return None
+        pass
+
+    return None
 
 
 def apply_history(gateway):
@@ -417,14 +432,13 @@ with sync_playwright() as p:
     for cluster in CONFIG:
         context = browser.new_context()
         page = context.new_page()
-
         ajax_payloads = []
 
         def on_response(response):
             try:
                 if "/ajax" in response.url:
                     txt = response.text()
-                    if "iotGateway" in txt or "mtcdt" in txt or "Active" in txt:
+                    if "iotGateway" in txt or "mtcdt" in txt or re.search(r"[0-9A-Fa-f]{12,32}", txt):
                         ajax_payloads.append(txt)
             except Exception:
                 pass
@@ -434,12 +448,7 @@ with sync_playwright() as p:
         try:
             login(page, cluster)
 
-            page.goto(
-                f'{cluster["url"]}/page/Network_Gateways',
-                wait_until="domcontentloaded",
-                timeout=60000
-            )
-
+            page.goto(f'{cluster["url"]}/page/Network_Gateways', wait_until="domcontentloaded", timeout=60000)
             page.wait_for_timeout(12000)
 
             seen = collect_all_gateways(page, cluster, ajax_payloads)
@@ -484,27 +493,31 @@ with open(HISTORY_FILE, "w", encoding="utf-8") as f:
     json.dump(history, f, indent=2, ensure_ascii=False)
 
 
-active_gateways = [g for g in gateways if g["status"] == "Active"]
-total = len(active_gateways)
+all_gateways = [g for g in gateways if g["status"] != "Erreur"]
+active_gateways = [g for g in all_gateways if str(g["status"]).lower() == "active"]
+
+total_all = len(all_gateways)
+total_active = len(active_gateways)
 down = len([g for g in active_gateways if g["down"]])
-ok = total - down
+ok = total_active - down
 maintenance = len([g for g in active_gateways if g.get("maintenance")])
-service = round(ok / total * 100, 1) if total else 0
-clusters = sorted(set(g["cluster"] for g in active_gateways))
+service = round(ok / total_active * 100, 1) if total_active else 0
+clusters = sorted(set(g["cluster"] for g in all_gateways))
 
 cluster_stats = {}
-
 for c in clusters:
-    cg = [g for g in active_gateways if g["cluster"] == c]
-    c_total = len(cg)
-    c_down = len([g for g in cg if g["down"]])
-    c_ok = c_total - c_down
-
+    cg_all = [g for g in all_gateways if g["cluster"] == c]
+    cg_active = [g for g in active_gateways if g["cluster"] == c]
+    c_total = len(cg_all)
+    c_active = len(cg_active)
+    c_down = len([g for g in cg_active if g["down"]])
+    c_ok = c_active - c_down
     cluster_stats[c] = {
         "total": c_total,
+        "active": c_active,
         "ok": c_ok,
         "down": c_down,
-        "service": round(c_ok / c_total * 100, 1) if c_total else 0
+        "service": round(c_ok / c_active * 100, 1) if c_active else 0
     }
 
 
@@ -593,6 +606,7 @@ tr.maintenance {{
 
 .ok {{ background:#166534; }}
 .ko {{ background:#991b1b; }}
+.warn {{ background:#92400e; }}
 </style>
 
 <script>
@@ -614,7 +628,8 @@ function filterCluster(cluster) {{
 
 <div class="cards">
 <div class="card">Clusters<div class="big">{len(clusters)}</div></div>
-<div class="card">Passerelles Active<div class="big">{total}</div></div>
+<div class="card">Passerelles totales<div class="big">{total_all}</div></div>
+<div class="card">Passerelles Active<div class="big">{total_active}</div></div>
 <div class="card">Taux service instantané<div class="big green">{service}%</div></div>
 <div class="card">Connectées<div class="big green">{ok}</div></div>
 <div class="card">Défaillantes<div class="big red">{down}</div></div>
@@ -632,7 +647,8 @@ for c in clusters:
     html_page += f"""
 <div class="card">
 <strong>{esc(c)}</strong>
-<div>Passerelles : {s["total"]}</div>
+<div>Total détecté : {s["total"]}</div>
+<div>Active : {s["active"]}</div>
 <div>Connectées : {s["ok"]}</div>
 <div>Défaillantes : {s["down"]}</div>
 <div class="{color}">Service : {s["service"]}%</div>
@@ -696,7 +712,7 @@ html_page += """
 </table>
 </div>
 
-<h2>📋 Toutes les passerelles</h2>
+<h2>📋 Toutes les passerelles détectées</h2>
 <div class="table-wrap">
 <table>
 <tr>
@@ -712,7 +728,7 @@ html_page += """
 </tr>
 """
 
-for g in active_gateways:
+for g in all_gateways:
     badge = "ko" if g["down"] else "ok"
     row_class = "maintenance" if g.get("maintenance") else ("down" if g["down"] else "")
 
@@ -743,4 +759,4 @@ os.makedirs("public", exist_ok=True)
 with open("public/index.html", "w", encoding="utf-8") as f:
     f.write(html_page)
 
-print(f"Dashboard généré : {total} passerelles actives")
+print(f"Dashboard généré : {total_all} passerelles détectées, {total_active} actives")
