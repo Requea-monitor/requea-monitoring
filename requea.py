@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import os
 import json
 import html as html_escape
+import re
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
 NOW = datetime.now(timezone.utc)
@@ -16,6 +17,81 @@ except Exception:
 
 gateways = []
 
+
+def esc(value):
+    return html_escape.escape(str(value or ""))
+
+
+def parse_gateway_row(raw, site_name):
+    raw = raw.strip()
+
+    if "Active" not in raw:
+        return None
+
+    if "Connectée" not in raw and "Déconnectée" not in raw:
+        return None
+
+    parts = [
+        p.strip()
+        for p in raw.replace("\t", "\n").split("\n")
+        if p.strip()
+    ]
+
+    parts = [
+        p for p in parts
+        if p not in ["a", "-", "_", "–", "—"]
+    ]
+
+    if len(parts) < 5:
+        return None
+
+    connection = "Inconnue"
+    if "Déconnectée" in raw:
+        connection = "Déconnectée"
+    elif "Connectée" in raw:
+        connection = "Connectée"
+
+    gateway_id = ""
+    for p in parts:
+        if re.fullmatch(r"[0-9A-Fa-f]{12,32}", p):
+            gateway_id = p
+            break
+
+    firmware = ""
+    for p in parts:
+        if "mtcdt" in p.lower():
+            firmware = p
+            break
+
+    model = ""
+    for p in parts:
+        if "multitech" in p.lower() or "kerlink" in p.lower():
+            model = p
+            break
+
+    name = parts[0]
+
+    city = ""
+    for p in reversed(parts):
+        if p not in [name, "Active", connection, gateway_id, model, firmware]:
+            if not re.match(r"^\d+\.\d+", p):
+                city = p
+                break
+
+    return {
+        "cluster": site_name,
+        "name": name,
+        "status": "Active",
+        "connection": connection,
+        "gateway_id": gateway_id or f"{site_name}-{name}",
+        "model": model,
+        "firmware": firmware,
+        "city": city,
+        "raw": raw,
+        "down": connection != "Connectée"
+    }
+
+
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
 
@@ -23,59 +99,33 @@ with sync_playwright() as p:
         page = browser.new_page()
 
         try:
-            page.goto(site["url"], wait_until="networkidle")
+            page.goto(site["url"], wait_until="networkidle", timeout=60000)
 
             page.fill('input[type="text"]', site["login"])
             page.fill('input[type="password"]', site["password"])
             page.click('button[type="submit"]')
 
-            page.wait_for_timeout(5000)
+            page.wait_for_timeout(6000)
 
-            page.goto(f'{site["url"]}/page/Network_Gateways', wait_until="networkidle")
-            page.wait_for_timeout(8000)
+            page.goto(
+                f'{site["url"]}/page/Network_Gateways',
+                wait_until="networkidle",
+                timeout=60000
+            )
+
+            page.wait_for_timeout(10000)
 
             rows = page.locator("tr")
             count = rows.count()
 
             for i in range(count):
-                row = rows.nth(i)
-                cols = row.locator("td")
+                raw = rows.nth(i).inner_text().strip()
+                gateway = parse_gateway_row(raw, site["name"])
 
-                values = []
-                for j in range(cols.count()):
-                    txt = cols.nth(j).inner_text().strip()
-                    if txt:
-                        values.append(txt)
-
-                if len(values) < 8:
+                if not gateway:
                     continue
 
-                # Détection ligne passerelle
-                joined = " ".join(values)
-
-                if "Active" not in values:
-                    continue
-
-                if "Connectée" not in joined and "Déconnectée" not in joined:
-                    continue
-
-                gateway = {
-                    "cluster": site["name"],
-                    "name": values[1] if len(values) > 1 else "",
-                    "status": values[2] if len(values) > 2 else "",
-                    "gateway_id": values[3] if len(values) > 3 else "",
-                    "model": values[4] if len(values) > 4 else "",
-                    "connection": values[5] if len(values) > 5 else "",
-                    "operator": values[6] if len(values) > 6 else "",
-                    "network": values[7] if len(values) > 7 else "",
-                    "firmware": values[8] if len(values) > 8 else "",
-                    "city": values[9] if len(values) > 9 else "",
-                    "gps": values[10] if len(values) > 10 else "",
-                }
-
-                gateway["down"] = gateway["connection"] != "Connectée"
-
-                key = gateway["gateway_id"] or f'{gateway["cluster"]}-{gateway["name"]}'
+                key = gateway["gateway_id"]
 
                 if key not in history:
                     history[key] = {
@@ -110,11 +160,11 @@ with sync_playwright() as p:
                     down_hours = round((NOW - down_start).total_seconds() / 3600, 1)
 
                 samples = history[key]["samples"]
+                service_24h = 0
+
                 if samples:
                     up_count = sum(1 for s in samples if s["up"])
                     service_24h = round((up_count / len(samples)) * 100, 1)
-                else:
-                    service_24h = 0
 
                 gateway["down_since"] = history[key]["down_since"]
                 gateway["down_hours"] = down_hours
@@ -133,7 +183,7 @@ with sync_playwright() as p:
                 "model": "",
                 "firmware": "",
                 "city": "",
-                "gps": "",
+                "raw": str(e),
                 "down": True,
                 "down_since": NOW.isoformat(),
                 "down_hours": 0,
@@ -145,8 +195,10 @@ with sync_playwright() as p:
 
     browser.close()
 
+
 with open(HISTORY_FILE, "w", encoding="utf-8") as f:
     json.dump(history, f, indent=2, ensure_ascii=False)
+
 
 total = len(gateways)
 down = sum(1 for g in gateways if g["down"])
@@ -164,9 +216,6 @@ gateways_sorted = sorted(
     )
 )
 
-def esc(value):
-    return html_escape.escape(str(value or ""))
-
 html = f"""
 <!DOCTYPE html>
 <html>
@@ -174,66 +223,109 @@ html = f"""
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Monitoring Requea LoRaWAN</title>
+
 <style>
 body {{
     margin:0;
-    padding:20px;
+    padding:16px;
     font-family:Arial, sans-serif;
     background:#0f172a;
     color:white;
 }}
-h1 {{ margin-bottom:5px; }}
+
+h1 {{
+    font-size:26px;
+    margin-bottom:5px;
+}}
+
 .cards {{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:15px;
-    margin:25px 0;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px;
+    margin:20px 0;
 }}
+
 .card {{
     background:#1e293b;
-    padding:18px;
+    padding:16px;
     border-radius:14px;
 }}
+
 .big {{
-    font-size:34px;
+    font-size:32px;
     font-weight:bold;
     margin-top:8px;
 }}
+
 .green {{ color:#22c55e; }}
 .red {{ color:#ef4444; }}
 .orange {{ color:#f59e0b; }}
-table {{
+
+.table-wrap {{
     width:100%;
-    border-collapse:collapse;
-    background:#111827;
+    overflow-x:auto;
     margin-bottom:35px;
 }}
+
+table {{
+    width:100%;
+    min-width:900px;
+    border-collapse:collapse;
+    background:#111827;
+}}
+
 th {{
     background:#334155;
     padding:10px;
     text-align:left;
-    position:sticky;
-    top:0;
+    white-space:nowrap;
 }}
+
 td {{
     padding:10px;
     border-bottom:1px solid #334155;
+    white-space:nowrap;
 }}
-tr.down {{ background:#451a1a; }}
+
+tr.down {{
+    background:#451a1a;
+}}
+
 tr.maintenance {{
     background:#7f1d1d;
     font-weight:bold;
 }}
+
 .badge {{
     padding:5px 9px;
     border-radius:20px;
     display:inline-block;
 }}
+
 .ok {{ background:#166534; }}
 .ko {{ background:#991b1b; }}
 .warn {{ background:#92400e; }}
+
+@media (max-width: 700px) {{
+    body {{
+        padding:10px;
+    }}
+
+    h1 {{
+        font-size:22px;
+    }}
+
+    .big {{
+        font-size:28px;
+    }}
+
+    table {{
+        font-size:14px;
+    }}
+}}
 </style>
 </head>
+
 <body>
 
 <h1>📡 Monitoring Requea LoRaWAN</h1>
@@ -249,6 +341,7 @@ tr.maintenance {{
 
 <h2>🚨 Passerelles à traiter</h2>
 
+<div class="table-wrap">
 <table>
 <tr>
 <th>Cluster</th>
@@ -287,9 +380,11 @@ for g in gateways_sorted:
 
 html += """
 </table>
+</div>
 
 <h2>📋 Toutes les passerelles Active</h2>
 
+<div class="table-wrap">
 <table>
 <tr>
 <th>Cluster</th>
@@ -322,6 +417,8 @@ for g in gateways_sorted:
 
 html += """
 </table>
+</div>
+
 </body>
 </html>
 """
