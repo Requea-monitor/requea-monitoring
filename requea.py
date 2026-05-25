@@ -70,7 +70,7 @@ with sync_playwright() as p:
 
 updated = datetime.now().strftime("%d/%m/%Y %H:%M")
 
-critical = sum(1 for g in all_gateways if g["status"] == "MAINTENANCE"])
+critical = sum(1 for g in all_gateways if g["status"] == "MAINTENANCE")
 
 html = f"""
 <!DOCTYPE html>
