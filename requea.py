@@ -1,10 +1,7 @@
 from playwright.sync_api import sync_playwright
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import os
-import json
-import html
-import re
+import os, json, html, re
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
 
@@ -26,13 +23,7 @@ def esc(v):
 
 
 def clean(v):
-    return " ".join(
-        str(v or "")
-        .replace("\n", " ")
-        .replace("\t", " ")
-        .replace("\xa0", " ")
-        .split()
-    ).strip()
+    return " ".join(str(v or "").replace("\n", " ").replace("\t", " ").replace("\xa0", " ").split()).strip()
 
 
 def strip_tags(v):
@@ -98,21 +89,10 @@ def parse_last_connection_from_html(html_text):
 def normalize_connection(v):
     t = str(v or "").lower()
 
-    if (
-        "déconnect" in t
-        or "deconnect" in t
-        or "closed" in t
-        or "offline" in t
-        or "down" in t
-    ):
+    if "déconnect" in t or "deconnect" in t or "closed" in t or "offline" in t or "down" in t:
         return "Déconnectée", True
 
-    if (
-        "connectée" in t
-        or "connectee" in t
-        or "connected" in t
-        or "online" in t
-    ):
+    if "connectée" in t or "connectee" in t or "connected" in t or "online" in t:
         return "Connectée", False
 
     return clean(v) or "Inconnue", True
@@ -124,7 +104,6 @@ def geoloc_from_text(text):
     patterns = [
         r"([0-9]{2}\.[0-9]+)\s*,\s*([0-9]{1,2}\.[0-9]+)",
         r"([0-9]{2}\.[0-9]+)\s+([0-9]{1,2}\.[0-9]+)",
-        r"lat(?:itude)?\s*:?\s*([0-9]{2}\.[0-9]+).*?lon(?:gitude)?\s*:?\s*([0-9]{1,2}\.[0-9]+)",
     ]
 
     for pattern in patterns:
@@ -139,7 +118,7 @@ def make_absolute_url(base_url, url):
     if not url:
         return ""
 
-    url = html.unescape(url)
+    url = html.unescape(url).replace("&amp;", "&")
 
     if url.startswith("http"):
         return url
@@ -179,11 +158,11 @@ def extract_detail_url_from_html(row_html, base_url):
     decoded = html.unescape(row_html)
 
     patterns = [
-        r"(/do/Network/iotGateway:[^'\"<>\s]+)",
-        r"RQ\.nav\.detail\('([^']*iotGateway:[^']+)'",
-        r"RQ\.nav\.go\('([^']*iotGateway:[^']+)'",
-        r'href="([^"]*iotGateway:[^"]+)"',
-        r"href='([^']*iotGateway:[^']+)'",
+        r"(/do/iotGateway:get\?sysId=[^'\"&<>\s]+[^'\"<>\s]*)",
+        r"RQ\.nav\.detail\('([^']*iotGateway:get[^']*)'",
+        r"RQ\.nav\.go\('([^']*iotGateway:get[^']*)'",
+        r'href="([^"]*iotGateway:get[^"]*)"',
+        r"href='([^']*iotGateway:get[^']*)'",
     ]
 
     for pattern in patterns:
@@ -221,13 +200,7 @@ def parse_gateway(values, raw, cluster_name, detail_url=""):
 
     for v in values:
         low = v.lower()
-        if (
-            "connect" in low
-            or "closed" in low
-            or "offline" in low
-            or "déconnect" in low
-            or "deconnect" in low
-        ):
+        if "connect" in low or "closed" in low or "offline" in low or "déconnect" in low or "deconnect" in low:
             connection_raw = v
             break
 
@@ -300,11 +273,7 @@ def parse_gateway(values, raw, cluster_name, detail_url=""):
 def parse_ajax_html(html_text, cluster_name, base_url):
     found = {}
 
-    rows = re.findall(
-        r"<tr[^>]*>.*?</tr>",
-        html_text,
-        flags=re.I | re.S
-    )
+    rows = re.findall(r"<tr[^>]*>.*?</tr>", html_text, flags=re.I | re.S)
 
     for row_html in rows:
         raw = strip_tags(row_html)
@@ -312,21 +281,12 @@ def parse_ajax_html(html_text, cluster_name, base_url):
         if not re.search(r"[0-9A-Fa-f]{12,32}", raw):
             continue
 
-        cells = re.findall(
-            r"<td[^>]*>(.*?)</td>",
-            row_html,
-            flags=re.I | re.S
-        )
-
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.I | re.S)
         values = [strip_tags(c) for c in cells]
+
         detail_url = extract_detail_url_from_html(row_html, base_url)
 
-        gateway = parse_gateway(
-            values,
-            raw,
-            cluster_name,
-            detail_url
-        )
+        gateway = parse_gateway(values, raw, cluster_name, detail_url)
 
         if gateway:
             found[gateway["gateway_id"]] = gateway
@@ -347,11 +307,7 @@ def collect_visible_rows(page, cluster):
             continue
 
         cells = row.locator("td")
-
-        values = [
-            cells.nth(j).inner_text()
-            for j in range(cells.count())
-        ]
+        values = [cells.nth(j).inner_text() for j in range(cells.count())]
 
         detail_url = ""
 
@@ -370,12 +326,7 @@ def collect_visible_rows(page, cluster):
         except Exception:
             pass
 
-        gateway = parse_gateway(
-            values,
-            raw,
-            cluster["name"],
-            detail_url
-        )
+        gateway = parse_gateway(values, raw, cluster["name"], detail_url)
 
         if gateway:
             found[gateway["gateway_id"]] = gateway
@@ -438,73 +389,26 @@ def read_connection_date(context, cluster, gateway):
     try:
         if detail_url:
             p.goto(detail_url, wait_until="domcontentloaded", timeout=60000)
-            p.wait_for_timeout(8000)
+            p.wait_for_timeout(6000)
 
-            html_detail = p.content()
             body_text = p.locator("body").inner_text()
+            html_detail = p.content()
 
-            last = parse_last_connection_from_html(html_detail)
+            last = parse_last_connection_from_html(body_text)
+
             if not last:
-                last = parse_last_connection_from_html(body_text)
+                last = parse_last_connection_from_html(html_detail)
 
-            try:
-                gps = geoloc_from_text(body_text)
-                if gps and not gateway.get("geolocation"):
-                    gateway["geolocation"] = gps
-            except Exception:
-                pass
+            gps = geoloc_from_text(body_text)
+
+            if gps:
+                gateway["geolocation"] = gps
+
+            if last:
+                print("DATE TROUVEE", gateway["name"], last.strftime("%d/%m/%Y %H:%M:%S"))
 
             p.close()
             return last
-
-        p.goto(
-            f'{cluster["url"]}/page/Network_Gateways',
-            wait_until="domcontentloaded",
-            timeout=60000
-        )
-
-        p.wait_for_timeout(8000)
-
-        for _ in range(20):
-            rows = p.locator("tr")
-
-            for i in range(rows.count()):
-                row = rows.nth(i)
-                raw = clean(row.inner_text())
-
-                if gateway["gateway_id"] not in raw:
-                    continue
-
-                try:
-                    link = row.locator("a").first
-                    if link.count() > 0:
-                        link.click()
-                    else:
-                        row.click()
-                except Exception:
-                    row.click()
-
-                p.wait_for_timeout(8000)
-
-                html_detail = p.content()
-                body_text = p.locator("body").inner_text()
-
-                last = parse_last_connection_from_html(html_detail)
-                if not last:
-                    last = parse_last_connection_from_html(body_text)
-
-                try:
-                    gps = geoloc_from_text(body_text)
-                    if gps and not gateway.get("geolocation"):
-                        gateway["geolocation"] = gps
-                except Exception:
-                    pass
-
-                p.close()
-                return last
-
-            if not click_next(p):
-                break
 
     except Exception:
         pass
@@ -547,10 +451,7 @@ def apply_history(g):
     samples = history[key]["samples"]
 
     g["service_24h"] = (
-        round(
-            sum(1 for s in samples if s["up"]) / len(samples) * 100,
-            1
-        )
+        round(sum(1 for s in samples if s["up"]) / len(samples) * 100, 1)
         if samples else 0
     )
 
@@ -559,10 +460,7 @@ def apply_history(g):
 
     if g["down_since"]:
         start = datetime.fromisoformat(g["down_since"])
-        g["down_hours"] = round(
-            (NOW - start).total_seconds() / 3600,
-            1
-        )
+        g["down_hours"] = round((NOW - start).total_seconds() / 3600, 1)
 
     g["maintenance"] = g["down_hours"] >= 24
 
@@ -615,11 +513,7 @@ with sync_playwright() as p:
                     seen[k] = v
 
                 for payload in ajax_payloads:
-                    for k, v in parse_ajax_html(
-                        payload,
-                        cluster["name"],
-                        cluster["url"]
-                    ).items():
+                    for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
                         seen[k] = v
 
                 sig = "|".join(sorted(seen.keys()))
@@ -673,10 +567,7 @@ with open(HISTORY_FILE, "w", encoding="utf-8") as f:
     json.dump(history, f, indent=2, ensure_ascii=False)
 
 
-active_gateways = [
-    g for g in gateways
-    if g["status"] == "Active"
-]
+active_gateways = [g for g in gateways if g["status"] == "Active"]
 
 total = len(active_gateways)
 down = len([g for g in active_gateways if g["down"]])
@@ -901,7 +792,6 @@ html_page += """
 for g in active_gateways:
     badge = "ko" if g["down"] else "ok"
     row_class = "maintenance" if g["maintenance"] else ("down" if g["down"] else "")
-
     connected_since = g["connected_since"] if not g["down"] else None
 
     html_page += f"""
