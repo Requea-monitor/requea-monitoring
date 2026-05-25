@@ -296,8 +296,9 @@ html += """
 </body>
 </html>
 """
+os.makedirs("public", exist_ok=True)
 
-with open("index.html", "w") as f:
+with open("public/index.html", "w") as f:
     f.write(html)
 
 print("Dashboard généré")
