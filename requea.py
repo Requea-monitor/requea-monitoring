@@ -22,7 +22,18 @@ def esc(v):
 
 
 def clean(v):
-    return " ".join(str(v or "").replace("\n", " ").replace("\xa0", " ").split()).strip()
+    return " ".join(
+        str(v or "")
+        .replace("\n", " ")
+        .replace("\t", " ")
+        .replace("\xa0", " ")
+        .split()
+    ).strip()
+
+
+def strip_tags(v):
+    v = re.sub(r"<[^>]+>", " ", str(v or ""))
+    return clean(html.unescape(v))
 
 
 def fmt_date(v):
@@ -36,10 +47,13 @@ def fmt_date(v):
 
 def normalize_connection(v):
     t = str(v or "").lower()
+
     if "déconnect" in t or "deconnect" in t or "closed" in t or "offline" in t:
         return "Déconnectée", True
+
     if "connectée" in t or "connectee" in t or "connected" in t:
         return "Connectée", False
+
     return clean(v), False
 
 
@@ -74,8 +88,13 @@ def login(page, cluster):
     page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(3000)
 
-    username = page.locator('input:visible:not([type="password"]):not([type="hidden"])').first
-    password = page.locator('input[type="password"]:visible').first
+    username = page.locator(
+        'input:visible:not([type="password"]):not([type="hidden"])'
+    ).first
+
+    password = page.locator(
+        'input[type="password"]:visible'
+    ).first
 
     username.fill(cluster["login"])
     password.fill(cluster["password"])
@@ -84,27 +103,15 @@ def login(page, cluster):
     page.wait_for_timeout(10000)
 
     body = page.locator("body").inner_text()
+
     if "Mot de passe oublié" in body or "Forgot your password" in body:
         raise Exception("Connexion refusée")
 
 
-def scroll_all(page):
-    page.evaluate("""
-        () => {
-            window.scrollTo(0, document.body.scrollHeight);
-            document.querySelectorAll('*').forEach(e => {
-                if (e.scrollHeight > e.clientHeight) {
-                    e.scrollTop = e.scrollHeight;
-                }
-            });
-        }
-    """)
+def parse_row_from_values(values, raw, cluster_name, detail_url=""):
+    values = [clean(v) for v in values if clean(v)]
 
-
-def parse_row_from_cells(cells, raw, cluster_name):
-    values = [clean(v) for v in cells if clean(v)]
-
-    if len(values) < 7:
+    if len(values) < 6:
         return None
 
     raw_low = raw.lower()
@@ -123,8 +130,6 @@ def parse_row_from_cells(cells, raw, cluster_name):
 
     if not gateway_id:
         return None
-
-    status = "Active"
 
     connection_raw = ""
     for v in values:
@@ -167,6 +172,7 @@ def parse_row_from_cells(cells, raw, cluster_name):
         name = values[0] if values[0] != "Active" else gateway_id
 
     city = ""
+
     if firmware and firmware in values:
         idx = values.index(firmware)
         if len(values) > idx + 1:
@@ -176,7 +182,7 @@ def parse_row_from_cells(cells, raw, cluster_name):
         for v in reversed(values):
             if (
                 v
-                and v not in [name, status, gateway_id, model, connection_raw, network, firmware]
+                and v not in [name, gateway_id, model, connection_raw, network, firmware]
                 and not re.search(r"[0-9]{2}\.[0-9]+", v)
                 and len(v) < 80
             ):
@@ -186,7 +192,7 @@ def parse_row_from_cells(cells, raw, cluster_name):
     return {
         "cluster": cluster_name,
         "name": name,
-        "status": status,
+        "status": "Active",
         "gateway_id": gateway_id,
         "model": model,
         "connection": connection,
@@ -195,54 +201,235 @@ def parse_row_from_cells(cells, raw, cluster_name):
         "city": city,
         "geolocation": geolocation,
         "down": is_down,
-        "last_connection": None
+        "last_connection": None,
+        "detail_url": detail_url,
     }
 
 
-def click_gateway_and_get_last_connection(page, gateway_id):
-    try:
-        rows = page.locator("tr")
-        count = rows.count()
+def parse_ajax_html(html_text, cluster_name, base_url):
+    found = {}
 
-        for i in range(count):
-            row = rows.nth(i)
-            raw = clean(row.inner_text())
+    rows = re.findall(r"<tr[^>]*>.*?</tr>", html_text, flags=re.I | re.S)
 
-            if gateway_id not in raw:
-                continue
+    for row_html in rows:
+        raw = strip_tags(row_html)
 
-            link = row.locator("a").first
+        if "Active" not in raw:
+            continue
 
-            if link.count() > 0:
-                link.click()
-            else:
-                row.click()
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.I | re.S)
+        values = [strip_tags(c) for c in cells]
 
-            page.wait_for_timeout(5000)
+        href = ""
+        m = re.search(r'href="([^"]*/do/Network/iotGateway:[^"]+)"', row_html, flags=re.I)
+        if m:
+            href = html.unescape(m.group(1))
+            if href.startswith("/"):
+                href = base_url.rstrip("/") + href
 
-            body = page.locator("body").inner_text()
-            last = parse_last_connection(body)
+        gateway = parse_row_from_values(values, raw, cluster_name, href)
 
-            page.go_back(wait_until="domcontentloaded")
-            page.wait_for_timeout(7000)
+        if gateway:
+            found[gateway["gateway_id"]] = gateway
 
-            return last
+    return found
 
-    except Exception:
+
+def collect_dom_rows(page, cluster):
+    found = {}
+
+    rows = page.locator("tr")
+    count = rows.count()
+
+    for i in range(count):
+        row = rows.nth(i)
+        raw = clean(row.inner_text())
+
+        if "Active" not in raw:
+            continue
+
+        cells = row.locator("td")
+        values = [
+            cells.nth(j).inner_text()
+            for j in range(cells.count())
+        ]
+
+        detail_url = ""
+
         try:
-            page.go_back(wait_until="domcontentloaded")
-            page.wait_for_timeout(7000)
+            href = row.locator("a").first.get_attribute("href")
+            if href:
+                if href.startswith("/"):
+                    detail_url = cluster["url"].rstrip("/") + href
+                else:
+                    detail_url = href
         except Exception:
             pass
 
-    return None
+        gateway = parse_row_from_values(values, raw, cluster["name"], detail_url)
+
+        if gateway:
+            found[gateway["gateway_id"]] = gateway
+
+    return found
+
+
+def click_next_page(page):
+    clicked = page.evaluate("""
+        () => {
+            const candidates = Array.from(document.querySelectorAll('a, button, span, div'));
+            const visible = el => {
+                const r = el.getBoundingClientRect();
+                const s = window.getComputedStyle(el);
+                return r.width > 0 && r.height > 0 && s.display !== 'none' && s.visibility !== 'hidden';
+            };
+
+            for (const el of candidates) {
+                const txt = (el.innerText || el.textContent || '').trim().toLowerCase();
+                const cls = (el.className || '').toString().toLowerCase();
+                const title = (el.getAttribute('title') || '').toLowerCase();
+                const aria = (el.getAttribute('aria-label') || '').toLowerCase();
+
+                if (!visible(el)) continue;
+                if (cls.includes('disabled')) continue;
+                if (el.getAttribute('disabled') !== null) continue;
+
+                if (
+                    txt === 'suivant' ||
+                    txt === 'next' ||
+                    txt === '>' ||
+                    txt === '›' ||
+                    title.includes('suivant') ||
+                    title.includes('next') ||
+                    aria.includes('suivant') ||
+                    aria.includes('next') ||
+                    cls.includes('next')
+                ) {
+                    el.click();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    """)
+
+    if clicked:
+        page.wait_for_timeout(6000)
+
+    return clicked
+
+
+def collect_all_gateways(page, cluster, ajax_payloads):
+    seen = {}
+
+    for _ in range(20):
+        for k, v in collect_dom_rows(page, cluster).items():
+            seen[k] = v
+
+        for payload in ajax_payloads:
+            for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
+                seen[k] = v
+
+        before_ids = set(seen.keys())
+
+        moved = click_next_page(page)
+
+        page.wait_for_timeout(3000)
+
+        for payload in ajax_payloads:
+            for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
+                seen[k] = v
+
+        after_ids = set(seen.keys())
+
+        if not moved:
+            break
+
+        if before_ids == after_ids:
+            break
+
+    return seen
+
+
+def read_last_connection(page, cluster, gateway):
+    if not gateway.get("detail_url"):
+        return None
+
+    try:
+        page.goto(gateway["detail_url"], wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(5000)
+
+        body = page.locator("body").inner_text()
+        return parse_last_connection(body)
+
+    except Exception:
+        return None
+
+
+def apply_history(gateway):
+    key = gateway["gateway_id"]
+
+    if key not in history:
+        history[key] = {
+            "down_since": None,
+            "samples": []
+        }
+
+    if gateway["down"]:
+        if gateway["last_connection"]:
+            history[key]["down_since"] = gateway["last_connection"]
+    else:
+        history[key]["down_since"] = None
+
+    history[key]["samples"].append({
+        "time": NOW.isoformat(),
+        "up": not gateway["down"]
+    })
+
+    history[key]["samples"] = [
+        s for s in history[key]["samples"]
+        if (NOW - datetime.fromisoformat(s["time"])).total_seconds() <= 86400
+    ]
+
+    samples = history[key]["samples"]
+
+    gateway["service_24h"] = round(
+        sum(1 for s in samples if s["up"]) / len(samples) * 100,
+        1
+    ) if samples else 0
+
+    gateway["down_since"] = history[key]["down_since"]
+    gateway["down_hours"] = 0
+
+    if gateway["down_since"]:
+        start = datetime.fromisoformat(gateway["down_since"])
+        gateway["down_hours"] = round((NOW - start).total_seconds() / 3600, 1)
+
+    gateway["maintenance"] = gateway["down_hours"] >= 24
+
+    return gateway
 
 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
 
     for cluster in CONFIG:
-        page = browser.new_page()
+        context = browser.new_context()
+        page = context.new_page()
+
+        ajax_payloads = []
+
+        def on_response(response):
+            try:
+                if "/ajax" in response.url:
+                    txt = response.text()
+                    if "iotGateway" in txt or "mtcdt" in txt or "Active" in txt:
+                        ajax_payloads.append(txt)
+            except Exception:
+                pass
+
+        page.on("response", on_response)
 
         try:
             login(page, cluster)
@@ -252,95 +439,21 @@ with sync_playwright() as p:
                 wait_until="domcontentloaded",
                 timeout=60000
             )
+
             page.wait_for_timeout(12000)
 
-            seen = {}
-
-            for _ in range(10):
-                rows = page.locator("tr")
-                count = rows.count()
-
-                for i in range(count):
-                    row = rows.nth(i)
-                    raw = clean(row.inner_text())
-
-                    if "Active" not in raw:
-                        continue
-
-                    cells = row.locator("td")
-                    cell_values = [
-                        cells.nth(j).inner_text()
-                        for j in range(cells.count())
-                    ]
-
-                    gateway = parse_row_from_cells(cell_values, raw, cluster["name"])
-
-                    if not gateway:
-                        continue
-
-                    seen[gateway["gateway_id"]] = gateway
-
-                scroll_all(page)
-                page.wait_for_timeout(2500)
+            seen = collect_all_gateways(page, cluster, ajax_payloads)
 
             for gateway_id, gateway in seen.items():
-
                 if gateway["down"]:
-                    page.goto(
-                        f'{cluster["url"]}/page/Network_Gateways',
-                        wait_until="domcontentloaded",
-                        timeout=60000
-                    )
-                    page.wait_for_timeout(8000)
-
-                    last = click_gateway_and_get_last_connection(page, gateway_id)
+                    detail_page = context.new_page()
+                    last = read_last_connection(detail_page, cluster, gateway)
+                    detail_page.close()
 
                     if last:
                         gateway["last_connection"] = last.isoformat()
 
-                key = gateway["gateway_id"]
-
-                if key not in history:
-                    history[key] = {
-                        "down_since": None,
-                        "samples": []
-                    }
-
-                if gateway["down"]:
-                    if gateway["last_connection"]:
-                        history[key]["down_since"] = gateway["last_connection"]
-                    elif not history[key]["down_since"]:
-                        history[key]["down_since"] = NOW.isoformat()
-                else:
-                    history[key]["down_since"] = None
-
-                history[key]["samples"].append({
-                    "time": NOW.isoformat(),
-                    "up": not gateway["down"]
-                })
-
-                history[key]["samples"] = [
-                    s for s in history[key]["samples"]
-                    if (NOW - datetime.fromisoformat(s["time"])).total_seconds() <= 86400
-                ]
-
-                samples = history[key]["samples"]
-                service_24h = round(
-                    sum(1 for s in samples if s["up"]) / len(samples) * 100,
-                    1
-                ) if samples else 0
-
-                down_hours = 0
-                if history[key]["down_since"]:
-                    start = datetime.fromisoformat(history[key]["down_since"])
-                    down_hours = round((NOW - start).total_seconds() / 3600, 1)
-
-                gateway["down_since"] = history[key]["down_since"]
-                gateway["down_hours"] = down_hours
-                gateway["service_24h"] = service_24h
-                gateway["maintenance"] = down_hours >= 24
-
-                gateways.append(gateway)
+                gateways.append(apply_history(gateway))
 
         except Exception as e:
             gateways.append({
@@ -362,7 +475,7 @@ with sync_playwright() as p:
                 "maintenance": False
             })
 
-        page.close()
+        context.close()
 
     browser.close()
 
@@ -380,17 +493,18 @@ service = round(ok / total * 100, 1) if total else 0
 clusters = sorted(set(g["cluster"] for g in active_gateways))
 
 cluster_stats = {}
+
 for c in clusters:
     cg = [g for g in active_gateways if g["cluster"] == c]
     c_total = len(cg)
     c_down = len([g for g in cg if g["down"]])
     c_ok = c_total - c_down
-    c_service = round(c_ok / c_total * 100, 1) if c_total else 0
+
     cluster_stats[c] = {
         "total": c_total,
         "ok": c_ok,
         "down": c_down,
-        "service": c_service
+        "service": round(c_ok / c_total * 100, 1) if c_total else 0
     }
 
 
@@ -514,6 +628,7 @@ function filterCluster(cluster) {{
 for c in clusters:
     s = cluster_stats[c]
     color = "green" if s["down"] == 0 else "red"
+
     html_page += f"""
 <div class="card">
 <strong>{esc(c)}</strong>
