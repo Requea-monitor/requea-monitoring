@@ -174,41 +174,39 @@ with sync_playwright() as p:
 
         try:
             page.goto(cluster["url"], wait_until="networkidle", timeout=60000)
+
             page.fill('input[type="text"]', cluster["login"])
             page.fill('input[type="password"]', cluster["password"])
             page.click('button[type="submit"]')
-            page.wait_for_timeout(6000)
 
-page.goto(
-    f'{cluster["url"]}/page/Network_Gateways',
-    wait_until="domcontentloaded",
-    timeout=60000
-)
+            page.wait_for_timeout(8000)
 
-page.wait_for_timeout(15000)
+            page.goto(
+                f'{cluster["url"]}/page/Network_Gateways',
+                wait_until="domcontentloaded",
+                timeout=60000
+            )
 
-try:
-    page.click("text=Passerelles", timeout=5000)
-    page.wait_for_timeout(5000)
-except:
-    pass
+            page.wait_for_timeout(15000)
 
-page.wait_for_timeout(10000)
+            try:
+                page.click("text=Passerelles", timeout=5000)
+                page.wait_for_timeout(5000)
+            except Exception:
+                pass
 
-rows = page.locator("tr")
-count = rows.count()
+            page.wait_for_timeout(10000)
 
-debug_lines.append(
-    f"{cluster['name']} URL={page.url} ROWS={count}"
-)
+            rows = page.locator("tr")
+            count = rows.count()
 
-try:
-    body_preview = page.locator("body").inner_text()[:3000]
-    debug_lines.append(body_preview)
-except Exception as e:
-    debug_lines.append(str(e))
+            debug_lines.append(f"{cluster['name']} URL={page.url} ROWS={count}")
 
-            debug_lines.append(f"{cluster['name']} : {count} lignes HTML détectées")
+            try:
+                body_preview = page.locator("body").inner_text()[:3000]
+                debug_lines.append(body_preview)
+            except Exception as e:
+                debug_lines.append(str(e))
 
             for i in range(count):
                 rows = page.locator("tr")
@@ -242,8 +240,8 @@ except Exception as e:
                             if last_conn:
                                 gateway["last_connection"] = last_conn.isoformat()
 
-                            page.go_back(wait_until="networkidle")
-                            page.wait_for_timeout(4000)
+                            page.go_back(wait_until="domcontentloaded")
+                            page.wait_for_timeout(6000)
                     except Exception:
                         pass
 
@@ -390,6 +388,7 @@ pre {{
     padding:12px;
     overflow:auto;
     border:1px solid #334155;
+    max-height:300px;
 }}
 </style>
 <script>
@@ -505,7 +504,7 @@ html_page += f"""
 </div>
 
 <h2>Debug lecture Requea</h2>
-<pre>{esc(chr(10).join(debug_lines[:80]))}</pre>
+<pre>{esc(chr(10).join(debug_lines[:120]))}</pre>
 
 </body>
 </html>
