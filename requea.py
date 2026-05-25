@@ -46,11 +46,53 @@ def strip_tags(v):
 def fmt_date(v):
     if not v:
         return "-"
-
     try:
         return datetime.fromisoformat(v).astimezone(PARIS).strftime("%d/%m/%Y %H:%M:%S")
     except Exception:
         return str(v)
+
+
+def parse_requea_date(text):
+    text = html.unescape(str(text or ""))
+    text = clean(text)
+
+    m = re.search(
+        r"([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        text,
+        re.I
+    )
+
+    if not m:
+        return None
+
+    try:
+        return datetime.strptime(m.group(1), "%d/%m/%Y %H:%M:%S").replace(tzinfo=PARIS)
+    except Exception:
+        return None
+
+
+def parse_last_connection_from_html(html_text):
+    decoded = html.unescape(str(html_text or ""))
+
+    patterns = [
+        r"Derni[eè]re\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Derniere\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Last\s+connection[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+    ]
+
+    for pattern in patterns:
+        m = re.search(pattern, decoded, re.I | re.S)
+        if m:
+            return parse_requea_date(m.group(1))
+
+    text = strip_tags(decoded)
+
+    for pattern in patterns:
+        m = re.search(pattern, text, re.I | re.S)
+        if m:
+            return parse_requea_date(m.group(1))
+
+    return None
 
 
 def normalize_connection(v):
@@ -76,29 +118,6 @@ def normalize_connection(v):
     return clean(v) or "Inconnue", True
 
 
-def parse_last_connection(text):
-    text = clean(text)
-
-    patterns = [
-        r"Derni[eè]re\s+connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-        r"Derniere\s+connexion\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-        r"Last\s+connection\s*:?\s*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-    ]
-
-    for pattern in patterns:
-        match = re.search(pattern, text, re.I)
-        if match:
-            try:
-                return datetime.strptime(
-                    match.group(1),
-                    "%d/%m/%Y %H:%M:%S"
-                ).replace(tzinfo=PARIS)
-            except Exception:
-                return None
-
-    return None
-
-
 def geoloc_from_text(text):
     text = clean(text)
 
@@ -109,9 +128,9 @@ def geoloc_from_text(text):
     ]
 
     for pattern in patterns:
-        match = re.search(pattern, text, re.I)
-        if match:
-            return f"{match.group(1)}, {match.group(2)}"
+        m = re.search(pattern, text, re.I)
+        if m:
+            return f"{m.group(1)}, {m.group(2)}"
 
     return ""
 
@@ -168,9 +187,9 @@ def extract_detail_url_from_html(row_html, base_url):
     ]
 
     for pattern in patterns:
-        match = re.search(pattern, decoded, re.I)
-        if match:
-            return make_absolute_url(base_url, match.group(1))
+        m = re.search(pattern, decoded, re.I)
+        if m:
+            return make_absolute_url(base_url, m.group(1))
 
     return ""
 
@@ -274,6 +293,7 @@ def parse_gateway(values, raw, cluster_name, detail_url=""):
         "down": is_down,
         "detail_url": detail_url,
         "last_connection": None,
+        "connected_since": None,
     }
 
 
@@ -365,44 +385,44 @@ def collect_visible_rows(page, cluster):
 
 def click_next(page):
     clicked = page.evaluate("""
-        () => {
-            const els = Array.from(document.querySelectorAll("a,button,span,div"));
-            const visible = el => {
-                const r = el.getBoundingClientRect();
-                const s = window.getComputedStyle(el);
-                return r.width > 0 && r.height > 0 && s.display !== "none" && s.visibility !== "hidden";
-            };
+() => {
+    const els = Array.from(document.querySelectorAll("a,button,span,div"));
+    const visible = el => {
+        const r = el.getBoundingClientRect();
+        const s = window.getComputedStyle(el);
+        return r.width > 0 && r.height > 0 && s.display !== "none" && s.visibility !== "hidden";
+    };
 
-            for (const el of els) {
-                if (!visible(el)) continue;
+    for (const el of els) {
+        if (!visible(el)) continue;
 
-                const txt = (el.innerText || el.textContent || "").trim().toLowerCase();
-                const cls = (el.className || "").toString().toLowerCase();
-                const title = (el.getAttribute("title") || "").toLowerCase();
-                const aria = (el.getAttribute("aria-label") || "").toLowerCase();
+        const txt = (el.innerText || el.textContent || "").trim().toLowerCase();
+        const cls = (el.className || "").toString().toLowerCase();
+        const title = (el.getAttribute("title") || "").toLowerCase();
+        const aria = (el.getAttribute("aria-label") || "").toLowerCase();
 
-                if (cls.includes("disabled")) continue;
-                if (el.getAttribute("disabled") !== null) continue;
+        if (cls.includes("disabled")) continue;
+        if (el.getAttribute("disabled") !== null) continue;
 
-                if (
-                    txt === ">" ||
-                    txt === "›" ||
-                    txt === "suivant" ||
-                    txt === "next" ||
-                    cls.includes("next") ||
-                    title.includes("suivant") ||
-                    title.includes("next") ||
-                    aria.includes("suivant") ||
-                    aria.includes("next")
-                ) {
-                    el.click();
-                    return true;
-                }
-            }
-
-            return false;
+        if (
+            txt === ">" ||
+            txt === "›" ||
+            txt === "suivant" ||
+            txt === "next" ||
+            cls.includes("next") ||
+            title.includes("suivant") ||
+            title.includes("next") ||
+            aria.includes("suivant") ||
+            aria.includes("next")
+        ) {
+            el.click();
+            return true;
         }
-    """)
+    }
+
+    return false;
+}
+""")
 
     if clicked:
         page.wait_for_timeout(7000)
@@ -410,7 +430,7 @@ def click_next(page):
     return clicked
 
 
-def read_last_connection(context, cluster, gateway):
+def read_connection_date(context, cluster, gateway):
     detail_url = gateway.get("detail_url") or ""
 
     p = context.new_page()
@@ -418,14 +438,24 @@ def read_last_connection(context, cluster, gateway):
     try:
         if detail_url:
             p.goto(detail_url, wait_until="domcontentloaded", timeout=60000)
-            p.wait_for_timeout(6000)
+            p.wait_for_timeout(8000)
 
-            body = p.locator("body").inner_text()
-            last = parse_last_connection(body)
+            html_detail = p.content()
+            body_text = p.locator("body").inner_text()
 
-            if last:
-                p.close()
-                return last
+            last = parse_last_connection_from_html(html_detail)
+            if not last:
+                last = parse_last_connection_from_html(body_text)
+
+            try:
+                gps = geoloc_from_text(body_text)
+                if gps and not gateway.get("geolocation"):
+                    gateway["geolocation"] = gps
+            except Exception:
+                pass
+
+            p.close()
+            return last
 
         p.goto(
             f'{cluster["url"]}/page/Network_Gateways',
@@ -454,10 +484,21 @@ def read_last_connection(context, cluster, gateway):
                 except Exception:
                     row.click()
 
-                p.wait_for_timeout(6000)
+                p.wait_for_timeout(8000)
 
-                body = p.locator("body").inner_text()
-                last = parse_last_connection(body)
+                html_detail = p.content()
+                body_text = p.locator("body").inner_text()
+
+                last = parse_last_connection_from_html(html_detail)
+                if not last:
+                    last = parse_last_connection_from_html(body_text)
+
+                try:
+                    gps = geoloc_from_text(body_text)
+                    if gps and not gateway.get("geolocation"):
+                        gateway["geolocation"] = gps
+                except Exception:
+                    pass
 
                 p.close()
                 return last
@@ -525,6 +566,9 @@ def apply_history(g):
 
     g["maintenance"] = g["down_hours"] >= 24
 
+    if not g["down"]:
+        g["connected_since"] = g["last_connection"]
+
     return g
 
 
@@ -589,11 +633,13 @@ with sync_playwright() as p:
                     break
 
             for gateway_id, gateway in seen.items():
-                if gateway["down"]:
-                    last = read_last_connection(context, cluster, gateway)
+                connection_date = read_connection_date(context, cluster, gateway)
 
-                    if last:
-                        gateway["last_connection"] = last.isoformat()
+                if connection_date:
+                    gateway["last_connection"] = connection_date.isoformat()
+
+                if not gateway["down"]:
+                    gateway["connected_since"] = gateway["last_connection"]
 
                 gateways.append(apply_history(gateway))
 
@@ -611,6 +657,7 @@ with sync_playwright() as p:
                 "down": True,
                 "detail_url": "",
                 "last_connection": None,
+                "connected_since": None,
                 "down_since": None,
                 "down_hours": 0,
                 "service_24h": 0,
@@ -697,7 +744,7 @@ body {{
 table {{
     width:100%;
     border-collapse:collapse;
-    min-width:1450px;
+    min-width:1500px;
 }}
 
 th {{
@@ -844,6 +891,7 @@ html_page += """
 <th>Coordonnées GPS</th>
 <th>Statut</th>
 <th>Connexion</th>
+<th>Connecté depuis</th>
 <th>Dernière connexion</th>
 <th>Firmware</th>
 <th>ID</th>
@@ -854,6 +902,8 @@ for g in active_gateways:
     badge = "ko" if g["down"] else "ok"
     row_class = "maintenance" if g["maintenance"] else ("down" if g["down"] else "")
 
+    connected_since = g["connected_since"] if not g["down"] else None
+
     html_page += f"""
 <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
 <td>{esc(g["cluster"])}</td>
@@ -862,6 +912,7 @@ for g in active_gateways:
 <td>{esc(g["geolocation"])}</td>
 <td>{esc(g["status"])}</td>
 <td><span class="badge {badge}">{esc(g["connection"])}</span></td>
+<td>{fmt_date(connected_since)}</td>
 <td>{fmt_date(g["last_connection"])}</td>
 <td>{esc(g["firmware"])}</td>
 <td>{esc(g["gateway_id"])}</td>
