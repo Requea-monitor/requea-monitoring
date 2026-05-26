@@ -88,3 +88,10 @@ with sync_playwright() as p:
         print("DATE NON TROUVÉE")
 
     browser.close()
+
+import os
+
+os.makedirs("public", exist_ok=True)
+
+with open("public/index.html", "w") as f:
+    f.write("<h1>TEST OK</h1>")
