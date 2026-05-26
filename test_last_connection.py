@@ -33,91 +33,14 @@ def find_date(text):
     return m.group(1) if m else None
 
 
-def click_next(page):
-    clicked = page.evaluate("""
-() => {
-    const els = Array.from(document.querySelectorAll("a,button,span,div"));
-
-    for (const el of els) {
-        const txt = (el.innerText || el.textContent || "").trim().toLowerCase();
-        const cls = (el.className || "").toString().toLowerCase();
-
-        if (cls.includes("disabled")) continue;
-
-        if (
-            txt === ">" ||
-            txt === "›" ||
-            txt === "suivant" ||
-            txt === "next" ||
-            cls.includes("next")
-        ) {
-            el.click();
-            return true;
-        }
-    }
-
-    return false;
-}
-""")
-
-    if clicked:
-        page.wait_for_timeout(7000)
-
-    return clicked
-
-
-def click_correct_gateway_link(row):
-    links = row.locator("a")
-    clicked = False
-
-    for j in range(links.count()):
-        link = links.nth(j)
-
-        href = link.get_attribute("href") or ""
-        txt = clean(link.inner_text())
-
-        print("LIEN", j, "TEXT=", txt, "HREF=", href)
-
-        if (
-            GATEWAY_ID in href
-            or "iotGateway:get" in href
-            or "iotGateway" in href
-            or GATEWAY_ID in txt
-        ):
-            link.click()
-            clicked = True
-            break
-
-    if not clicked:
-        print("AUCUN LIEN DETAIL TROUVE, DOUBLE CLIC SUR LA LIGNE")
-        row.dblclick()
-
-    return clicked
-
-
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
-
-    context = browser.new_context(
-        viewport={
-            "width": 1600,
-            "height": 1000
-        }
-    )
-
+    context = browser.new_context(viewport={"width": 1600, "height": 1000})
     page = context.new_page()
 
-    cluster = next(
-        c for c in CONFIG
-        if "ccvba" in c["url"].lower()
-    )
+    cluster = next(c for c in CONFIG if "ccvba" in c["url"].lower())
 
-    page.goto(
-        cluster["url"],
-        wait_until="domcontentloaded",
-        timeout=60000
-    )
-
+    page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(3000)
 
     page.locator(
@@ -142,60 +65,28 @@ with sync_playwright() as p:
 
     page.wait_for_timeout(12000)
 
-    found_row = False
+    print("CLIC SUR TEXTE PASSERELLE:", GATEWAY_ID)
 
-    for page_index in range(10):
-        print("PAGE LISTING", page_index + 1)
+    target = page.get_by_text(GATEWAY_ID, exact=True).first
+    target.click()
 
-        rows = page.locator("tr")
-        count = rows.count()
+    page.wait_for_timeout(12000)
 
-        for i in range(count):
-            row = rows.nth(i)
-            raw = clean(row.inner_text())
+    body = page.locator("body").inner_text()
+    html = page.content()
 
-            if GATEWAY_ID not in raw:
-                continue
+    print("URL APRES CLIC:", page.url)
+    print("BODY APRES CLIC:")
+    print(clean(body)[:5000])
 
-            found_row = True
+    date = find_date(body) or find_date(html)
 
-            print("LIGNE TROUVEE:")
-            print(raw[:1000])
-
-            click_correct_gateway_link(row)
-
-            page.wait_for_timeout(12000)
-
-            body = page.locator("body").inner_text()
-            html = page.content()
-
-            print("URL APRES CLIC:", page.url)
-            print("BODY APRES CLIC:")
-            print(clean(body)[:4000])
-
-            date = find_date(body) or find_date(html)
-
-            if date:
-                print("DATE TROUVEE:", date)
-            else:
-                print("DATE NON TROUVEE APRES CLIC")
-
-            os.makedirs("public", exist_ok=True)
-
-            with open("public/index.html", "w", encoding="utf-8") as f:
-                f.write("<h1>TEST OK</h1>")
-
-            browser.close()
-            raise SystemExit
-
-        if not click_next(page):
-            break
-
-    if not found_row:
-        print("LIGNE NON TROUVEE POUR", GATEWAY_ID)
+    if date:
+        print("DATE TROUVEE:", date)
+    else:
+        print("DATE NON TROUVEE APRES CLIC TEXTE")
 
     os.makedirs("public", exist_ok=True)
-
     with open("public/index.html", "w", encoding="utf-8") as f:
         f.write("<h1>TEST OK</h1>")
 
