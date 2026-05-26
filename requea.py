@@ -47,65 +47,41 @@ def parse_requea_date(text):
     text = html.unescape(str(text or ""))
     text = clean(text)
 
-    # Format français : 23/05/2026 11:05:14
     m = re.search(
         r"([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
         text,
         re.I
     )
 
-    if m:
-        try:
-            return datetime.strptime(
-                m.group(1),
-                "%d/%m/%Y %H:%M:%S"
-            ).replace(tzinfo=PARIS)
-        except Exception:
-            pass
+    if not m:
+        return None
 
-    # Format Requea anglais : 5/23/2026, 11:05:14 AM
-    m = re.search(
-        r"([0-9]{1,2}/[0-9]{1,2}/[0-9]{4},\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}\s+[AP]M)",
-        text,
-        re.I
-    )
+    try:
+        return datetime.strptime(m.group(1), "%d/%m/%Y %H:%M:%S").replace(tzinfo=PARIS)
+    except Exception:
+        return None
 
-    if m:
-        try:
-            return datetime.strptime(
-                m.group(1),
-                "%m/%d/%Y, %I:%M:%S %p"
-            ).replace(tzinfo=PARIS)
-        except Exception:
-            pass
-
-    return None
 
 def parse_last_connection_from_html(html_text):
-
     decoded = html.unescape(str(html_text or ""))
+
+    patterns = [
+        r"Derni[eè]re\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Derniere\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Last\s+connection[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+    ]
+
+    for pattern in patterns:
+        m = re.search(pattern, decoded, re.I | re.S)
+        if m:
+            return parse_requea_date(m.group(1))
 
     text = strip_tags(decoded)
 
-    patterns = [
-
-        r"Derni[eè]re\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-
-        r"Derniere\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-
-        r"Last\s+connection[^0-9]*([0-9]{1,2}/[0-9]{1,2}/[0-9]{4},\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}\s+[AP]M)",
-
-    ]
-
-    for source in [decoded, text]:
-
-        for pattern in patterns:
-
-            m = re.search(pattern, source, re.I | re.S)
-
-            if m:
-
-                return parse_requea_date(m.group(1))
+    for pattern in patterns:
+        m = re.search(pattern, text, re.I | re.S)
+        if m:
+            return parse_requea_date(m.group(1))
 
     return None
 
