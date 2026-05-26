@@ -43,6 +43,30 @@ def fmt_date(v):
         return str(v)
 
 
+def fmt_duration(hours):
+    try:
+        h = float(hours)
+    except Exception:
+        return "-"
+
+    if h <= 0:
+        return "0 min"
+
+    if h < 1:
+        return f"{round(h * 60)} min"
+
+    if h < 24:
+        return f"{h:.1f} h"
+
+    days = int(h // 24)
+    remaining_hours = int(h % 24)
+
+    if days == 1:
+        return f"1 jour {remaining_hours} h"
+
+    return f"{days} jours {remaining_hours} h"
+
+
 def parse_requea_date(text):
     text = html.unescape(str(text or ""))
     text = clean(text)
@@ -53,35 +77,42 @@ def parse_requea_date(text):
         re.I
     )
 
-    if not m:
-        return None
+    if m:
+        try:
+            return datetime.strptime(m.group(1), "%d/%m/%Y %H:%M:%S").replace(tzinfo=PARIS)
+        except Exception:
+            pass
 
-    try:
-        return datetime.strptime(m.group(1), "%d/%m/%Y %H:%M:%S").replace(tzinfo=PARIS)
-    except Exception:
-        return None
+    m = re.search(
+        r"([0-9]{1,2}/[0-9]{1,2}/[0-9]{4},\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}\s+[AP]M)",
+        text,
+        re.I
+    )
+
+    if m:
+        try:
+            return datetime.strptime(m.group(1), "%m/%d/%Y, %I:%M:%S %p").replace(tzinfo=PARIS)
+        except Exception:
+            pass
+
+    return None
 
 
 def parse_last_connection_from_html(html_text):
     decoded = html.unescape(str(html_text or ""))
+    text = strip_tags(decoded)
 
     patterns = [
         r"Derni[eè]re\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
         r"Derniere\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
-        r"Last\s+connection[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Last\s+connection[^0-9]*([0-9]{1,2}/[0-9]{1,2}/[0-9]{4},\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}\s+[AP]M)",
     ]
 
-    for pattern in patterns:
-        m = re.search(pattern, decoded, re.I | re.S)
-        if m:
-            return parse_requea_date(m.group(1))
-
-    text = strip_tags(decoded)
-
-    for pattern in patterns:
-        m = re.search(pattern, text, re.I | re.S)
-        if m:
-            return parse_requea_date(m.group(1))
+    for source in [decoded, text]:
+        for pattern in patterns:
+            m = re.search(pattern, source, re.I | re.S)
+            if m:
+                return parse_requea_date(m.group(1))
 
     return None
 
@@ -154,26 +185,7 @@ def login(page, cluster):
         raise Exception("Connexion refusée")
 
 
-def extract_detail_url_from_html(row_html, base_url):
-    decoded = html.unescape(row_html)
-
-    patterns = [
-        r"(/do/iotGateway:get\?sysId=[^'\"&<>\s]+[^'\"<>\s]*)",
-        r"RQ\.nav\.detail\('([^']*iotGateway:get[^']*)'",
-        r"RQ\.nav\.go\('([^']*iotGateway:get[^']*)'",
-        r'href="([^"]*iotGateway:get[^"]*)"',
-        r"href='([^']*iotGateway:get[^']*)'",
-    ]
-
-    for pattern in patterns:
-        m = re.search(pattern, decoded, re.I)
-        if m:
-            return make_absolute_url(base_url, m.group(1))
-
-    return ""
-
-
-def parse_gateway(values, raw, cluster_name, detail_url=""):
+def parse_gateway(values, raw, cluster_name):
     values = [clean(v) for v in values if clean(v)]
 
     gateway_id = ""
@@ -264,13 +276,11 @@ def parse_gateway(values, raw, cluster_name, detail_url=""):
         "city": city,
         "geolocation": geolocation,
         "down": is_down,
-        "detail_url": detail_url,
         "last_connection": None,
-        "connected_since": None,
     }
 
 
-def parse_ajax_html(html_text, cluster_name, base_url):
+def parse_ajax_html(html_text, cluster_name):
     found = {}
 
     rows = re.findall(r"<tr[^>]*>.*?</tr>", html_text, flags=re.I | re.S)
@@ -284,9 +294,7 @@ def parse_ajax_html(html_text, cluster_name, base_url):
         cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.I | re.S)
         values = [strip_tags(c) for c in cells]
 
-        detail_url = extract_detail_url_from_html(row_html, base_url)
-
-        gateway = parse_gateway(values, raw, cluster_name, detail_url)
+        gateway = parse_gateway(values, raw, cluster_name)
 
         if gateway:
             found[gateway["gateway_id"]] = gateway
@@ -309,24 +317,7 @@ def collect_visible_rows(page, cluster):
         cells = row.locator("td")
         values = [cells.nth(j).inner_text() for j in range(cells.count())]
 
-        detail_url = ""
-
-        try:
-            href = row.locator("a").first.get_attribute("href")
-            detail_url = make_absolute_url(cluster["url"], href)
-        except Exception:
-            pass
-
-        try:
-            if not detail_url:
-                onclick = row.get_attribute("onclick") or ""
-                match = re.search(r"RQ\.nav\.(?:detail|go)\('([^']+)'", onclick)
-                if match:
-                    detail_url = make_absolute_url(cluster["url"], match.group(1))
-        except Exception:
-            pass
-
-        gateway = parse_gateway(values, raw, cluster["name"], detail_url)
+        gateway = parse_gateway(values, raw, cluster["name"])
 
         if gateway:
             found[gateway["gateway_id"]] = gateway
@@ -382,43 +373,56 @@ def click_next(page):
 
 
 def read_connection_date(context, cluster, gateway):
-    detail_url = gateway.get("detail_url") or ""
-
     p = context.new_page()
 
     try:
-        if detail_url:
-            p.goto(detail_url, wait_until="domcontentloaded", timeout=60000)
-            p.wait_for_timeout(6000)
+        p.goto(
+            f'{cluster["url"]}/page/Network_Gateways',
+            wait_until="domcontentloaded",
+            timeout=60000
+        )
 
-            body_text = p.locator("body").inner_text()
-            html_detail = p.content()
+        p.wait_for_timeout(12000)
 
-            last = parse_last_connection_from_html(body_text)
+        for _ in range(20):
+            try:
+                target = p.get_by_text(gateway["gateway_id"], exact=True).first
+                target.click()
 
-            if not last:
-                last = parse_last_connection_from_html(html_detail)
+                p.wait_for_timeout(8000)
 
-            gps = geoloc_from_text(body_text)
+                body_text = p.locator("body").inner_text()
+                html_detail = p.content()
 
-            if gps:
-                gateway["geolocation"] = gps
+                last = parse_last_connection_from_html(body_text)
 
-            if last:
-                print("DATE TROUVEE", gateway["name"], last.strftime("%d/%m/%Y %H:%M:%S"))
+                if not last:
+                    last = parse_last_connection_from_html(html_detail)
 
-            p.close()
-            return last
+                gps = geoloc_from_text(body_text)
 
-    except Exception:
-        pass
+                if gps:
+                    gateway["geolocation"] = gps
 
-    try:
+                p.close()
+                return last
+
+            except Exception:
+                pass
+
+            if not click_next(p):
+                break
+
         p.close()
-    except Exception:
-        pass
+        return None
 
-    return None
+    except Exception:
+        try:
+            p.close()
+        except Exception:
+            pass
+
+        return None
 
 
 def apply_history(g):
@@ -464,9 +468,6 @@ def apply_history(g):
 
     g["maintenance"] = g["down_hours"] >= 24
 
-    if not g["down"]:
-        g["connected_since"] = g["last_connection"]
-
     return g
 
 
@@ -474,7 +475,7 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
 
     for cluster in CONFIG:
-        context = browser.new_context()
+        context = browser.new_context(viewport={"width": 1600, "height": 1000})
         page = context.new_page()
 
         ajax_payloads = []
@@ -513,7 +514,7 @@ with sync_playwright() as p:
                     seen[k] = v
 
                 for payload in ajax_payloads:
-                    for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
+                    for k, v in parse_ajax_html(payload, cluster["name"]).items():
                         seen[k] = v
 
                 sig = "|".join(sorted(seen.keys()))
@@ -532,9 +533,6 @@ with sync_playwright() as p:
                 if connection_date:
                     gateway["last_connection"] = connection_date.isoformat()
 
-                if not gateway["down"]:
-                    gateway["connected_since"] = gateway["last_connection"]
-
                 gateways.append(apply_history(gateway))
 
         except Exception as e:
@@ -549,9 +547,7 @@ with sync_playwright() as p:
                 "city": "",
                 "geolocation": "",
                 "down": True,
-                "detail_url": "",
                 "last_connection": None,
-                "connected_since": None,
                 "down_since": None,
                 "down_hours": 0,
                 "service_24h": 0,
@@ -594,17 +590,6 @@ for c in clusters:
     }
 
 
-def fmt_hours(v):
-    try:
-        v = float(v)
-    except Exception:
-        return "-"
-    if v <= 0:
-        return "0 h"
-    if v < 1:
-        return f"{round(v * 60)} min"
-    return f"{v:.1f} h"
-
 html_page = f"""
 <!DOCTYPE html>
 <html lang="fr">
@@ -612,13 +597,12 @@ html_page = f"""
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Monitoring Requea</title>
+
 <style>
 :root {{
     --ink:#0b1220;
     --muted:#667085;
     --line:rgba(255,255,255,.58);
-    --glass:rgba(255,255,255,.34);
-    --glass2:rgba(255,255,255,.52);
     --shadow:0 18px 60px rgba(31,41,55,.13), inset 0 1px 0 rgba(255,255,255,.65);
     --blue:#1677ff;
     --cyan:#05bdf2;
@@ -627,9 +611,12 @@ html_page = f"""
     --orange:#ff9f0a;
     --violet:#7c3aed;
 }}
-*{{box-sizing:border-box}}
-html{{-webkit-font-smoothing:antialiased;}}
-body{{
+
+* {{
+    box-sizing:border-box;
+}}
+
+body {{
     margin:0;
     padding:22px;
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
@@ -640,17 +627,13 @@ body{{
         radial-gradient(circle at 52% 95%, rgba(5,189,242,.20), transparent 32%),
         linear-gradient(180deg,#ffffff 0%,#f7faff 44%,#edf4ff 100%);
 }}
-body::before{{
-    content:"";
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    background-image:linear-gradient(rgba(255,255,255,.32) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,.26) 1px, transparent 1px);
-    background-size:44px 44px;
-    mask-image:linear-gradient(to bottom,rgba(0,0,0,.35),transparent 70%);
+
+.shell {{
+    max-width:1680px;
+    margin:0 auto;
 }}
-.shell{{max-width:1680px;margin:0 auto;}}
-.hero,.panel{{
+
+.hero,.panel {{
     position:relative;
     overflow:hidden;
     background:linear-gradient(145deg,rgba(255,255,255,.50),rgba(255,255,255,.24));
@@ -659,7 +642,8 @@ body::before{{
     backdrop-filter:blur(34px) saturate(190%);
     -webkit-backdrop-filter:blur(34px) saturate(190%);
 }}
-.hero::after,.panel::after{{
+
+.hero::after,.panel::after {{
     content:"";
     position:absolute;
     inset:1px;
@@ -667,125 +651,436 @@ body::before{{
     pointer-events:none;
     background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(255,255,255,0) 38%,rgba(255,255,255,.18));
 }}
-.hero>* ,.panel>*{{position:relative;z-index:2}}
-.hero{{border-radius:36px;padding:32px;margin-bottom:22px;}}
-.topbar{{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;}}
-.brand{{display:flex;align-items:center;gap:16px;}}
-.logo{{
-    width:64px;height:64px;border-radius:22px;
-    display:flex;align-items:center;justify-content:center;
-    color:white;font-weight:900;font-size:22px;letter-spacing:-.04em;
+
+.hero > *,
+.panel > * {{
+    position:relative;
+    z-index:2;
+}}
+
+.hero {{
+    border-radius:36px;
+    padding:32px;
+    margin-bottom:22px;
+}}
+
+.topbar {{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    flex-wrap:wrap;
+}}
+
+.brand {{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}}
+
+.logo {{
+    width:64px;
+    height:64px;
+    border-radius:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:900;
+    font-size:22px;
     background:linear-gradient(145deg,#1677ff,#7c3aed);
-    box-shadow:0 18px 38px rgba(22,119,255,.30),inset 0 1px 0 rgba(255,255,255,.38);
 }}
-h1{{margin:0;font-size:44px;line-height:.96;font-weight:900;letter-spacing:-.055em;}}
-.eyebrow{{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2563eb;margin-bottom:8px;}}
-.subtitle{{color:var(--muted);font-size:15px;margin-top:10px;font-weight:550;}}
-.updated{{
-    padding:12px 17px;border-radius:999px;
-    background:rgba(255,255,255,.46);border:1px solid rgba(255,255,255,.68);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 12px 30px rgba(15,23,42,.07);
-    color:#344054;font-size:14px;font-weight:750;
+
+h1 {{
+    margin:0;
+    font-size:44px;
+    line-height:.96;
+    font-weight:900;
+    letter-spacing:-.055em;
 }}
-.kpis{{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-top:28px;}}
-.kpi{{
-    position:relative;overflow:hidden;min-height:134px;padding:18px;border-radius:26px;color:white;
-    box-shadow:0 18px 44px rgba(15,23,42,.13), inset 0 1px 0 rgba(255,255,255,.35);
+
+.eyebrow {{
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:#2563eb;
+    margin-bottom:8px;
 }}
-.kpi::before{{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.34),rgba(255,255,255,.06));}}
-.kpi::after{{content:"";position:absolute;right:-34px;top:-34px;width:116px;height:116px;border-radius:999px;background:rgba(255,255,255,.20);}}
-.kpi>*{{position:relative;z-index:2}}
-.kpi-icon{{width:42px;height:42px;border-radius:15px;background:rgba(255,255,255,.23);display:grid;place-items:center;margin-bottom:15px;}}
-.kpi-icon svg{{width:22px;height:22px;stroke:white;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round;}}
-.kpi-label{{font-size:13px;font-weight:800;opacity:.95;}}
-.kpi-value{{font-size:34px;font-weight:900;letter-spacing:-.045em;margin-top:5px;}}
-.g-blue{{background:linear-gradient(145deg,#1677ff,#55b6ff)}}
-.g-cyan{{background:linear-gradient(145deg,#06b6d4,#67e8f9)}}
-.g-green{{background:linear-gradient(145deg,#12b76a,#4ade80)}}
-.g-red{{background:linear-gradient(145deg,#f43f5e,#fb7185)}}
-.g-orange{{background:linear-gradient(145deg,#f79009,#facc15)}}
-.g-violet{{background:linear-gradient(145deg,#7c3aed,#a78bfa)}}
-.panel{{border-radius:32px;padding:24px;margin-bottom:22px;}}
-.section-head{{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;}}
-h2{{margin:0;font-size:30px;line-height:1.05;font-weight:900;letter-spacing:-.045em;}}
-.section-caption{{color:var(--muted);font-weight:600;font-size:14px;margin-top:6px;}}
-.cluster-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}}
-.cluster-card{{
-    position:relative;overflow:hidden;border-radius:24px;padding:18px;
+
+.subtitle {{
+    color:var(--muted);
+    font-size:15px;
+    margin-top:10px;
+    font-weight:550;
+}}
+
+.updated {{
+    padding:12px 17px;
+    border-radius:999px;
+    background:rgba(255,255,255,.46);
+    border:1px solid rgba(255,255,255,.68);
+    color:#344054;
+    font-size:14px;
+    font-weight:750;
+}}
+
+.kpis {{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:14px;
+    margin-top:28px;
+}}
+
+.kpi {{
+    position:relative;
+    overflow:hidden;
+    min-height:134px;
+    padding:18px;
+    border-radius:26px;
+    color:white;
+}}
+
+.kpi::before {{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(145deg,rgba(255,255,255,.34),rgba(255,255,255,.06));
+}}
+
+.kpi > * {{
+    position:relative;
+    z-index:2;
+}}
+
+.kpi-label {{
+    font-size:13px;
+    font-weight:800;
+    opacity:.95;
+}}
+
+.kpi-value {{
+    font-size:34px;
+    font-weight:900;
+    letter-spacing:-.045em;
+    margin-top:5px;
+}}
+
+.g-blue {{ background:linear-gradient(145deg,#1677ff,#55b6ff); }}
+.g-cyan {{ background:linear-gradient(145deg,#06b6d4,#67e8f9); }}
+.g-green {{ background:linear-gradient(145deg,#12b76a,#4ade80); }}
+.g-red {{ background:linear-gradient(145deg,#f43f5e,#fb7185); }}
+.g-orange {{ background:linear-gradient(145deg,#f79009,#facc15); }}
+.g-violet {{ background:linear-gradient(145deg,#7c3aed,#a78bfa); }}
+
+.panel {{
+    border-radius:32px;
+    padding:24px;
+    margin-bottom:22px;
+}}
+
+h2 {{
+    margin:0;
+    font-size:30px;
+    line-height:1.05;
+    font-weight:900;
+    letter-spacing:-.045em;
+}}
+
+.section-caption {{
+    color:var(--muted);
+    font-weight:600;
+    font-size:14px;
+    margin-top:6px;
+}}
+
+.cluster-grid {{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:14px;
+    margin-top:18px;
+}}
+
+.cluster-card {{
+    border-radius:24px;
+    padding:18px;
     background:linear-gradient(145deg,rgba(255,255,255,.48),rgba(255,255,255,.22));
     border:1px solid rgba(255,255,255,.64);
-    backdrop-filter:blur(26px) saturate(180%);
-    -webkit-backdrop-filter:blur(26px) saturate(180%);
-    box-shadow:0 12px 34px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.7);
 }}
-.cluster-card::after{{content:"";position:absolute;right:-24px;top:-24px;width:92px;height:92px;border-radius:999px;background:linear-gradient(145deg,rgba(22,119,255,.18),rgba(124,58,237,.16));}}
-.cluster-top{{display:flex;align-items:center;gap:12px;position:relative;z-index:2;}}
-.cluster-mark{{
-    width:44px;height:44px;border-radius:16px;display:grid;place-items:center;color:white;
-    background:linear-gradient(145deg,#1677ff,#7c3aed);box-shadow:0 12px 28px rgba(22,119,255,.22);
+
+.cluster-name {{
+    font-size:18px;
+    font-weight:900;
 }}
-.cluster-mark svg{{width:22px;height:22px;stroke:white;fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}}
-.cluster-name{{font-size:18px;font-weight:900;letter-spacing:-.03em;}}
-.cluster-stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;position:relative;z-index:2;}}
-.cluster-num{{font-size:24px;font-weight:900;letter-spacing:-.04em;}}
-.cluster-sub{{font-size:11px;color:var(--muted);font-weight:750;text-transform:uppercase;letter-spacing:.04em;}}
-.progress{{position:relative;height:11px;background:rgba(226,232,240,.82);border-radius:999px;overflow:hidden;margin-top:16px;box-shadow:inset 0 1px 2px rgba(15,23,42,.08);}}
-.progress span{{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#1677ff,#05bdf2 55%,#19c37d);box-shadow:0 0 18px rgba(5,189,242,.35);}}
-.progress-label{{font-size:12px;font-weight:850;color:#344054;text-align:right;margin-top:7px;}}
-.filter-shell{{overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}}
-.filter{{
-    position:relative;display:inline-flex;gap:5px;min-width:max-content;padding:7px;border-radius:999px;
-    background:rgba(255,255,255,.43);border:1px solid rgba(255,255,255,.66);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 14px 30px rgba(15,23,42,.06);
+
+.cluster-stats {{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-top:16px;
 }}
-.slider{{position:absolute;top:7px;left:7px;height:calc(100% - 14px);border-radius:999px;background:linear-gradient(145deg,#1677ff,#7c3aed);box-shadow:0 10px 24px rgba(22,119,255,.26);transition:transform .28s cubic-bezier(.2,.8,.2,1),width .28s cubic-bezier(.2,.8,.2,1);}}
-.seg-btn{{position:relative;z-index:2;border:0;background:transparent;border-radius:999px;padding:11px 17px;color:#334155;font-weight:850;white-space:nowrap;cursor:pointer;}}
-.seg-btn.active{{color:white;}}
-.table-wrap{{overflow:auto;border-radius:24px;border:1px solid rgba(255,255,255,.62);background:rgba(255,255,255,.28);}}
-table{{width:100%;min-width:1450px;border-collapse:collapse;}}
-th{{position:sticky;top:0;z-index:3;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#475467;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.035em;padding:14px;}}
-td{{padding:14px;border-bottom:1px solid rgba(148,163,184,.15);white-space:nowrap;font-size:13px;}}
-tr:hover{{background:rgba(255,255,255,.34);}}
-.badge{{display:inline-flex;align-items:center;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;}}
-.ok{{background:#dcfae6;color:#067647}}
-.ko{{background:#fee4e2;color:#b42318}}
-.down{{background:rgba(254,226,226,.28)}}
-.maintenance{{background:rgba(255,237,213,.35)}}
-@media(max-width:1180px){{.kpis{{grid-template-columns:repeat(3,1fr)}}}}
-@media(max-width:760px){{body{{padding:10px}}.hero,.panel{{border-radius:24px;padding:16px}}.logo{{width:54px;height:54px;border-radius:18px}}h1{{font-size:30px}}h2{{font-size:24px}}.kpis{{grid-template-columns:repeat(2,1fr);gap:10px}}.kpi{{min-height:118px;padding:14px;border-radius:21px}}.kpi-icon{{width:34px;height:34px;border-radius:12px;margin-bottom:11px}}.kpi-icon svg{{width:18px;height:18px}}.kpi-label{{font-size:12px}}.kpi-value{{font-size:28px}}.cluster-grid{{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}.cluster-card{{padding:13px;border-radius:20px}}.cluster-mark{{width:36px;height:36px;border-radius:13px}}.cluster-name{{font-size:15px}}.cluster-num{{font-size:20px}}.cluster-sub{{font-size:10px}}.progress{{height:9px}}.seg-btn{{padding:10px 14px;font-size:13px}}}}
+
+.cluster-num {{
+    font-size:24px;
+    font-weight:900;
+}}
+
+.cluster-sub {{
+    font-size:11px;
+    color:var(--muted);
+    font-weight:750;
+    text-transform:uppercase;
+}}
+
+.progress {{
+    height:11px;
+    background:rgba(226,232,240,.82);
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:16px;
+}}
+
+.progress span {{
+    display:block;
+    height:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg,#1677ff,#05bdf2 55%,#19c37d);
+}}
+
+.progress-label {{
+    font-size:12px;
+    font-weight:850;
+    color:#344054;
+    text-align:right;
+    margin-top:7px;
+}}
+
+.filter-row {{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-top:18px;
+}}
+
+.filter-shell {{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    max-width:100%;
+}}
+
+.filter {{
+    position:relative;
+    display:inline-flex;
+    gap:5px;
+    min-width:max-content;
+    padding:7px;
+    border-radius:999px;
+    background:rgba(255,255,255,.43);
+    border:1px solid rgba(255,255,255,.66);
+}}
+
+.slider {{
+    position:absolute;
+    top:7px;
+    left:7px;
+    height:calc(100% - 14px);
+    border-radius:999px;
+    background:linear-gradient(145deg,#1677ff,#7c3aed);
+    transition:transform .28s cubic-bezier(.2,.8,.2,1),width .28s cubic-bezier(.2,.8,.2,1);
+}}
+
+.seg-btn {{
+    position:relative;
+    z-index:2;
+    border:0;
+    background:transparent;
+    border-radius:999px;
+    padding:11px 17px;
+    color:#334155;
+    font-weight:850;
+    white-space:nowrap;
+    cursor:pointer;
+}}
+
+.seg-btn.active {{
+    color:white;
+}}
+
+.search {{
+    min-width:260px;
+    flex:1;
+}}
+
+.search input {{
+    width:100%;
+    border:1px solid rgba(255,255,255,.68);
+    background:rgba(255,255,255,.52);
+    border-radius:999px;
+    padding:13px 17px;
+    outline:none;
+    font-weight:700;
+    color:#344054;
+}}
+
+.table-wrap {{
+    overflow:auto;
+    border-radius:24px;
+    border:1px solid rgba(255,255,255,.62);
+    background:rgba(255,255,255,.28);
+    margin-top:18px;
+}}
+
+table {{
+    width:100%;
+    min-width:1380px;
+    border-collapse:collapse;
+}}
+
+th {{
+    position:sticky;
+    top:0;
+    z-index:3;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:blur(20px);
+    color:#475467;
+    text-align:left;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.035em;
+    padding:14px;
+}}
+
+td {{
+    padding:14px;
+    border-bottom:1px solid rgba(148,163,184,.15);
+    white-space:nowrap;
+    font-size:13px;
+}}
+
+.badge {{
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    padding:7px 11px;
+    font-size:12px;
+    font-weight:850;
+}}
+
+.ok {{ background:#dcfae6; color:#067647; }}
+.ko {{ background:#fee4e2; color:#b42318; }}
+
+.down {{ background:rgba(254,226,226,.28); }}
+.maintenance {{ background:rgba(255,237,213,.35); }}
+
+.hidden-row {{
+    display:none !important;
+}}
+
+@media(max-width:1180px) {{
+    .kpis {{
+        grid-template-columns:repeat(3,1fr);
+    }}
+}}
+
+@media(max-width:760px) {{
+    body {{
+        padding:10px;
+    }}
+
+    .hero,.panel {{
+        border-radius:24px;
+        padding:16px;
+    }}
+
+    h1 {{
+        font-size:30px;
+    }}
+
+    h2 {{
+        font-size:24px;
+    }}
+
+    .kpis {{
+        grid-template-columns:repeat(2,1fr);
+        gap:10px;
+    }}
+
+    .kpi {{
+        min-height:112px;
+        padding:14px;
+        border-radius:21px;
+    }}
+
+    .kpi-value {{
+        font-size:28px;
+    }}
+
+    .cluster-grid {{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:10px;
+    }}
+
+    .cluster-card {{
+        padding:13px;
+        border-radius:20px;
+    }}
+
+    .search {{
+        min-width:100%;
+    }}
+}}
 </style>
+
 <script>
-function initSegmented() {{
+function initDashboard() {{
     const buttons = Array.from(document.querySelectorAll(".seg-btn"));
     const slider = document.querySelector(".slider");
+    const search = document.querySelector("#searchInput");
+
     function move(btn) {{
         if (!slider || !btn) return;
         slider.style.width = btn.offsetWidth + "px";
-        slider.style.transform = `translateX(${{btn.offsetLeft}}px)`;
+        slider.style.transform = "translateX(" + btn.offsetLeft + "px)";
     }}
-    function apply(btn) {{
-        const cluster = btn.dataset.cluster;
+
+    function apply() {{
+        const active = document.querySelector(".seg-btn.active");
+        const cluster = active ? active.dataset.cluster : "ALL";
+        const q = search ? search.value.toLowerCase().trim() : "";
+
         document.querySelectorAll(".gateway-row").forEach(row => {{
-            row.style.display = cluster === "ALL" || row.dataset.cluster === cluster ? "" : "none";
+            const clusterOk = cluster === "ALL" || row.dataset.cluster === cluster;
+            const searchOk = !q || row.innerText.toLowerCase().includes(q);
+            row.classList.toggle("hidden-row", !(clusterOk && searchOk));
         }});
-        move(btn);
+
+        move(active);
     }}
+
     buttons.forEach(btn => {{
         btn.addEventListener("click", () => {{
             buttons.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            apply(btn);
+            apply();
         }});
     }});
-    const active = document.querySelector(".seg-btn.active");
-    if (active) apply(active);
-    window.addEventListener("resize", () => move(document.querySelector(".seg-btn.active")));
+
+    if (search) {{
+        search.addEventListener("input", apply);
+    }}
+
+    window.addEventListener("resize", apply);
+    apply();
 }}
-window.addEventListener("load", initSegmented);
+
+window.addEventListener("load", initDashboard);
 </script>
 </head>
+
 <body>
 <div class="shell">
+
 <section class="hero">
     <div class="topbar">
         <div class="brand">
@@ -798,17 +1093,21 @@ window.addEventListener("load", initSegmented);
         </div>
         <div class="updated">Mise à jour · {NOW.strftime("%d/%m/%Y %H:%M")}</div>
     </div>
+
     <div class="kpis">
-        <div class="kpi g-blue"><div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div><div class="kpi-label">Clusters</div><div class="kpi-value">{len(clusters)}</div></div>
-        <div class="kpi g-cyan"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M6 20h12M12 20V10"/><path d="M8 10a4 4 0 0 1 8 0M5 7a8 8 0 0 1 14 0"/></svg></div><div class="kpi-label">Passerelles</div><div class="kpi-value">{total}</div></div>
-        <div class="kpi g-green"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="kpi-label">Connectées</div><div class="kpi-value">{ok}</div></div>
-        <div class="kpi g-red"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><path d="M10.3 4.3 2.8 17.2A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.8L13.7 4.3a2 2 0 0 0-3.4 0Z"/></svg></div><div class="kpi-label">Déconnectées</div><div class="kpi-value">{down}</div></div>
-        <div class="kpi g-orange"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg></div><div class="kpi-label">Service</div><div class="kpi-value">{service}%</div></div>
-        <div class="kpi g-violet"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5 5L4 17v3h3l5.7-5.7a4 4 0 0 0 5-5l-3 3-3-3 3-3Z"/></svg></div><div class="kpi-label">Maintenance</div><div class="kpi-value">{maintenance}</div></div>
+        <div class="kpi g-blue"><div class="kpi-label">Clusters</div><div class="kpi-value">{len(clusters)}</div></div>
+        <div class="kpi g-cyan"><div class="kpi-label">Passerelles actives</div><div class="kpi-value">{total}</div></div>
+        <div class="kpi g-green"><div class="kpi-label">Connectées</div><div class="kpi-value">{ok}</div></div>
+        <div class="kpi g-red"><div class="kpi-label">Déconnectées</div><div class="kpi-value">{down}</div></div>
+        <div class="kpi g-orange"><div class="kpi-label">Service instantané</div><div class="kpi-value">{service}%</div></div>
+        <div class="kpi g-violet"><div class="kpi-label">Maintenance >24h</div><div class="kpi-value">{maintenance}</div></div>
     </div>
 </section>
+
 <section class="panel">
-    <div class="section-head"><div><h2>Synthèse clusters</h2><div class="section-caption">Identification rapide, état de service et incidents par territoire.</div></div></div>
+    <h2>Synthèse clusters</h2>
+    <div class="section-caption">Identification rapide, état de service et incidents par territoire.</div>
+
     <div class="cluster-grid">
 """
 
@@ -816,77 +1115,140 @@ for c in clusters:
     s = cluster_stats[c]
     html_page += f"""
         <article class="cluster-card">
-            <div class="cluster-top"><div class="cluster-mark"><svg viewBox="0 0 24 24"><path d="M6 20h12M12 20V10"/><path d="M8 10a4 4 0 0 1 8 0M5 7a8 8 0 0 1 14 0"/></svg></div><div class="cluster-name">{esc(c)}</div></div>
+            <div class="cluster-name">{esc(c)}</div>
             <div class="cluster-stats">
                 <div><div class="cluster-num">{s["total"]}</div><div class="cluster-sub">Total</div></div>
                 <div><div class="cluster-num" style="color:var(--green)">{s["ok"]}</div><div class="cluster-sub">OK</div></div>
                 <div><div class="cluster-num" style="color:var(--red)">{s["down"]}</div><div class="cluster-sub">HS</div></div>
             </div>
             <div class="progress"><span style="width:{s["service"]}%"></span></div>
-            <div class="progress-label">{s["service"]}%</div>
+            <div class="progress-label">{s["service"]}% service</div>
         </article>
 """
 
 html_page += """
     </div>
 </section>
+
 <section class="panel">
-    <div class="section-head"><div><h2>Filtre clusters</h2><div class="section-caption">Sélection fluide avec indicateur glissant.</div></div></div>
-    <div class="filter-shell"><div class="filter"><div class="slider"></div><button class="seg-btn active" data-cluster="ALL">Tous</button>
+    <h2>Filtrer et rechercher</h2>
+    <div class="section-caption">Filtre par cluster et recherche dans les tableaux.</div>
+
+    <div class="filter-row">
+        <div class="filter-shell">
+            <div class="filter">
+                <div class="slider"></div>
+                <button class="seg-btn active" data-cluster="ALL">Tous</button>
 """
 
 for c in clusters:
-    html_page += f'<button class="seg-btn" data-cluster="{esc(c)}">{esc(c)}</button>\n'
+    html_page += f"""
+                <button class="seg-btn" data-cluster="{esc(c)}">{esc(c)}</button>
+"""
 
 html_page += """
-    </div></div>
+            </div>
+        </div>
+
+        <div class="search">
+            <input id="searchInput" placeholder="Rechercher une passerelle, ville, firmware, ID...">
+        </div>
+    </div>
 </section>
+
 <section class="panel">
-    <div class="section-head"><div><h2>Passerelles HS</h2><div class="section-caption">Priorisation maintenance et durée d’indisponibilité.</div></div></div>
-    <div class="table-wrap"><table>
-        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Connexion</th><th>Dernière connexion</th><th>HS depuis</th><th>Durée HS</th><th>Service 24h</th><th>Firmware</th></tr>
+    <h2>Passerelles HS</h2>
+    <div class="section-caption">La durée HS est calculée à partir de la dernière connexion Requea.</div>
+
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th>Cluster</th>
+                <th>Passerelle</th>
+                <th>Ville</th>
+                <th>GPS</th>
+                <th>Connexion</th>
+                <th>Dernière connexion</th>
+                <th>Durée HS</th>
+                <th>Service 24h</th>
+                <th>Firmware</th>
+            </tr>
 """
 
 for g in active_gateways:
     if not g["down"]:
         continue
+
     row_class = "maintenance" if g["maintenance"] else "down"
+
     html_page += f"""
-        <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
-            <td><strong>{esc(g["cluster"])}</strong></td><td><strong>{esc(g["name"])}</strong></td><td>{esc(g["city"])}</td><td>{esc(g["geolocation"])}</td>
-            <td><span class="badge ko">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{fmt_date(g["down_since"])}</td><td>{fmt_hours(g["down_hours"])}</td><td>{g["service_24h"]}%</td><td>{esc(g["firmware"])}</td>
-        </tr>
+            <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+                <td><strong>{esc(g["cluster"])}</strong></td>
+                <td><strong>{esc(g["name"])}</strong></td>
+                <td>{esc(g["city"])}</td>
+                <td>{esc(g["geolocation"])}</td>
+                <td><span class="badge ko">{esc(g["connection"])}</span></td>
+                <td>{fmt_date(g["last_connection"])}</td>
+                <td>{fmt_duration(g["down_hours"])}</td>
+                <td>{g["service_24h"]}%</td>
+                <td>{esc(g["firmware"])}</td>
+            </tr>
 """
 
 html_page += """
-    </table></div>
+        </table>
+    </div>
 </section>
+
 <section class="panel">
-    <div class="section-head"><div><h2>Toutes les passerelles</h2><div class="section-caption">Inventaire consolidé des passerelles actives.</div></div></div>
-    <div class="table-wrap"><table>
-        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Statut</th><th>Connexion</th><th>Connecté depuis</th><th>Dernière connexion</th><th>Firmware</th><th>ID</th></tr>
+    <h2>Toutes les passerelles</h2>
+    <div class="section-caption">Inventaire consolidé des passerelles actives.</div>
+
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th>Cluster</th>
+                <th>Passerelle</th>
+                <th>Ville</th>
+                <th>GPS</th>
+                <th>Statut</th>
+                <th>Connexion</th>
+                <th>Dernière connexion</th>
+                <th>Firmware</th>
+                <th>ID</th>
+            </tr>
 """
 
 for g in active_gateways:
     badge = "ko" if g["down"] else "ok"
     row_class = "maintenance" if g["maintenance"] else ("down" if g["down"] else "")
-    connected_since = g["connected_since"] if not g["down"] else None
+
     html_page += f"""
-        <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
-            <td><strong>{esc(g["cluster"])}</strong></td><td><strong>{esc(g["name"])}</strong></td><td>{esc(g["city"])}</td><td>{esc(g["geolocation"])}</td>
-            <td><span class="badge ok">{esc(g["status"])}</span></td><td><span class="badge {badge}">{esc(g["connection"])}</span></td><td>{fmt_date(connected_since)}</td><td>{fmt_date(g["last_connection"])}</td><td>{esc(g["firmware"])}</td><td>{esc(g["gateway_id"])}</td>
-        </tr>
+            <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+                <td><strong>{esc(g["cluster"])}</strong></td>
+                <td><strong>{esc(g["name"])}</strong></td>
+                <td>{esc(g["city"])}</td>
+                <td>{esc(g["geolocation"])}</td>
+                <td><span class="badge ok">{esc(g["status"])}</span></td>
+                <td><span class="badge {badge}">{esc(g["connection"])}</span></td>
+                <td>{fmt_date(g["last_connection"])}</td>
+                <td>{esc(g["firmware"])}</td>
+                <td>{esc(g["gateway_id"])}</td>
+            </tr>
 """
 
 html_page += """
-    </table></div>
+        </table>
+    </div>
 </section>
+
 </div>
 </body>
 </html>
 """
 
 os.makedirs("public", exist_ok=True)
+
 with open("public/index.html", "w", encoding="utf-8") as f:
     f.write(html_page)
 
