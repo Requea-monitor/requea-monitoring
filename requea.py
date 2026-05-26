@@ -594,1231 +594,299 @@ for c in clusters:
     }
 
 
+def fmt_hours(v):
+    try:
+        v = float(v)
+    except Exception:
+        return "-"
+    if v <= 0:
+        return "0 h"
+    if v < 1:
+        return f"{round(v * 60)} min"
+    return f"{v:.1f} h"
+
 html_page = f"""
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Monitoring Requea</title>
-
 <style>
-
 :root {{
-
-    --bg:#f3f7fd;
-
-    --glass:
-        rgba(255,255,255,.38);
-
-    --glass-strong:
-        rgba(255,255,255,.56);
-
-    --line:
-        rgba(255,255,255,.58);
-
-    --text:#0f172a;
-    --muted:#64748b;
-
-    --shadow:
-        0 10px 40px rgba(15,23,42,.08),
-        0 2px 12px rgba(15,23,42,.05);
-
-    --blue:#4f8cff;
-    --green:#16c784;
-    --red:#ff5d73;
-    --orange:#ffae4b;
-    --purple:#8b6fff;
-    --cyan:#53c8ff;
-
+    --ink:#0b1220;
+    --muted:#667085;
+    --line:rgba(255,255,255,.58);
+    --glass:rgba(255,255,255,.34);
+    --glass2:rgba(255,255,255,.52);
+    --shadow:0 18px 60px rgba(31,41,55,.13), inset 0 1px 0 rgba(255,255,255,.65);
+    --blue:#1677ff;
+    --cyan:#05bdf2;
+    --green:#19c37d;
+    --red:#ff3b5c;
+    --orange:#ff9f0a;
+    --violet:#7c3aed;
 }}
-
-* {{
-    box-sizing:border-box;
-}}
-
-body {{
-
+*{{box-sizing:border-box}}
+html{{-webkit-font-smoothing:antialiased;}}
+body{{
     margin:0;
-    padding:18px;
-
-    font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "SF Pro Display",
-        sans-serif;
-
-    color:var(--text);
-
+    padding:22px;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+    color:var(--ink);
     background:
-
-        radial-gradient(
-            circle at top left,
-            rgba(79,140,255,.16),
-            transparent 30%
-        ),
-
-        radial-gradient(
-            circle at top right,
-            rgba(139,111,255,.18),
-            transparent 30%
-        ),
-
-        radial-gradient(
-            circle at bottom center,
-            rgba(83,200,255,.16),
-            transparent 34%
-        ),
-
-        linear-gradient(
-            180deg,
-            #ffffff,
-            #eef4ff
-        );
-
+        radial-gradient(circle at 12% 8%, rgba(22,119,255,.26), transparent 26%),
+        radial-gradient(circle at 84% 6%, rgba(124,58,237,.22), transparent 28%),
+        radial-gradient(circle at 52% 95%, rgba(5,189,242,.20), transparent 32%),
+        linear-gradient(180deg,#ffffff 0%,#f7faff 44%,#edf4ff 100%);
 }}
-
-.container {{
-    max-width:1700px;
-    margin:auto;
+body::before{{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.32) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,.26) 1px, transparent 1px);
+    background-size:44px 44px;
+    mask-image:linear-gradient(to bottom,rgba(0,0,0,.35),transparent 70%);
 }}
-
-.glass {{
-
-    background:var(--glass);
-
-    backdrop-filter:
-        blur(32px)
-        saturate(180%);
-
-    -webkit-backdrop-filter:
-        blur(32px)
-        saturate(180%);
-
+.shell{{max-width:1680px;margin:0 auto;}}
+.hero,.panel{{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(145deg,rgba(255,255,255,.50),rgba(255,255,255,.24));
     border:1px solid var(--line);
-
     box-shadow:var(--shadow);
-
+    backdrop-filter:blur(34px) saturate(190%);
+    -webkit-backdrop-filter:blur(34px) saturate(190%);
 }}
-
-.hero {{
-
-    position:relative;
-
-    overflow:hidden;
-
-    border-radius:38px;
-
-    padding:34px;
-
-    margin-bottom:24px;
-
-}}
-
-.hero::before {{
-
+.hero::after,.panel::after{{
     content:"";
-
     position:absolute;
-    inset:0;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.30),
-            rgba(255,255,255,.06)
-        );
-
+    inset:1px;
+    border-radius:inherit;
+    pointer-events:none;
+    background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(255,255,255,0) 38%,rgba(255,255,255,.18));
 }}
-
-.hero > * {{
-    position:relative;
-    z-index:2;
+.hero>* ,.panel>*{{position:relative;z-index:2}}
+.hero{{border-radius:36px;padding:32px;margin-bottom:22px;}}
+.topbar{{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;}}
+.brand{{display:flex;align-items:center;gap:16px;}}
+.logo{{
+    width:64px;height:64px;border-radius:22px;
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-weight:900;font-size:22px;letter-spacing:-.04em;
+    background:linear-gradient(145deg,#1677ff,#7c3aed);
+    box-shadow:0 18px 38px rgba(22,119,255,.30),inset 0 1px 0 rgba(255,255,255,.38);
 }}
-
-.header {{
-
-    display:flex;
-
-    align-items:center;
-    justify-content:space-between;
-
-    gap:18px;
-
-    flex-wrap:wrap;
-
+h1{{margin:0;font-size:44px;line-height:.96;font-weight:900;letter-spacing:-.055em;}}
+.eyebrow{{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2563eb;margin-bottom:8px;}}
+.subtitle{{color:var(--muted);font-size:15px;margin-top:10px;font-weight:550;}}
+.updated{{
+    padding:12px 17px;border-radius:999px;
+    background:rgba(255,255,255,.46);border:1px solid rgba(255,255,255,.68);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 12px 30px rgba(15,23,42,.07);
+    color:#344054;font-size:14px;font-weight:750;
 }}
-
-.brand {{
-
-    display:flex;
-    align-items:center;
-    gap:18px;
-
+.kpis{{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-top:28px;}}
+.kpi{{
+    position:relative;overflow:hidden;min-height:134px;padding:18px;border-radius:26px;color:white;
+    box-shadow:0 18px 44px rgba(15,23,42,.13), inset 0 1px 0 rgba(255,255,255,.35);
 }}
-
-.logo {{
-
-    width:78px;
-    height:78px;
-
-    border-radius:28px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:34px;
-
-    color:white;
-
-    background:
-        linear-gradient(
-            145deg,
-            #4f8cff,
-            #8b6fff
-        );
-
-    box-shadow:
-        0 20px 40px rgba(79,140,255,.28);
-
+.kpi::before{{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.34),rgba(255,255,255,.06));}}
+.kpi::after{{content:"";position:absolute;right:-34px;top:-34px;width:116px;height:116px;border-radius:999px;background:rgba(255,255,255,.20);}}
+.kpi>*{{position:relative;z-index:2}}
+.kpi-icon{{width:42px;height:42px;border-radius:15px;background:rgba(255,255,255,.23);display:grid;place-items:center;margin-bottom:15px;}}
+.kpi-icon svg{{width:22px;height:22px;stroke:white;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round;}}
+.kpi-label{{font-size:13px;font-weight:800;opacity:.95;}}
+.kpi-value{{font-size:34px;font-weight:900;letter-spacing:-.045em;margin-top:5px;}}
+.g-blue{{background:linear-gradient(145deg,#1677ff,#55b6ff)}}
+.g-cyan{{background:linear-gradient(145deg,#06b6d4,#67e8f9)}}
+.g-green{{background:linear-gradient(145deg,#12b76a,#4ade80)}}
+.g-red{{background:linear-gradient(145deg,#f43f5e,#fb7185)}}
+.g-orange{{background:linear-gradient(145deg,#f79009,#facc15)}}
+.g-violet{{background:linear-gradient(145deg,#7c3aed,#a78bfa)}}
+.panel{{border-radius:32px;padding:24px;margin-bottom:22px;}}
+.section-head{{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;}}
+h2{{margin:0;font-size:30px;line-height:1.05;font-weight:900;letter-spacing:-.045em;}}
+.section-caption{{color:var(--muted);font-weight:600;font-size:14px;margin-top:6px;}}
+.cluster-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}}
+.cluster-card{{
+    position:relative;overflow:hidden;border-radius:24px;padding:18px;
+    background:linear-gradient(145deg,rgba(255,255,255,.48),rgba(255,255,255,.22));
+    border:1px solid rgba(255,255,255,.64);
+    backdrop-filter:blur(26px) saturate(180%);
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    box-shadow:0 12px 34px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.7);
 }}
-
-.title-wrap h1 {{
-
-    margin:0;
-
-    font-size:44px;
-
-    font-weight:900;
-
-    letter-spacing:-2px;
-
+.cluster-card::after{{content:"";position:absolute;right:-24px;top:-24px;width:92px;height:92px;border-radius:999px;background:linear-gradient(145deg,rgba(22,119,255,.18),rgba(124,58,237,.16));}}
+.cluster-top{{display:flex;align-items:center;gap:12px;position:relative;z-index:2;}}
+.cluster-mark{{
+    width:44px;height:44px;border-radius:16px;display:grid;place-items:center;color:white;
+    background:linear-gradient(145deg,#1677ff,#7c3aed);box-shadow:0 12px 28px rgba(22,119,255,.22);
 }}
-
-.subtitle {{
-
-    margin-top:8px;
-
-    color:var(--muted);
-
-    font-size:15px;
-
+.cluster-mark svg{{width:22px;height:22px;stroke:white;fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}}
+.cluster-name{{font-size:18px;font-weight:900;letter-spacing:-.03em;}}
+.cluster-stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;position:relative;z-index:2;}}
+.cluster-num{{font-size:24px;font-weight:900;letter-spacing:-.04em;}}
+.cluster-sub{{font-size:11px;color:var(--muted);font-weight:750;text-transform:uppercase;letter-spacing:.04em;}}
+.progress{{position:relative;height:11px;background:rgba(226,232,240,.82);border-radius:999px;overflow:hidden;margin-top:16px;box-shadow:inset 0 1px 2px rgba(15,23,42,.08);}}
+.progress span{{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#1677ff,#05bdf2 55%,#19c37d);box-shadow:0 0 18px rgba(5,189,242,.35);}}
+.progress-label{{font-size:12px;font-weight:850;color:#344054;text-align:right;margin-top:7px;}}
+.filter-shell{{overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}}
+.filter{{
+    position:relative;display:inline-flex;gap:5px;min-width:max-content;padding:7px;border-radius:999px;
+    background:rgba(255,255,255,.43);border:1px solid rgba(255,255,255,.66);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 14px 30px rgba(15,23,42,.06);
 }}
-
-.updated {{
-
-    padding:14px 18px;
-
-    border-radius:999px;
-
-    background:
-        rgba(255,255,255,.45);
-
-    border:
-        1px solid rgba(255,255,255,.65);
-
-    font-weight:700;
-
-    backdrop-filter:blur(18px);
-
-}}
-
-.cards {{
-
-    margin-top:30px;
-
-    display:grid;
-
-    grid-template-columns:
-        repeat(auto-fit,minmax(220px,1fr));
-
-    gap:18px;
-
-}}
-
-.card {{
-
-    position:relative;
-
-    overflow:hidden;
-
-    border-radius:30px;
-
-    padding:24px;
-
-    min-height:175px;
-
-    color:white;
-
-    box-shadow:
-        0 20px 45px rgba(15,23,42,.10);
-
-}}
-
-.card::before {{
-
-    content:"";
-
-    position:absolute;
-    inset:0;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.30),
-            rgba(255,255,255,.05)
-        );
-
-}}
-
-.card::after {{
-
-    content:"";
-
-    position:absolute;
-
-    width:140px;
-    height:140px;
-
-    right:-40px;
-    top:-40px;
-
-    border-radius:999px;
-
-    background:
-        rgba(255,255,255,.18);
-
-}}
-
-.card > * {{
-    position:relative;
-    z-index:2;
-}}
-
-.card-icon {{
-
-    width:56px;
-    height:56px;
-
-    border-radius:18px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    background:
-        rgba(255,255,255,.20);
-
-    backdrop-filter:blur(18px);
-
-    font-size:25px;
-
-}}
-
-.card-label {{
-
-    margin-top:18px;
-
-    font-size:15px;
-
-    font-weight:700;
-
-}}
-
-.card-big {{
-
-    margin-top:10px;
-
-    font-size:44px;
-
-    font-weight:900;
-
-    letter-spacing:-2px;
-
-}}
-
-.blue {{
-    background:
-        linear-gradient(145deg,#4f8cff,#67b4ff);
-}}
-
-.green {{
-    background:
-        linear-gradient(145deg,#16c784,#4ade80);
-}}
-
-.red {{
-    background:
-        linear-gradient(145deg,#ff5d73,#ff8aa0);
-}}
-
-.orange {{
-    background:
-        linear-gradient(145deg,#ffae4b,#ffd36a);
-}}
-
-.purple {{
-    background:
-        linear-gradient(145deg,#8b6fff,#b39cff);
-}}
-
-.cyan {{
-    background:
-        linear-gradient(145deg,#3dc7ff,#73e4ff);
-}}
-
-.panel {{
-
-    border-radius:34px;
-
-    padding:28px;
-
-    margin-bottom:24px;
-
-}}
-
-.panel-title {{
-
-    font-size:30px;
-
-    font-weight:900;
-
-    letter-spacing:-1px;
-
-    margin-bottom:22px;
-
-}}
-
-.cluster-grid {{
-
-    display:grid;
-
-    grid-template-columns:
-        repeat(auto-fit,minmax(260px,1fr));
-
-    gap:18px;
-
-}}
-
-.cluster-card {{
-
-    position:relative;
-
-    overflow:hidden;
-
-    border-radius:30px;
-
-    padding:24px;
-
-    background:
-        rgba(255,255,255,.40);
-
-    border:
-        1px solid rgba(255,255,255,.68);
-
-    backdrop-filter:
-        blur(26px);
-
-}}
-
-.cluster-card::before {{
-
-    content:"";
-
-    position:absolute;
-    inset:0;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.26),
-            rgba(255,255,255,.05)
-        );
-
-}}
-
-.cluster-card > * {{
-    position:relative;
-    z-index:2;
-}}
-
-.cluster-top {{
-
-    display:flex;
-    align-items:center;
-    gap:14px;
-
-}}
-
-.cluster-logo {{
-
-    width:58px;
-    height:58px;
-
-    border-radius:20px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:24px;
-
-    color:white;
-
-    background:
-        linear-gradient(
-            145deg,
-            #4f8cff,
-            #8b6fff
-        );
-
-}}
-
-.cluster-name {{
-
-    font-size:22px;
-
-    font-weight:900;
-
-    letter-spacing:-1px;
-
-}}
-
-.cluster-stats {{
-
-    margin-top:20px;
-
-    display:grid;
-
-    grid-template-columns:1fr 1fr 1fr;
-
-    gap:14px;
-
-}}
-
-.cluster-number {{
-
-    font-size:28px;
-
-    font-weight:900;
-
-}}
-
-.cluster-sub {{
-
-    color:var(--muted);
-
-    font-size:13px;
-
-}}
-
-.progress-wrap {{
-    margin-top:22px;
-}}
-
-.progress-bar {{
-
-    height:12px;
-
-    border-radius:999px;
-
-    overflow:hidden;
-
-    background:
-        rgba(226,232,240,.82);
-
-}}
-
-.progress-fill {{
-
-    height:100%;
-
-    border-radius:999px;
-
-    background:
-        linear-gradient(
-            90deg,
-            #4f8cff,
-            #53c8ff,
-            #4ade80
-        );
-
-    box-shadow:
-        0 0 18px rgba(79,140,255,.42);
-
-}}
-
-.progress-label {{
-
-    margin-top:8px;
-
-    text-align:right;
-
-    font-weight:800;
-
-}}
-
-.segmented-wrap {{
-    overflow-x:auto;
-}}
-
-.segmented {{
-
-    position:relative;
-
-    display:inline-flex;
-
-    gap:6px;
-
-    padding:8px;
-
-    border-radius:999px;
-
-    background:
-        rgba(255,255,255,.46);
-
-    border:
-        1px solid rgba(255,255,255,.72);
-
-    min-width:max-content;
-
-}}
-
-.slider {{
-
-    position:absolute;
-
-    top:8px;
-    left:8px;
-
-    height:calc(100% - 16px);
-
-    border-radius:999px;
-
-    background:
-        linear-gradient(
-            145deg,
-            #4f8cff,
-            #8b6fff
-        );
-
-    transition:
-        transform .28s cubic-bezier(.2,.8,.2,1),
-        width .28s cubic-bezier(.2,.8,.2,1);
-
-    box-shadow:
-        0 10px 22px rgba(79,140,255,.30);
-
-}}
-
-.seg-btn {{
-
-    position:relative;
-
-    z-index:2;
-
-    border:0;
-
-    background:transparent;
-
-    padding:13px 22px;
-
-    border-radius:999px;
-
-    font-weight:800;
-
-    color:#334155;
-
-    cursor:pointer;
-
-    white-space:nowrap;
-
-}}
-
-.seg-btn.active {{
-    color:white;
-}}
-
-.table-wrap {{
-
-    overflow:auto;
-
-    border-radius:28px;
-
-    border:
-        1px solid rgba(255,255,255,.68);
-
-}}
-
-table {{
-    width:100%;
-    min-width:1450px;
-    border-collapse:collapse;
-}}
-
-th {{
-
-    position:sticky;
-    top:0;
-
-    z-index:3;
-
-    background:
-        rgba(255,255,255,.72);
-
-    backdrop-filter:blur(20px);
-
-    color:#475569;
-
-    padding:16px;
-
-    text-align:left;
-
-    font-size:13px;
-
-}}
-
-td {{
-
-    padding:16px;
-
-    border-bottom:
-        1px solid rgba(148,163,184,.14);
-
-    white-space:nowrap;
-
-}}
-
-tr:hover {{
-    background:
-        rgba(255,255,255,.32);
-}}
-
-.badge {{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    padding:8px 12px;
-
-    border-radius:999px;
-
-    font-size:12px;
-
-    font-weight:800;
-
-}}
-
-.ok {{
-    background:#dcfce7;
-    color:#166534;
-}}
-
-.ko {{
-    background:#fee2e2;
-    color:#991b1b;
-}}
-
-.down {{
-    background:
-        rgba(254,226,226,.24);
-}}
-
-.maintenance {{
-    background:
-        rgba(255,237,213,.32);
-}}
-
-@media(max-width:1100px) {{
-
-    .cards {{
-        grid-template-columns:
-            repeat(2,1fr);
-    }}
-
-}}
-
-@media(max-width:760px) {{
-
-    body {{
-        padding:10px;
-    }}
-
-    .hero,
-    .panel {{
-        padding:18px;
-        border-radius:24px;
-    }}
-
-    .title-wrap h1 {{
-        font-size:30px;
-    }}
-
-    .cards {{
-        grid-template-columns:1fr;
-    }}
-
-    .cluster-grid {{
-        grid-template-columns:1fr;
-    }}
-
-}}
-
+.slider{{position:absolute;top:7px;left:7px;height:calc(100% - 14px);border-radius:999px;background:linear-gradient(145deg,#1677ff,#7c3aed);box-shadow:0 10px 24px rgba(22,119,255,.26);transition:transform .28s cubic-bezier(.2,.8,.2,1),width .28s cubic-bezier(.2,.8,.2,1);}}
+.seg-btn{{position:relative;z-index:2;border:0;background:transparent;border-radius:999px;padding:11px 17px;color:#334155;font-weight:850;white-space:nowrap;cursor:pointer;}}
+.seg-btn.active{{color:white;}}
+.table-wrap{{overflow:auto;border-radius:24px;border:1px solid rgba(255,255,255,.62);background:rgba(255,255,255,.28);}}
+table{{width:100%;min-width:1450px;border-collapse:collapse;}}
+th{{position:sticky;top:0;z-index:3;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#475467;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.035em;padding:14px;}}
+td{{padding:14px;border-bottom:1px solid rgba(148,163,184,.15);white-space:nowrap;font-size:13px;}}
+tr:hover{{background:rgba(255,255,255,.34);}}
+.badge{{display:inline-flex;align-items:center;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;}}
+.ok{{background:#dcfae6;color:#067647}}
+.ko{{background:#fee4e2;color:#b42318}}
+.down{{background:rgba(254,226,226,.28)}}
+.maintenance{{background:rgba(255,237,213,.35)}}
+@media(max-width:1180px){{.kpis{{grid-template-columns:repeat(3,1fr)}}}}
+@media(max-width:760px){{body{{padding:10px}}.hero,.panel{{border-radius:24px;padding:16px}}.logo{{width:54px;height:54px;border-radius:18px}}h1{{font-size:30px}}h2{{font-size:24px}}.kpis{{grid-template-columns:repeat(2,1fr);gap:10px}}.kpi{{min-height:118px;padding:14px;border-radius:21px}}.kpi-icon{{width:34px;height:34px;border-radius:12px;margin-bottom:11px}}.kpi-icon svg{{width:18px;height:18px}}.kpi-label{{font-size:12px}}.kpi-value{{font-size:28px}}.cluster-grid{{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}.cluster-card{{padding:13px;border-radius:20px}}.cluster-mark{{width:36px;height:36px;border-radius:13px}}.cluster-name{{font-size:15px}}.cluster-num{{font-size:20px}}.cluster-sub{{font-size:10px}}.progress{{height:9px}}.seg-btn{{padding:10px 14px;font-size:13px}}}}
 </style>
-
 <script>
-
 function initSegmented() {{
-
-    const buttons =
-        document.querySelectorAll(".seg-btn");
-
-    const slider =
-        document.querySelector(".slider");
-
+    const buttons = Array.from(document.querySelectorAll(".seg-btn"));
+    const slider = document.querySelector(".slider");
     function move(btn) {{
-
-        slider.style.width =
-            btn.offsetWidth + "px";
-
-        slider.style.transform =
-            `translateX(${{btn.offsetLeft}}px)`;
-
+        if (!slider || !btn) return;
+        slider.style.width = btn.offsetWidth + "px";
+        slider.style.transform = `translateX(${{btn.offsetLeft}}px)`;
     }}
-
-    buttons.forEach(btn => {{
-
-        btn.addEventListener("click", () => {{
-
-            buttons.forEach(
-                b => b.classList.remove("active")
-            );
-
-            btn.classList.add("active");
-
-            move(btn);
-
-            const cluster =
-                btn.dataset.cluster;
-
-            document
-                .querySelectorAll(".gateway-row")
-                .forEach(row => {{
-
-                row.style.display =
-
-                    cluster === "ALL"
-                    || row.dataset.cluster === cluster
-
-                    ? ""
-
-                    : "none";
-
-            }});
-
+    function apply(btn) {{
+        const cluster = btn.dataset.cluster;
+        document.querySelectorAll(".gateway-row").forEach(row => {{
+            row.style.display = cluster === "ALL" || row.dataset.cluster === cluster ? "" : "none";
         }});
-
+        move(btn);
+    }}
+    buttons.forEach(btn => {{
+        btn.addEventListener("click", () => {{
+            buttons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            apply(btn);
+        }});
     }});
-
-    move(
-        document.querySelector(
-            ".seg-btn.active"
-        )
-    );
-
+    const active = document.querySelector(".seg-btn.active");
+    if (active) apply(active);
+    window.addEventListener("resize", () => move(document.querySelector(".seg-btn.active")));
 }}
-
-window.addEventListener(
-    "load",
-    initSegmented
-);
-
+window.addEventListener("load", initSegmented);
 </script>
-
 </head>
-
 <body>
-
-<div class="container">
-
-<div class="hero glass">
-
-<div class="header">
-
-<div class="brand">
-
-<div class="logo">
-📡
-</div>
-
-<div class="title-wrap">
-
-<h1>
-Monitoring Requea
-</h1>
-
-<div class="subtitle">
-Infrastructure LoRaWAN • Supervision temps réel
-</div>
-
-</div>
-
-</div>
-
-<div class="updated">
-⏱ {NOW.strftime("%d/%m/%Y %H:%M")}
-</div>
-
-</div>
-
-<div class="cards">
-
-<div class="card blue">
-<div class="card-icon">🌐</div>
-<div class="card-label">Clusters</div>
-<div class="card-big">{len(clusters)}</div>
-</div>
-
-<div class="card cyan">
-<div class="card-icon">📡</div>
-<div class="card-label">Passerelles</div>
-<div class="card-big">{total}</div>
-</div>
-
-<div class="card green">
-<div class="card-icon">✅</div>
-<div class="card-label">Connectées</div>
-<div class="card-big">{ok}</div>
-</div>
-
-<div class="card red">
-<div class="card-icon">🚨</div>
-<div class="card-label">Déconnectées</div>
-<div class="card-big">{down}</div>
-</div>
-
-<div class="card orange">
-<div class="card-icon">📈</div>
-<div class="card-label">Service</div>
-<div class="card-big">{service}%</div>
-</div>
-
-<div class="card purple">
-<div class="card-icon">🛠</div>
-<div class="card-label">Maintenance</div>
-<div class="card-big">{maintenance}</div>
-</div>
-
-</div>
-
-</div>
-
-<div class="panel glass">
-
-<div class="panel-title">
-🌍 Synthèse clusters
-</div>
-
-<div class="cluster-grid">
+<div class="shell">
+<section class="hero">
+    <div class="topbar">
+        <div class="brand">
+            <div class="logo">RQ</div>
+            <div>
+                <div class="eyebrow">Supervision LoRaWAN</div>
+                <h1>Monitoring Requea</h1>
+                <div class="subtitle">Vue opérationnelle des clusters et passerelles actives.</div>
+            </div>
+        </div>
+        <div class="updated">Mise à jour · {NOW.strftime("%d/%m/%Y %H:%M")}</div>
+    </div>
+    <div class="kpis">
+        <div class="kpi g-blue"><div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div><div class="kpi-label">Clusters</div><div class="kpi-value">{len(clusters)}</div></div>
+        <div class="kpi g-cyan"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M6 20h12M12 20V10"/><path d="M8 10a4 4 0 0 1 8 0M5 7a8 8 0 0 1 14 0"/></svg></div><div class="kpi-label">Passerelles</div><div class="kpi-value">{total}</div></div>
+        <div class="kpi g-green"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="kpi-label">Connectées</div><div class="kpi-value">{ok}</div></div>
+        <div class="kpi g-red"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><path d="M10.3 4.3 2.8 17.2A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.8L13.7 4.3a2 2 0 0 0-3.4 0Z"/></svg></div><div class="kpi-label">Déconnectées</div><div class="kpi-value">{down}</div></div>
+        <div class="kpi g-orange"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg></div><div class="kpi-label">Service</div><div class="kpi-value">{service}%</div></div>
+        <div class="kpi g-violet"><div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5 5L4 17v3h3l5.7-5.7a4 4 0 0 0 5-5l-3 3-3-3 3-3Z"/></svg></div><div class="kpi-label">Maintenance</div><div class="kpi-value">{maintenance}</div></div>
+    </div>
+</section>
+<section class="panel">
+    <div class="section-head"><div><h2>Synthèse clusters</h2><div class="section-caption">Identification rapide, état de service et incidents par territoire.</div></div></div>
+    <div class="cluster-grid">
 """
 
 for c in clusters:
-
     s = cluster_stats[c]
-
     html_page += f"""
-<div class="cluster-card">
-
-<div class="cluster-top">
-
-<div class="cluster-logo">
-📶
-</div>
-
-<div class="cluster-name">
-{esc(c)}
-</div>
-
-</div>
-
-<div class="cluster-stats">
-
-<div>
-<div class="cluster-number">
-{s["total"]}
-</div>
-<div class="cluster-sub">
-Total
-</div>
-</div>
-
-<div>
-<div class="cluster-number">
-{s["ok"]}
-</div>
-<div class="cluster-sub">
-Connectées
-</div>
-</div>
-
-<div>
-<div class="cluster-number">
-{s["down"]}
-</div>
-<div class="cluster-sub">
-HS
-</div>
-</div>
-
-</div>
-
-<div class="progress-wrap">
-
-<div class="progress-bar">
-<div
-class="progress-fill"
-style="width:{s["service"]}%">
-</div>
-</div>
-
-<div class="progress-label">
-{s["service"]}%
-</div>
-
-</div>
-
-</div>
+        <article class="cluster-card">
+            <div class="cluster-top"><div class="cluster-mark"><svg viewBox="0 0 24 24"><path d="M6 20h12M12 20V10"/><path d="M8 10a4 4 0 0 1 8 0M5 7a8 8 0 0 1 14 0"/></svg></div><div class="cluster-name">{esc(c)}</div></div>
+            <div class="cluster-stats">
+                <div><div class="cluster-num">{s["total"]}</div><div class="cluster-sub">Total</div></div>
+                <div><div class="cluster-num" style="color:var(--green)">{s["ok"]}</div><div class="cluster-sub">OK</div></div>
+                <div><div class="cluster-num" style="color:var(--red)">{s["down"]}</div><div class="cluster-sub">HS</div></div>
+            </div>
+            <div class="progress"><span style="width:{s["service"]}%"></span></div>
+            <div class="progress-label">{s["service"]}%</div>
+        </article>
 """
 
 html_page += """
-</div>
-
-</div>
-
-<div class="panel glass">
-
-<div class="panel-title">
-🌍 Filtre clusters
-</div>
-
-<div class="segmented-wrap">
-
-<div class="segmented">
-
-<div class="slider"></div>
-
-<button
-class="seg-btn active"
-data-cluster="ALL">
-
-Tous
-
-</button>
+    </div>
+</section>
+<section class="panel">
+    <div class="section-head"><div><h2>Filtre clusters</h2><div class="section-caption">Sélection fluide avec indicateur glissant.</div></div></div>
+    <div class="filter-shell"><div class="filter"><div class="slider"></div><button class="seg-btn active" data-cluster="ALL">Tous</button>
 """
 
 for c in clusters:
-
-    html_page += f"""
-<button
-class="seg-btn"
-data-cluster="{esc(c)}">
-
-{esc(c)}
-
-</button>
-"""
+    html_page += f'<button class="seg-btn" data-cluster="{esc(c)}">{esc(c)}</button>\n'
 
 html_page += """
-</div>
-</div>
-
-</div>
-
-<div class="panel glass">
-
-<div class="panel-title">
-🚨 Passerelles HS
-</div>
-
-<div class="table-wrap">
-
-<table>
-
-<tr>
-
-<th>Cluster</th>
-<th>Passerelle</th>
-<th>Ville</th>
-<th>GPS</th>
-<th>Connexion</th>
-<th>Dernière connexion</th>
-<th>HS depuis</th>
-<th>Durée HS</th>
-<th>Service 24h</th>
-<th>Firmware</th>
-
-</tr>
+    </div></div>
+</section>
+<section class="panel">
+    <div class="section-head"><div><h2>Passerelles HS</h2><div class="section-caption">Priorisation maintenance et durée d’indisponibilité.</div></div></div>
+    <div class="table-wrap"><table>
+        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Connexion</th><th>Dernière connexion</th><th>HS depuis</th><th>Durée HS</th><th>Service 24h</th><th>Firmware</th></tr>
 """
 
 for g in active_gateways:
-
     if not g["down"]:
         continue
-
-    row_class = (
-        "maintenance"
-        if g["maintenance"]
-        else "down"
-    )
-
+    row_class = "maintenance" if g["maintenance"] else "down"
     html_page += f"""
-<tr
-class="gateway-row {row_class}"
-data-cluster="{esc(g["cluster"])}">
-
-<td>{esc(g["cluster"])}</td>
-
-<td>
-<strong>{esc(g["name"])}</strong>
-</td>
-
-<td>{esc(g["city"])}</td>
-
-<td>{esc(g["geolocation"])}</td>
-
-<td>
-<span class="badge ko">
-{esc(g["connection"])}
-</span>
-</td>
-
-<td>{fmt_date(g["last_connection"])}</td>
-
-<td>{fmt_date(g["down_since"])}</td>
-
-<td>{g["down_hours"]} h</td>
-
-<td>{g["service_24h"]}%</td>
-
-<td>{esc(g["firmware"])}</td>
-
-</tr>
+        <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+            <td><strong>{esc(g["cluster"])}</strong></td><td><strong>{esc(g["name"])}</strong></td><td>{esc(g["city"])}</td><td>{esc(g["geolocation"])}</td>
+            <td><span class="badge ko">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{fmt_date(g["down_since"])}</td><td>{fmt_hours(g["down_hours"])}</td><td>{g["service_24h"]}%</td><td>{esc(g["firmware"])}</td>
+        </tr>
 """
 
 html_page += """
-</table>
-</div>
-</div>
-
-<div class="panel glass">
-
-<div class="panel-title">
-📋 Toutes les passerelles
-</div>
-
-<div class="table-wrap">
-
-<table>
-
-<tr>
-
-<th>Cluster</th>
-<th>Passerelle</th>
-<th>Ville</th>
-<th>GPS</th>
-<th>Statut</th>
-<th>Connexion</th>
-<th>Connecté depuis</th>
-<th>Dernière connexion</th>
-<th>Firmware</th>
-<th>ID</th>
-
-</tr>
+    </table></div>
+</section>
+<section class="panel">
+    <div class="section-head"><div><h2>Toutes les passerelles</h2><div class="section-caption">Inventaire consolidé des passerelles actives.</div></div></div>
+    <div class="table-wrap"><table>
+        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Statut</th><th>Connexion</th><th>Connecté depuis</th><th>Dernière connexion</th><th>Firmware</th><th>ID</th></tr>
 """
 
 for g in active_gateways:
-
-    badge = (
-        "ko"
-        if g["down"]
-        else "ok"
-    )
-
-    row_class = (
-        "maintenance"
-        if g["maintenance"]
-        else (
-            "down"
-            if g["down"]
-            else ""
-        )
-    )
-
-    connected_since = (
-        g["connected_since"]
-        if not g["down"]
-        else None
-    )
-
+    badge = "ko" if g["down"] else "ok"
+    row_class = "maintenance" if g["maintenance"] else ("down" if g["down"] else "")
+    connected_since = g["connected_since"] if not g["down"] else None
     html_page += f"""
-<tr
-class="gateway-row {row_class}"
-data-cluster="{esc(g["cluster"])}">
-
-<td>{esc(g["cluster"])}</td>
-
-<td>
-<strong>{esc(g["name"])}</strong>
-</td>
-
-<td>{esc(g["city"])}</td>
-
-<td>{esc(g["geolocation"])}</td>
-
-<td>
-<span class="badge ok">
-{esc(g["status"])}
-</span>
-</td>
-
-<td>
-<span class="badge {badge}">
-{esc(g["connection"])}
-</span>
-</td>
-
-<td>{fmt_date(connected_since)}</td>
-
-<td>{fmt_date(g["last_connection"])}</td>
-
-<td>{esc(g["firmware"])}</td>
-
-<td>{esc(g["gateway_id"])}</td>
-
-</tr>
+        <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+            <td><strong>{esc(g["cluster"])}</strong></td><td><strong>{esc(g["name"])}</strong></td><td>{esc(g["city"])}</td><td>{esc(g["geolocation"])}</td>
+            <td><span class="badge ok">{esc(g["status"])}</span></td><td><span class="badge {badge}">{esc(g["connection"])}</span></td><td>{fmt_date(connected_since)}</td><td>{fmt_date(g["last_connection"])}</td><td>{esc(g["firmware"])}</td><td>{esc(g["gateway_id"])}</td>
+        </tr>
 """
 
 html_page += """
-
-</table>
-
+    </table></div>
+</section>
 </div>
-
-</div>
-
-</div>
-
 </body>
 </html>
 """
 
 os.makedirs("public", exist_ok=True)
-
 with open("public/index.html", "w", encoding="utf-8") as f:
     f.write(html_page)
 
