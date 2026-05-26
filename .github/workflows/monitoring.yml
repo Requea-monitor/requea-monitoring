@@ -31,8 +31,8 @@ jobs:
           pip install playwright beautifulsoup4
           python -m playwright install chromium
 
-      - name: Run monitoring
-        run: python requea.py
+      - name: Test dernière connexion
+        run: python test_last_connection.py
         env:
           REQUEA_CONFIG: ${{ secrets.REQUEA_CONFIG }}
 
