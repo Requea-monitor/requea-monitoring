@@ -596,28 +596,44 @@ for c in clusters:
 
 html_page = f"""
 <!DOCTYPE html>
-<html>
+<html lang="fr">
+
 <head>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Monitoring Requea</title>
 
 <style>
 
 :root {{
-    --bg:#f5f7fb;
-    --card:rgba(255,255,255,.58);
-    --card-strong:rgba(255,255,255,.78);
-    --line:rgba(255,255,255,.65);
+
+    --bg:#f3f7fd;
+
+    --glass:
+        rgba(255,255,255,.38);
+
+    --glass-strong:
+        rgba(255,255,255,.56);
+
+    --line:
+        rgba(255,255,255,.58);
+
     --text:#0f172a;
     --muted:#64748b;
-    --shadow:0 20px 60px rgba(15,23,42,.12);
 
-    --blue:#3b82f6;
-    --green:#10b981;
-    --red:#ef4444;
-    --orange:#f59e0b;
-    --purple:#8b5cf6;
+    --shadow:
+        0 10px 40px rgba(15,23,42,.08),
+        0 2px 12px rgba(15,23,42,.05);
+
+    --blue:#4f8cff;
+    --green:#16c784;
+    --red:#ff5d73;
+    --orange:#ffae4b;
+    --purple:#8b6fff;
+    --cyan:#53c8ff;
+
 }}
 
 * {{
@@ -625,84 +641,257 @@ html_page = f"""
 }}
 
 body {{
+
     margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
-    background:
-        radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 30%),
-        radial-gradient(circle at top right, rgba(139,92,246,.16), transparent 30%),
-        linear-gradient(180deg,#ffffff,#eef4ff);
+    padding:18px;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        sans-serif;
+
     color:var(--text);
-    padding:24px;
+
+    background:
+
+        radial-gradient(
+            circle at top left,
+            rgba(79,140,255,.16),
+            transparent 30%
+        ),
+
+        radial-gradient(
+            circle at top right,
+            rgba(139,111,255,.18),
+            transparent 30%
+        ),
+
+        radial-gradient(
+            circle at bottom center,
+            rgba(83,200,255,.16),
+            transparent 34%
+        ),
+
+        linear-gradient(
+            180deg,
+            #ffffff,
+            #eef4ff
+        );
+
 }}
 
 .container {{
-    max-width:1600px;
+    max-width:1700px;
     margin:auto;
 }}
 
-.hero {{
-    background:rgba(255,255,255,.45);
-    backdrop-filter:blur(28px) saturate(180%);
-    -webkit-backdrop-filter:blur(28px) saturate(180%);
-    border:1px solid rgba(255,255,255,.7);
+.glass {{
+
+    background:var(--glass);
+
+    backdrop-filter:
+        blur(32px)
+        saturate(180%);
+
+    -webkit-backdrop-filter:
+        blur(32px)
+        saturate(180%);
+
+    border:1px solid var(--line);
+
     box-shadow:var(--shadow);
-    border-radius:34px;
-    padding:34px;
-    margin-bottom:24px;
+
 }}
 
-.title {{
+.hero {{
+
+    position:relative;
+
+    overflow:hidden;
+
+    border-radius:38px;
+
+    padding:34px;
+
+    margin-bottom:24px;
+
+}}
+
+.hero::before {{
+
+    content:"";
+
+    position:absolute;
+    inset:0;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.30),
+            rgba(255,255,255,.06)
+        );
+
+}}
+
+.hero > * {{
+    position:relative;
+    z-index:2;
+}}
+
+.header {{
+
+    display:flex;
+
+    align-items:center;
+    justify-content:space-between;
+
+    gap:18px;
+
+    flex-wrap:wrap;
+
+}}
+
+.brand {{
+
     display:flex;
     align-items:center;
-    gap:16px;
+    gap:18px;
+
 }}
 
 .logo {{
-    width:70px;
-    height:70px;
-    border-radius:24px;
-    background:linear-gradient(135deg,#60a5fa,#8b5cf6);
+
+    width:78px;
+    height:78px;
+
+    border-radius:28px;
+
     display:flex;
     align-items:center;
     justify-content:center;
+
     font-size:34px;
+
     color:white;
-    box-shadow:0 10px 30px rgba(59,130,246,.35);
+
+    background:
+        linear-gradient(
+            145deg,
+            #4f8cff,
+            #8b6fff
+        );
+
+    box-shadow:
+        0 20px 40px rgba(79,140,255,.28);
+
 }}
 
-h1 {{
+.title-wrap h1 {{
+
     margin:0;
-    font-size:40px;
-    letter-spacing:-1px;
+
+    font-size:44px;
+
+    font-weight:900;
+
+    letter-spacing:-2px;
+
 }}
 
 .subtitle {{
+
+    margin-top:8px;
+
     color:var(--muted);
-    margin-top:4px;
+
+    font-size:15px;
+
+}}
+
+.updated {{
+
+    padding:14px 18px;
+
+    border-radius:999px;
+
+    background:
+        rgba(255,255,255,.45);
+
+    border:
+        1px solid rgba(255,255,255,.65);
+
+    font-weight:700;
+
+    backdrop-filter:blur(18px);
+
 }}
 
 .cards {{
+
+    margin-top:30px;
+
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(220px,1fr));
+
     gap:18px;
-    margin:28px 0;
+
 }}
 
 .card {{
+
     position:relative;
+
     overflow:hidden;
+
+    border-radius:30px;
+
     padding:24px;
-    border-radius:28px;
+
+    min-height:175px;
+
     color:white;
-    min-height:160px;
-    box-shadow:0 18px 45px rgba(15,23,42,.14);
+
+    box-shadow:
+        0 20px 45px rgba(15,23,42,.10);
+
 }}
 
 .card::before {{
+
     content:"";
+
     position:absolute;
     inset:0;
-    background:linear-gradient(145deg,rgba(255,255,255,.25),rgba(255,255,255,.05));
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.30),
+            rgba(255,255,255,.05)
+        );
+
+}}
+
+.card::after {{
+
+    content:"";
+
+    position:absolute;
+
+    width:140px;
+    height:140px;
+
+    right:-40px;
+    top:-40px;
+
+    border-radius:999px;
+
+    background:
+        rgba(255,255,255,.18);
+
 }}
 
 .card > * {{
@@ -710,147 +899,419 @@ h1 {{
     z-index:2;
 }}
 
-.card .icon {{
-    width:52px;
-    height:52px;
+.card-icon {{
+
+    width:56px;
+    height:56px;
+
     border-radius:18px;
-    background:rgba(255,255,255,.22);
+
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:24px;
-    margin-bottom:18px;
+
+    background:
+        rgba(255,255,255,.20);
+
+    backdrop-filter:blur(18px);
+
+    font-size:25px;
+
 }}
 
-.card .label {{
+.card-label {{
+
+    margin-top:18px;
+
     font-size:15px;
+
     font-weight:700;
+
 }}
 
-.card .big {{
-    font-size:42px;
+.card-big {{
+
+    margin-top:10px;
+
+    font-size:44px;
+
     font-weight:900;
-    margin-top:8px;
+
+    letter-spacing:-2px;
+
 }}
 
 .blue {{
-    background:linear-gradient(135deg,#3b82f6,#60a5fa);
+    background:
+        linear-gradient(145deg,#4f8cff,#67b4ff);
 }}
 
 .green {{
-    background:linear-gradient(135deg,#10b981,#34d399);
+    background:
+        linear-gradient(145deg,#16c784,#4ade80);
 }}
 
 .red {{
-    background:linear-gradient(135deg,#ef4444,#fb7185);
+    background:
+        linear-gradient(145deg,#ff5d73,#ff8aa0);
 }}
 
 .orange {{
-    background:linear-gradient(135deg,#f59e0b,#fbbf24);
+    background:
+        linear-gradient(145deg,#ffae4b,#ffd36a);
 }}
 
 .purple {{
-    background:linear-gradient(135deg,#8b5cf6,#a78bfa);
+    background:
+        linear-gradient(145deg,#8b6fff,#b39cff);
 }}
 
 .cyan {{
-    background:linear-gradient(135deg,#06b6d4,#67e8f9);
+    background:
+        linear-gradient(145deg,#3dc7ff,#73e4ff);
 }}
 
 .panel {{
-    background:var(--card);
-    backdrop-filter:blur(28px);
-    -webkit-backdrop-filter:blur(28px);
-    border:1px solid var(--line);
-    border-radius:32px;
-    box-shadow:var(--shadow);
-    padding:24px;
+
+    border-radius:34px;
+
+    padding:28px;
+
     margin-bottom:24px;
+
 }}
 
 .panel-title {{
+
+    font-size:30px;
+
+    font-weight:900;
+
+    letter-spacing:-1px;
+
+    margin-bottom:22px;
+
+}}
+
+.cluster-grid {{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(260px,1fr));
+
+    gap:18px;
+
+}}
+
+.cluster-card {{
+
+    position:relative;
+
+    overflow:hidden;
+
+    border-radius:30px;
+
+    padding:24px;
+
+    background:
+        rgba(255,255,255,.40);
+
+    border:
+        1px solid rgba(255,255,255,.68);
+
+    backdrop-filter:
+        blur(26px);
+
+}}
+
+.cluster-card::before {{
+
+    content:"";
+
+    position:absolute;
+    inset:0;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.26),
+            rgba(255,255,255,.05)
+        );
+
+}}
+
+.cluster-card > * {{
+    position:relative;
+    z-index:2;
+}}
+
+.cluster-top {{
+
+    display:flex;
+    align-items:center;
+    gap:14px;
+
+}}
+
+.cluster-logo {{
+
+    width:58px;
+    height:58px;
+
+    border-radius:20px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:24px;
+
+    color:white;
+
+    background:
+        linear-gradient(
+            145deg,
+            #4f8cff,
+            #8b6fff
+        );
+
+}}
+
+.cluster-name {{
+
     font-size:22px;
+
+    font-weight:900;
+
+    letter-spacing:-1px;
+
+}}
+
+.cluster-stats {{
+
+    margin-top:20px;
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr 1fr;
+
+    gap:14px;
+
+}}
+
+.cluster-number {{
+
+    font-size:28px;
+
+    font-weight:900;
+
+}}
+
+.cluster-sub {{
+
+    color:var(--muted);
+
+    font-size:13px;
+
+}}
+
+.progress-wrap {{
+    margin-top:22px;
+}}
+
+.progress-bar {{
+
+    height:12px;
+
+    border-radius:999px;
+
+    overflow:hidden;
+
+    background:
+        rgba(226,232,240,.82);
+
+}}
+
+.progress-fill {{
+
+    height:100%;
+
+    border-radius:999px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #4f8cff,
+            #53c8ff,
+            #4ade80
+        );
+
+    box-shadow:
+        0 0 18px rgba(79,140,255,.42);
+
+}}
+
+.progress-label {{
+
+    margin-top:8px;
+
+    text-align:right;
+
     font-weight:800;
-    margin-bottom:18px;
+
+}}
+
+.segmented-wrap {{
+    overflow-x:auto;
 }}
 
 .segmented {{
+
     position:relative;
-    display:flex;
+
+    display:inline-flex;
+
     gap:6px;
-    flex-wrap:wrap;
-    background:rgba(255,255,255,.65);
+
     padding:8px;
-    border-radius:999px;
-    width:max-content;
-    border:1px solid rgba(255,255,255,.8);
-}}
 
-.segmented button {{
-    position:relative;
-    z-index:2;
-    border:0;
-    background:transparent;
-    color:#334155;
-    font-weight:700;
-    padding:12px 20px;
     border-radius:999px;
-    cursor:pointer;
-    transition:.25s;
-}}
 
-.segmented button.active {{
-    color:white;
+    background:
+        rgba(255,255,255,.46);
+
+    border:
+        1px solid rgba(255,255,255,.72);
+
+    min-width:max-content;
+
 }}
 
 .slider {{
+
     position:absolute;
+
     top:8px;
     left:8px;
+
     height:calc(100% - 16px);
+
     border-radius:999px;
-    background:linear-gradient(135deg,#3b82f6,#8b5cf6);
-    transition:.3s cubic-bezier(.2,.8,.2,1);
-    z-index:1;
-    box-shadow:0 10px 25px rgba(59,130,246,.35);
+
+    background:
+        linear-gradient(
+            145deg,
+            #4f8cff,
+            #8b6fff
+        );
+
+    transition:
+        transform .28s cubic-bezier(.2,.8,.2,1),
+        width .28s cubic-bezier(.2,.8,.2,1);
+
+    box-shadow:
+        0 10px 22px rgba(79,140,255,.30);
+
+}}
+
+.seg-btn {{
+
+    position:relative;
+
+    z-index:2;
+
+    border:0;
+
+    background:transparent;
+
+    padding:13px 22px;
+
+    border-radius:999px;
+
+    font-weight:800;
+
+    color:#334155;
+
+    cursor:pointer;
+
+    white-space:nowrap;
+
+}}
+
+.seg-btn.active {{
+    color:white;
 }}
 
 .table-wrap {{
+
     overflow:auto;
-    border-radius:26px;
-    border:1px solid rgba(255,255,255,.8);
+
+    border-radius:28px;
+
+    border:
+        1px solid rgba(255,255,255,.68);
+
 }}
 
 table {{
     width:100%;
-    min-width:1500px;
+    min-width:1450px;
     border-collapse:collapse;
 }}
 
 th {{
-    background:rgba(255,255,255,.75);
+
+    position:sticky;
+    top:0;
+
+    z-index:3;
+
+    background:
+        rgba(255,255,255,.72);
+
     backdrop-filter:blur(20px);
+
     color:#475569;
+
     padding:16px;
+
     text-align:left;
+
     font-size:13px;
+
 }}
 
 td {{
+
     padding:16px;
-    border-bottom:1px solid rgba(148,163,184,.16);
+
+    border-bottom:
+        1px solid rgba(148,163,184,.14);
+
     white-space:nowrap;
+
 }}
 
 tr:hover {{
-    background:rgba(255,255,255,.55);
+    background:
+        rgba(255,255,255,.32);
 }}
 
 .badge {{
+
+    display:inline-flex;
+
+    align-items:center;
+
     padding:8px 12px;
+
     border-radius:999px;
+
     font-size:12px;
+
     font-weight:800;
+
 }}
 
 .ok {{
@@ -864,46 +1325,25 @@ tr:hover {{
 }}
 
 .down {{
-    background:rgba(254,226,226,.45);
+    background:
+        rgba(254,226,226,.24);
 }}
 
 .maintenance {{
-    background:rgba(255,237,213,.55);
+    background:
+        rgba(255,237,213,.32);
 }}
 
-.cluster-grid {{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:18px;
+@media(max-width:1100px) {{
+
+    .cards {{
+        grid-template-columns:
+            repeat(2,1fr);
+    }}
+
 }}
 
-.cluster-card {{
-    background:rgba(255,255,255,.7);
-    border-radius:24px;
-    padding:20px;
-    border:1px solid rgba(255,255,255,.8);
-}}
-
-.cluster-card h3 {{
-    margin-top:0;
-}}
-
-.progress {{
-    height:10px;
-    background:#e2e8f0;
-    border-radius:999px;
-    overflow:hidden;
-    margin-top:12px;
-}}
-
-.progress span {{
-    display:block;
-    height:100%;
-    border-radius:999px;
-    background:linear-gradient(90deg,#3b82f6,#60a5fa);
-}}
-
-@media(max-width:900px) {{
+@media(max-width:760px) {{
 
     body {{
         padding:10px;
@@ -911,16 +1351,20 @@ tr:hover {{
 
     .hero,
     .panel {{
-        border-radius:24px;
         padding:18px;
+        border-radius:24px;
     }}
 
-    h1 {{
-        font-size:28px;
+    .title-wrap h1 {{
+        font-size:30px;
     }}
 
     .cards {{
-        grid-template-columns:1fr 1fr;
+        grid-template-columns:1fr;
+    }}
+
+    .cluster-grid {{
+        grid-template-columns:1fr;
     }}
 
 }}
@@ -931,30 +1375,48 @@ tr:hover {{
 
 function initSegmented() {{
 
-    const buttons = document.querySelectorAll(".seg-btn");
-    const slider = document.querySelector(".slider");
+    const buttons =
+        document.querySelectorAll(".seg-btn");
+
+    const slider =
+        document.querySelector(".slider");
 
     function move(btn) {{
-        slider.style.width = btn.offsetWidth + "px";
-        slider.style.transform = `translateX(${{btn.offsetLeft}}px)`;
+
+        slider.style.width =
+            btn.offsetWidth + "px";
+
+        slider.style.transform =
+            `translateX(${{btn.offsetLeft}}px)`;
+
     }}
 
     buttons.forEach(btn => {{
 
         btn.addEventListener("click", () => {{
 
-            buttons.forEach(b => b.classList.remove("active"));
+            buttons.forEach(
+                b => b.classList.remove("active")
+            );
+
             btn.classList.add("active");
 
             move(btn);
 
-            const cluster = btn.dataset.cluster;
+            const cluster =
+                btn.dataset.cluster;
 
-            document.querySelectorAll(".gateway-row").forEach(row => {{
+            document
+                .querySelectorAll(".gateway-row")
+                .forEach(row => {{
 
                 row.style.display =
-                    cluster === "ALL" || row.dataset.cluster === cluster
+
+                    cluster === "ALL"
+                    || row.dataset.cluster === cluster
+
                     ? ""
+
                     : "none";
 
             }});
@@ -963,10 +1425,18 @@ function initSegmented() {{
 
     }});
 
-    move(document.querySelector(".seg-btn.active"));
+    move(
+        document.querySelector(
+            ".seg-btn.active"
+        )
+    );
+
 }}
 
-window.addEventListener("load", initSegmented);
+window.addEventListener(
+    "load",
+    initSegmented
+);
 
 </script>
 
@@ -976,89 +1446,79 @@ window.addEventListener("load", initSegmented);
 
 <div class="container">
 
-<div class="hero">
+<div class="hero glass">
 
-<div class="title">
-<div class="logo">📡</div>
+<div class="header">
 
-<div>
-<h1>Monitoring Requea</h1>
+<div class="brand">
+
+<div class="logo">
+📡
+</div>
+
+<div class="title-wrap">
+
+<h1>
+Monitoring Requea
+</h1>
+
 <div class="subtitle">
-Infrastructure LoRaWAN — Dashboard supervision temps réel
+Infrastructure LoRaWAN • Supervision temps réel
 </div>
+
 </div>
+
+</div>
+
+<div class="updated">
+⏱ {NOW.strftime("%d/%m/%Y %H:%M")}
+</div>
+
 </div>
 
 <div class="cards">
 
 <div class="card blue">
-<div class="icon">🌐</div>
-<div class="label">Clusters</div>
-<div class="big">{len(clusters)}</div>
+<div class="card-icon">🌐</div>
+<div class="card-label">Clusters</div>
+<div class="card-big">{len(clusters)}</div>
 </div>
 
 <div class="card cyan">
-<div class="icon">📡</div>
-<div class="label">Passerelles</div>
-<div class="big">{total}</div>
+<div class="card-icon">📡</div>
+<div class="card-label">Passerelles</div>
+<div class="card-big">{total}</div>
 </div>
 
 <div class="card green">
-<div class="icon">✅</div>
-<div class="label">Connectées</div>
-<div class="big">{ok}</div>
+<div class="card-icon">✅</div>
+<div class="card-label">Connectées</div>
+<div class="card-big">{ok}</div>
 </div>
 
 <div class="card red">
-<div class="icon">🚨</div>
-<div class="label">Déconnectées</div>
-<div class="big">{down}</div>
+<div class="card-icon">🚨</div>
+<div class="card-label">Déconnectées</div>
+<div class="card-big">{down}</div>
 </div>
 
 <div class="card orange">
-<div class="icon">📈</div>
-<div class="label">Service</div>
-<div class="big">{service}%</div>
+<div class="card-icon">📈</div>
+<div class="card-label">Service</div>
+<div class="card-big">{service}%</div>
 </div>
 
 <div class="card purple">
-<div class="icon">🛠</div>
-<div class="label">Maintenance</div>
-<div class="big">{maintenance}</div>
+<div class="card-icon">🛠</div>
+<div class="card-label">Maintenance</div>
+<div class="card-big">{maintenance}</div>
 </div>
 
 </div>
 
 </div>
 
-<div class="panel">
-
-<div class="panel-title">
-🌍 Filtre clusters
-</div>
-
-<div class="segmented">
-
-<div class="slider"></div>
-
-<button class="seg-btn active" data-cluster="ALL">
-Tous
-</button>
-"""
-
-for c in clusters:
-    html_page += f"""
-<button class="seg-btn" data-cluster="{esc(c)}">
-{esc(c)}
-</button>
-"""
-
-html_page += """
-</div>
-
-</div>
-
-<div class="panel">
+<div class="panel glass">
 
 <div class="panel-title">
 🌍 Synthèse clusters
@@ -1074,15 +1534,62 @@ for c in clusters:
     html_page += f"""
 <div class="cluster-card">
 
-<h3>{esc(c)}</h3>
+<div class="cluster-top">
 
-<div>Passerelles : <strong>{s["total"]}</strong></div>
-<div>Connectées : <strong>{s["ok"]}</strong></div>
-<div>Déconnectées : <strong>{s["down"]}</strong></div>
-<div>Service : <strong>{s["service"]}%</strong></div>
+<div class="cluster-logo">
+📶
+</div>
 
-<div class="progress">
-<span style="width:{s["service"]}%"></span>
+<div class="cluster-name">
+{esc(c)}
+</div>
+
+</div>
+
+<div class="cluster-stats">
+
+<div>
+<div class="cluster-number">
+{s["total"]}
+</div>
+<div class="cluster-sub">
+Total
+</div>
+</div>
+
+<div>
+<div class="cluster-number">
+{s["ok"]}
+</div>
+<div class="cluster-sub">
+Connectées
+</div>
+</div>
+
+<div>
+<div class="cluster-number">
+{s["down"]}
+</div>
+<div class="cluster-sub">
+HS
+</div>
+</div>
+
+</div>
+
+<div class="progress-wrap">
+
+<div class="progress-bar">
+<div
+class="progress-fill"
+style="width:{s["service"]}%">
+</div>
+</div>
+
+<div class="progress-label">
+{s["service"]}%
+</div>
+
 </div>
 
 </div>
@@ -1093,16 +1600,57 @@ html_page += """
 
 </div>
 
-<div class="panel">
+<div class="panel glass">
+
+<div class="panel-title">
+🌍 Filtre clusters
+</div>
+
+<div class="segmented-wrap">
+
+<div class="segmented">
+
+<div class="slider"></div>
+
+<button
+class="seg-btn active"
+data-cluster="ALL">
+
+Tous
+
+</button>
+"""
+
+for c in clusters:
+
+    html_page += f"""
+<button
+class="seg-btn"
+data-cluster="{esc(c)}">
+
+{esc(c)}
+
+</button>
+"""
+
+html_page += """
+</div>
+</div>
+
+</div>
+
+<div class="panel glass">
 
 <div class="panel-title">
 🚨 Passerelles HS
 </div>
 
 <div class="table-wrap">
+
 <table>
 
 <tr>
+
 <th>Cluster</th>
 <th>Passerelle</th>
 <th>Ville</th>
@@ -1113,6 +1661,7 @@ html_page += """
 <th>Durée HS</th>
 <th>Service 24h</th>
 <th>Firmware</th>
+
 </tr>
 """
 
@@ -1121,14 +1670,25 @@ for g in active_gateways:
     if not g["down"]:
         continue
 
-    row_class = "maintenance" if g["maintenance"] else "down"
+    row_class = (
+        "maintenance"
+        if g["maintenance"]
+        else "down"
+    )
 
     html_page += f"""
-<tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+<tr
+class="gateway-row {row_class}"
+data-cluster="{esc(g["cluster"])}">
 
 <td>{esc(g["cluster"])}</td>
-<td><strong>{esc(g["name"])}</strong></td>
+
+<td>
+<strong>{esc(g["name"])}</strong>
+</td>
+
 <td>{esc(g["city"])}</td>
+
 <td>{esc(g["geolocation"])}</td>
 
 <td>
@@ -1138,9 +1698,13 @@ for g in active_gateways:
 </td>
 
 <td>{fmt_date(g["last_connection"])}</td>
+
 <td>{fmt_date(g["down_since"])}</td>
+
 <td>{g["down_hours"]} h</td>
+
 <td>{g["service_24h"]}%</td>
+
 <td>{esc(g["firmware"])}</td>
 
 </tr>
@@ -1149,19 +1713,20 @@ for g in active_gateways:
 html_page += """
 </table>
 </div>
-
 </div>
 
-<div class="panel">
+<div class="panel glass">
 
 <div class="panel-title">
 📋 Toutes les passerelles
 </div>
 
 <div class="table-wrap">
+
 <table>
 
 <tr>
+
 <th>Cluster</th>
 <th>Passerelle</th>
 <th>Ville</th>
@@ -1172,27 +1737,47 @@ html_page += """
 <th>Dernière connexion</th>
 <th>Firmware</th>
 <th>ID</th>
+
 </tr>
 """
 
 for g in active_gateways:
 
-    badge = "ko" if g["down"] else "ok"
+    badge = (
+        "ko"
+        if g["down"]
+        else "ok"
+    )
 
     row_class = (
         "maintenance"
         if g["maintenance"]
-        else ("down" if g["down"] else "")
+        else (
+            "down"
+            if g["down"]
+            else ""
+        )
     )
 
-    connected_since = g["connected_since"] if not g["down"] else None
+    connected_since = (
+        g["connected_since"]
+        if not g["down"]
+        else None
+    )
 
     html_page += f"""
-<tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+<tr
+class="gateway-row {row_class}"
+data-cluster="{esc(g["cluster"])}">
 
 <td>{esc(g["cluster"])}</td>
-<td><strong>{esc(g["name"])}</strong></td>
+
+<td>
+<strong>{esc(g["name"])}</strong>
+</td>
+
 <td>{esc(g["city"])}</td>
+
 <td>{esc(g["geolocation"])}</td>
 
 <td>
@@ -1208,8 +1793,11 @@ for g in active_gateways:
 </td>
 
 <td>{fmt_date(connected_since)}</td>
+
 <td>{fmt_date(g["last_connection"])}</td>
+
 <td>{esc(g["firmware"])}</td>
+
 <td>{esc(g["gateway_id"])}</td>
 
 </tr>
@@ -1218,6 +1806,7 @@ for g in active_gateways:
 html_page += """
 
 </table>
+
 </div>
 
 </div>
