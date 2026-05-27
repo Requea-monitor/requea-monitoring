@@ -2,7 +2,7 @@ name: Requea Monitoring
 
 on:
   schedule:
-    - cron: "0 0,4,8,12,16,20 * * *"
+    - cron: "17 1,5,9,13,17,21 * * *"
   workflow_dispatch:
 
 permissions:
