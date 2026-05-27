@@ -5,26 +5,6 @@ import os, json, html, re
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
 
-EXTRA_CLUSTERS = [
-    {"name": "SIEA", "url": "https://siea.requea.com"},
-    {"name": "CCVCMB", "url": "https://ccvcmb.requea.com"},
-    {"name": "Valence Romans", "url": "https://lora.valenceromansagglo.fr"},
-]
-
-if CONFIG:
-    default_login = CONFIG[0].get("login", "")
-    default_password = CONFIG[0].get("password", "")
-    existing = {c["url"].rstrip("/") for c in CONFIG}
-
-    for extra in EXTRA_CLUSTERS:
-        if extra["url"].rstrip("/") not in existing:
-            CONFIG.append({
-                "name": extra["name"],
-                "url": extra["url"],
-                "login": default_login,
-                "password": default_password
-            })
-
 PARIS = ZoneInfo("Europe/Paris")
 NOW = datetime.now(PARIS)
 HISTORY_FILE = "history.json"
@@ -140,6 +120,127 @@ def geoloc_from_text(text):
 
     return ""
 
+
+
+def parse_label_value(text, labels):
+    text = clean(text)
+    labels = [re.escape(label) for label in labels]
+
+    if not labels:
+        return ""
+
+    label_pattern = "|".join(labels)
+
+    patterns = [
+        rf"(?:{label_pattern})\s*:\s*(.+?)(?=\s+[A-ZÀ-Ÿ][A-Za-zÀ-ÿ0-9 /_-]{{2,40}}\s*:|$)",
+        rf"(?:{label_pattern})\s+(.+?)(?=\s+[A-ZÀ-Ÿ][A-Za-zÀ-ÿ0-9 /_-]{{2,40}}\s*:|$)",
+    ]
+
+    for pattern in patterns:
+        m = re.search(pattern, text, re.I | re.S)
+        if m:
+            value = clean(m.group(1))
+            value = re.sub(
+                r"\s+(Informations|Network|Connectivity|Supervision|Radio Links|Modbus/Bacnet|Spectral Analysis|Remote Shell|Alarms)\b.*$",
+                "",
+                value,
+                flags=re.I
+            )
+            return value[:160]
+
+    return ""
+
+
+def enrich_gateway_from_detail_text(gateway, text):
+    if not text:
+        return
+
+    gps = geoloc_from_text(text)
+    if gps:
+        gateway["geolocation"] = gps
+
+    sim = parse_label_value(text, [
+        "SIM", "Carte SIM", "SIM card", "ICCID", "N° SIM", "Numero SIM", "Numéro SIM"
+    ])
+
+    imei = parse_label_value(text, [
+        "IMEI", "Modem IMEI", "Identifiant IMEI"
+    ])
+
+    commentaire = parse_label_value(text, [
+        "Commentaire", "Commentaires", "Comment", "Comments", "Description"
+    ])
+
+    connection_serveur = parse_label_value(text, [
+        "Connection serveur", "Connexion serveur", "Server connection", "Server status",
+        "Etat serveur", "État serveur", "Etat de connexion serveur"
+    ])
+
+    alimentation = parse_label_value(text, [
+        "Alimentation", "Power", "Power supply", "Supply", "Batterie", "Battery",
+        "Tension", "Voltage"
+    ])
+
+    if sim and not gateway.get("sim"):
+        gateway["sim"] = sim
+
+    if imei and not gateway.get("imei"):
+        gateway["imei"] = imei
+
+    if commentaire and not gateway.get("commentaire"):
+        gateway["commentaire"] = commentaire
+
+    if connection_serveur and not gateway.get("connection_serveur"):
+        gateway["connection_serveur"] = connection_serveur
+
+    if alimentation and not gateway.get("alimentation"):
+        gateway["alimentation"] = alimentation
+
+
+def gps_pair(geolocation):
+    m = re.search(r"([0-9]{2}\.[0-9]+)\s*,\s*([0-9]{1,2}\.[0-9]+)", str(geolocation or ""))
+    if not m:
+        return None, None
+    return m.group(1), m.group(2)
+
+
+def maps_url(geolocation):
+    lat, lon = gps_pair(geolocation)
+    if not lat or not lon:
+        return ""
+    return f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
+
+
+def waze_url(geolocation):
+    lat, lon = gps_pair(geolocation)
+    if not lat or not lon:
+        return ""
+    return f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
+
+
+def icon_link(url, label, svg):
+    if not url:
+        return '<span class="icon-link disabled" title="Coordonnées absentes">' + svg + '</span>'
+    return f'<a class="icon-link" href="{esc(url)}" target="_blank" rel="noopener" title="{esc(label)}">{svg}</a>'
+
+
+def gps_actions(geolocation):
+    map_svg = '<svg viewBox="0 0 24 24"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15M15 6v15"/></svg>'
+    waze_svg = '<svg viewBox="0 0 24 24"><path d="M5 14a7 7 0 1 1 2 5l-3 1 1-3a7 7 0 0 1 0-3Z"/><circle cx="9" cy="12" r=".6"/><circle cx="15" cy="12" r=".6"/><path d="M9 16c1.8 1 4.2 1 6 0"/></svg>'
+    return (
+        '<span class="gps-actions">'
+        + icon_link(maps_url(geolocation), "Ouvrir dans Maps", map_svg)
+        + icon_link(waze_url(geolocation), "Ouvrir dans Waze", waze_svg)
+        + '</span>'
+    )
+
+
+def gateway_link(gateway):
+    url = gateway.get("detail_url") or ""
+    svg = '<svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M21 3 10 14"/><path d="M12 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/></svg>'
+    if not url:
+        return '<span class="icon-link disabled" title="Lien Requea absent">' + svg + '</span>'
+    return f'<a class="icon-link" href="{esc(url)}" target="_blank" rel="noopener" title="Ouvrir la passerelle dans Requea">{svg}</a>'
 
 def make_absolute_url(base_url, url):
     if not url:
@@ -430,6 +531,8 @@ def read_connection_date(context, cluster, gateway):
                 target.click()
                 p.wait_for_timeout(8000)
 
+                gateway["detail_url"] = p.url
+
                 body_text = p.locator("body").inner_text()
                 html_detail = p.content()
 
@@ -438,10 +541,25 @@ def read_connection_date(context, cluster, gateway):
                 if not last:
                     last = parse_last_connection_from_html(html_detail)
 
-                gps = geoloc_from_text(body_text)
+                enrich_gateway_from_detail_text(gateway, body_text)
+                enrich_gateway_from_detail_text(gateway, html_detail)
 
-                if gps:
-                    gateway["geolocation"] = gps
+                detail_tabs = [
+                    "Connectivité", "Connectivity",
+                    "Réseau", "Network",
+                    "Supervision",
+                    "Accès distant", "Remote Shell",
+                    "Modbus/Bacnet"
+                ]
+
+                for tab in detail_tabs:
+                    try:
+                        p.get_by_text(tab, exact=True).first.click()
+                        p.wait_for_timeout(1500)
+                        tab_text = p.locator("body").inner_text()
+                        enrich_gateway_from_detail_text(gateway, tab_text)
+                    except Exception:
+                        pass
 
                 p.close()
                 return last
@@ -798,7 +916,7 @@ h2{{margin:0;font-size:30px;line-height:1.05;font-weight:900;letter-spacing:-.04
 .seg-btn{{position:relative;z-index:2;border:0;background:transparent;border-radius:999px;padding:11px 17px;color:#334155;font-weight:850;white-space:nowrap;cursor:pointer;}}
 .seg-btn.active{{color:white;}}
 .table-wrap{{overflow:auto;border-radius:24px;border:1px solid rgba(255,255,255,.62);background:rgba(255,255,255,.28);}}
-table{{width:100%;min-width:1450px;border-collapse:collapse;}}
+table{{width:100%;min-width:1850px;border-collapse:collapse;}}
 th{{position:sticky;top:0;z-index:3;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#475467;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.035em;padding:14px;}}
 td{{padding:14px;border-bottom:1px solid rgba(148,163,184,.15);white-space:nowrap;font-size:13px;}}
 tr:hover{{background:rgba(255,255,255,.34);}}
@@ -810,11 +928,19 @@ tr:hover{{background:rgba(255,255,255,.34);}}
 @media(max-width:1180px){{.kpis{{grid-template-columns:repeat(3,1fr)}}}}
 @media(max-width:760px){{body{{padding:10px}}.hero,.panel{{border-radius:24px;padding:16px}}.logo{{width:54px;height:54px;border-radius:18px}}h1{{font-size:30px}}h2{{font-size:24px}}.kpis{{grid-template-columns:repeat(2,1fr);gap:10px}}.kpi{{min-height:118px;padding:14px;border-radius:21px}}.kpi-icon{{width:34px;height:34px;border-radius:12px;margin-bottom:11px}}.kpi-icon svg{{width:18px;height:18px}}.kpi-label{{font-size:12px}}.kpi-value{{font-size:28px}}.cluster-grid{{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}.cluster-card{{padding:13px;border-radius:20px}}.cluster-mark{{width:36px;height:36px;border-radius:13px}}.cluster-name{{font-size:15px}}.cluster-num{{font-size:20px}}.cluster-sub{{font-size:10px}}.progress{{height:9px}}.seg-btn{{padding:10px 14px;font-size:13px}}}}
 
-.kpi-sub{margin-top:8px;font-size:12px;font-weight:700;opacity:.88;}
-.filter-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px;}
-.search{min-width:270px;flex:1;}
-.search input{width:100%;border:1px solid rgba(255,255,255,.68);background:rgba(255,255,255,.52);border-radius:999px;padding:13px 17px;outline:none;font-weight:750;color:#344054;box-shadow:0 12px 34px rgba(31,41,55,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
+.kpi-sub{{margin-top:8px;font-size:12px;font-weight:700;opacity:.88;}}
+.filter-row{{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px;}}
+.search{{min-width:270px;flex:1;}}
+.search input{{width:100%;border:1px solid rgba(255,255,255,.68);background:rgba(255,255,255,.52);border-radius:999px;padding:13px 17px;outline:none;font-weight:750;color:#344054;box-shadow:0 12px 34px rgba(31,41,55,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}}
 @media(max-width:760px){{.search{{min-width:100%;}}.kpi-sub{{font-size:11px}}}}
+
+
+.icon-link{{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:999px;margin-left:6px;background:rgba(255,255,255,.48);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 20px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#2563eb;text-decoration:none;vertical-align:middle;transition:transform .18s ease,box-shadow .18s ease,background .18s ease;}}
+.icon-link:hover{{transform:translateY(-1px);background:rgba(255,255,255,.72);box-shadow:0 12px 26px rgba(15,23,42,.12),inset 0 1px 0 rgba(255,255,255,.86);}}
+.icon-link svg{{width:16px;height:16px;stroke:currentColor;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round;}}
+.icon-link.disabled{{opacity:.28;cursor:not-allowed;color:#98a2b3;}}
+.gps-cell,.gateway-cell{{display:inline-flex;align-items:center;gap:6px;}}
+.gps-actions{{display:inline-flex;align-items:center;white-space:nowrap;}}
 
 </style>
 <script>
@@ -948,7 +1074,7 @@ html_page += """
 <section class="panel">
     <div class="section-head"><div><h2>Passerelles HS</h2><div class="section-caption">Priorisation maintenance et durée d’indisponibilité.</div></div></div>
     <div class="table-wrap"><table>
-        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Connexion</th><th>Dernière connexion</th><th>Durée HS</th><th>Service 24h</th><th>Firmware</th></tr>
+        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Connexion</th><th>Dernière connexion</th><th>Durée HS</th><th>Service 24h</th><th>Firmware</th><th>SIM</th><th>IMEI</th><th>Commentaire</th><th>Connection serveur</th><th>Alimentation</th></tr>
 """
 
 for g in active_gateways:
@@ -957,8 +1083,8 @@ for g in active_gateways:
     row_class = "maintenance" if g["maintenance"] else "down"
     html_page += f"""
         <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
-            <td><strong>{esc(g["cluster"])}</strong></td><td><strong>{esc(g["name"])}</strong></td><td>{esc(g["city"])}</td><td>{esc(g["geolocation"])}</td>
-            <td><span class="badge ko">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{fmt_duration(g["down_hours"])}</td><td>{g["service_24h"]}%</td><td>{esc(g["firmware"])}</td>
+            <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell"><strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(g["geolocation"])}{gps_actions(g["geolocation"])}</span></td>
+            <td><span class="badge ko">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{fmt_duration(g["down_hours"])}</td><td>{g["service_24h"]}%</td><td>{esc(g["firmware"])}</td><td>{esc(g.get("sim"))}</td><td>{esc(g.get("imei"))}</td><td>{esc(g.get("commentaire"))}</td><td>{esc(g.get("connection_serveur"))}</td><td>{esc(g.get("alimentation"))}</td>
         </tr>
 """
 
@@ -968,7 +1094,7 @@ html_page += """
 <section class="panel">
     <div class="section-head"><div><h2>Toutes les passerelles</h2><div class="section-caption">Inventaire consolidé des passerelles actives.</div></div></div>
     <div class="table-wrap"><table>
-        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Statut</th><th>Connexion</th><th>Dernière connexion</th><th>Firmware</th><th>ID</th></tr>
+        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Statut</th><th>Connexion</th><th>Dernière connexion</th><th>Firmware</th><th>ID</th><th>SIM</th><th>IMEI</th><th>Commentaire</th><th>Connection serveur</th><th>Alimentation</th></tr>
 """
 
 for g in active_gateways:
@@ -976,8 +1102,8 @@ for g in active_gateways:
     row_class = "maintenance" if g["maintenance"] else ("down" if g["down"] else "")
     html_page += f"""
         <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
-            <td><strong>{esc(g["cluster"])}</strong></td><td><strong>{esc(g["name"])}</strong></td><td>{esc(g["city"])}</td><td>{esc(g["geolocation"])}</td>
-            <td><span class="badge ok">{esc(g["status"])}</span></td><td><span class="badge {badge}">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{esc(g["firmware"])}</td><td>{esc(g["gateway_id"])}</td>
+            <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell"><strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(g["geolocation"])}{gps_actions(g["geolocation"])}</span></td>
+            <td><span class="badge ok">{esc(g["status"])}</span></td><td><span class="badge {badge}">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{esc(g["firmware"])}</td><td>{esc(g["gateway_id"])}</td><td>{esc(g.get("sim"))}</td><td>{esc(g.get("imei"))}</td><td>{esc(g.get("commentaire"))}</td><td>{esc(g.get("connection_serveur"))}</td><td>{esc(g.get("alimentation"))}</td>
         </tr>
 """
 
