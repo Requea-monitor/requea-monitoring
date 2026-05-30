@@ -5,12 +5,6 @@ import os, json, html, re
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
 
-EXTRA_CLUSTERS = [
-    {"name": "SIEA", "url": "https://siea.requea.com"},
-    {"name": "CCVCMB", "url": "https://ccvcmb.requea.com"},
-    {"name": "Valence Romans", "url": "https://lora.valenceromansagglo.fr"},
-]
-
 if CONFIG:
     default_login = CONFIG[0].get("login", "")
     default_password = CONFIG[0].get("password", "")
@@ -136,9 +130,11 @@ def geoloc_from_text(text):
     for pattern in patterns:
         m = re.search(pattern, text, re.I)
         if m:
-            return normalize_geolocation(f"{m.group(1)}, {m.group(2)}")
+            return f"{m.group(1)}, {m.group(2)}"
 
     return ""
+
+
 
 
 def normalize_geolocation(value):
@@ -189,7 +185,7 @@ def enrich_gateway_from_detail_text(gateway, text):
 
     gps = geoloc_from_text(text)
     if gps:
-        gateway["geolocation"] = gps
+        gateway["geolocation"] = normalize_geolocation(gps) or gps
 
     sim = parse_label_value(text, [
         "SIM", "Carte SIM", "SIM card", "ICCID", "N° SIM", "Numero SIM", "Numéro SIM"
@@ -291,7 +287,7 @@ def make_absolute_url(base_url, url):
 
 def login(page, cluster):
     page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(2500)
+    page.wait_for_timeout(4000)
 
     username = page.locator(
         'input:visible:not([type="password"]):not([type="hidden"])'
@@ -306,7 +302,7 @@ def login(page, cluster):
 
     page.wait_for_timeout(500)
     password.press("Enter")
-    page.wait_for_timeout(6000)
+    page.wait_for_timeout(10000)
 
     body = page.locator("body").inner_text()
 
@@ -427,11 +423,6 @@ def parse_gateway(values, raw, cluster_name, detail_url=""):
         "detail_url": detail_url,
         "last_connection": None,
         "connected_since": None,
-        "sim": "",
-        "imei": "",
-        "commentaire": "",
-        "connection_serveur": "",
-        "alimentation": "",
     }
 
 
@@ -541,7 +532,7 @@ def click_next(page):
 """)
 
     if clicked:
-        page.wait_for_timeout(2500)
+        page.wait_for_timeout(7000)
 
     return clicked
 
@@ -556,7 +547,7 @@ def read_connection_date(context, cluster, gateway):
             timeout=60000
         )
 
-        p.wait_for_timeout(5000)
+        p.wait_for_timeout(12000)
 
         for _ in range(20):
             try:
@@ -566,7 +557,7 @@ def read_connection_date(context, cluster, gateway):
                 ).first
 
                 target.click()
-                p.wait_for_timeout(3500)
+                p.wait_for_timeout(8000)
 
                 gateway["detail_url"] = p.url
 
@@ -592,7 +583,7 @@ def read_connection_date(context, cluster, gateway):
                 for tab in detail_tabs:
                     try:
                         p.get_by_text(tab, exact=True).first.click()
-                        p.wait_for_timeout(700)
+                        p.wait_for_timeout(1500)
                         tab_text = p.locator("body").inner_text()
                         enrich_gateway_from_detail_text(gateway, tab_text)
                     except Exception:
@@ -662,24 +653,6 @@ def apply_history(g):
 
     g["maintenance"] = g["down_hours"] >= 24
 
-    # Cache des champs de fiche détail : on évite de rouvrir les fiches inutilement.
-    cached_fields = [
-        "last_connection",
-        "detail_url",
-        "sim",
-        "imei",
-        "commentaire",
-        "connection_serveur",
-        "alimentation",
-    ]
-
-    for field in cached_fields:
-        if g.get(field):
-            history[key][field] = g[field]
-        elif history[key].get(field):
-            g[field] = history[key][field]
-
-
     if not g["down"]:
         g["connected_since"] = g["last_connection"]
 
@@ -719,7 +692,7 @@ with sync_playwright() as p:
                 timeout=60000
             )
 
-            page.wait_for_timeout(5000)
+            page.wait_for_timeout(12000)
 
             seen = {}
             visited = set()
@@ -743,13 +716,13 @@ with sync_playwright() as p:
                     break
 
             for gateway_id, gateway in seen.items():
-                # Optimisation : la fiche détail est lente. On l'ouvre uniquement pour les passerelles HS,
-                # car c'est là que la dernière connexion et les champs diagnostic sont réellement utiles.
-                if gateway["down"]:
-                    connection_date = read_connection_date(context, cluster, gateway)
+                connection_date = read_connection_date(context, cluster, gateway)
 
-                    if connection_date:
-                        gateway["last_connection"] = connection_date.isoformat()
+                if connection_date:
+                    gateway["last_connection"] = connection_date.isoformat()
+
+                if not gateway["down"]:
+                    gateway["connected_since"] = gateway["last_connection"]
 
                 gateways.append(apply_history(gateway))
 
@@ -971,7 +944,7 @@ h2{{margin:0;font-size:30px;line-height:1.05;font-weight:900;letter-spacing:-.04
 .seg-btn{{position:relative;z-index:2;border:0;background:transparent;border-radius:999px;padding:11px 17px;color:#334155;font-weight:850;white-space:nowrap;cursor:pointer;}}
 .seg-btn.active{{color:white;}}
 .table-wrap{{overflow:auto;border-radius:24px;border:1px solid rgba(255,255,255,.62);background:rgba(255,255,255,.28);}}
-table{{width:100%;min-width:1500px;border-collapse:collapse;}}
+table{{width:100%;min-width:1850px;border-collapse:collapse;}}
 th{{position:sticky;top:0;z-index:3;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#475467;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.035em;padding:14px;}}
 td{{padding:14px;border-bottom:1px solid rgba(148,163,184,.15);white-space:nowrap;font-size:13px;}}
 tr:hover{{background:rgba(255,255,255,.34);}}
@@ -1149,7 +1122,7 @@ html_page += """
 <section class="panel">
     <div class="section-head"><div><h2>Toutes les passerelles</h2><div class="section-caption">Inventaire consolidé des passerelles actives.</div></div></div>
     <div class="table-wrap"><table>
-        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Statut</th><th>Connexion</th><th>Firmware</th><th>ID</th></tr>
+        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Statut</th><th>Connexion</th><th>Dernière connexion</th><th>Firmware</th><th>ID</th><th>SIM</th><th>IMEI</th><th>Commentaire</th><th>Connection serveur</th><th>Alimentation</th></tr>
 """
 
 for g in active_gateways:
@@ -1158,7 +1131,7 @@ for g in active_gateways:
     html_page += f"""
         <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
             <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell"><strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(gps_display(g["geolocation"]))}{gps_actions(g["geolocation"])}</span></td>
-            <td><span class="badge ok">{esc(g["status"])}</span></td><td><span class="badge {badge}">{esc(g["connection"])}</span></td><td>{esc(g["firmware"])}</td><td>{esc(g["gateway_id"])}</td>
+            <td><span class="badge ok">{esc(g["status"])}</span></td><td><span class="badge {badge}">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{esc(g["firmware"])}</td><td>{esc(g["gateway_id"])}</td><td>{esc(g.get("sim"))}</td><td>{esc(g.get("imei"))}</td><td>{esc(g.get("commentaire"))}</td><td>{esc(g.get("connection_serveur"))}</td><td>{esc(g.get("alimentation"))}</td>
         </tr>
 """
 
