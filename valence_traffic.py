@@ -125,7 +125,7 @@ def login(page, cluster):
             or "Deconnexion" in body
             or "Export Excel" in body
             or "Liste des passerelles" in body
-            or "iotGateway:list" in page.url
+            or ("iotGateway:list" in page.url and ("Export Excel" in body or "rqsrch" in body or "Passerelles" in body))
         ) and "Mot de passe oublié" not in body:
             print("Accès Valence OK:", page.url)
             return
@@ -226,7 +226,7 @@ def click_next(page):
             title.includes("next") ||
             aria.includes("suivant") ||
             aria.includes("next") ||
-            href.includes("listnav") && href.includes(",'2'")
+            href.includes("listnav")
         ) {
             el.click();
             return true;
@@ -312,29 +312,61 @@ def parse_gateway_listing(html_text):
 
 
 def collect_valence_gateways(page):
+    ajax_payloads = []
+
+    def on_response(response):
+        try:
+            url = response.url
+            if "/ajax" in url or "iotGateway:list" in url:
+                body = response.text()
+                if "iotGateway:get" in body or "Liste des passerelles" in body or "rqtblcel" in body:
+                    ajax_payloads.append(body)
+                    print(f"Payload listing capturé: {len(body)} caractères depuis {url}")
+        except Exception:
+            pass
+
+    page.on("response", on_response)
+
     page.goto(f"{VALENCE_URL}/do/Network/iotGateway:list", wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(5000)
+    page.wait_for_timeout(8000)
 
     found = {}
     visited_signatures = set()
 
     for page_index in range(40):
-        page_gateways = parse_gateway_listing(page.content())
+        sources = [page.content()] + ajax_payloads
 
-        print(f"Listing Valence page {page_index + 1}: {len(page_gateways)} actives trouvées")
+        page_total = 0
+        for source in sources:
+            page_gateways = parse_gateway_listing(source)
+            page_total += len(page_gateways)
 
-        for gid, gw in page_gateways.items():
-            found[gid] = gw
+            for gid, gw in page_gateways.items():
+                found[gid] = gw
+
+        print(
+            f"Listing Valence page {page_index + 1}: "
+            f"{page_total} lignes actives parsées / total cumulé {len(found)}"
+        )
 
         signature = "|".join(sorted(found.keys()))
-        if signature in visited_signatures:
+        if signature in visited_signatures and page_index > 0:
             print("Arrêt pagination listing: signature déjà vue")
             break
         visited_signatures.add(signature)
 
+        ajax_payloads.clear()
+
         if not click_next(page):
             print("Fin pagination listing")
             break
+
+        page.wait_for_timeout(2500)
+
+    try:
+        page.remove_listener("response", on_response)
+    except Exception:
+        pass
 
     print(f"Total passerelles actives Valence trouvées: {len(found)}")
     return found
