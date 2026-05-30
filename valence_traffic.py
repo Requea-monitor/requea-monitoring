@@ -10,6 +10,14 @@ PARIS = ZoneInfo("Europe/Paris")
 NOW = datetime.now(PARIS)
 
 VALENCE_URL = "https://lora.valenceromansagglo.fr"
+
+# Le portail Valence renvoie une page vide à Chromium Headless standard sur GitHub Actions.
+# On force un profil navigateur plus proche de Safari/macOS, comme celui utilisé manuellement.
+VALENCE_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+    "Version/17.6 Safari/605.1.15"
+)
 OUTPUT_FILE = "public/valence_traffic.html"
 
 # 6 pages = environ 90 trames max par passerelle.
@@ -117,7 +125,11 @@ def login(page, cluster):
         print("Tentative accès Valence:", start_url)
 
         try:
-            page.goto(start_url, wait_until="domcontentloaded", timeout=60000)
+            response = page.goto(start_url, wait_until="domcontentloaded", timeout=60000)
+            try:
+                page.wait_for_load_state("networkidle", timeout=12000)
+            except Exception:
+                pass
             page.wait_for_timeout(5000)
 
             body = clean(page.locator("body").inner_text())
@@ -176,10 +188,13 @@ def login(page, cluster):
             last_debug = {
                 "tested_url": start_url,
                 "current_url": current_url,
+                "status": response.status if response else None,
+                "response_url": response.url if response else None,
                 "title": page.title(),
                 "body_len": len(body),
                 "content_len": len(content),
                 "body_start": body[:1200],
+                "content_start": content[:500],
                 "input_count": page.locator("input").count(),
             }
 
@@ -211,10 +226,13 @@ def login(page, cluster):
             last_debug = {
                 "tested_url": start_url,
                 "current_url": page.url,
+                "status": response.status if response else None,
+                "response_url": response.url if response else None,
                 "title": page.title(),
                 "body_len": len(body),
                 "content_len": len(content),
                 "body_start": body[:1200],
+                "content_start": content[:500],
                 "input_count": page.locator("input").count(),
                 "after_submit": True,
             }
@@ -456,6 +474,11 @@ def read_gateway_messages(context, gateway):
         gateway["traffic_error"] = "detail_url absente"
         return []
 
+    context.add_init_script("""
+Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+Object.defineProperty(navigator, 'languages', {get: () => ['fr-FR', 'fr']});
+Object.defineProperty(navigator, 'platform', {get: () => 'MacIntel'});
+""")
     page = context.new_page()
     messages = []
     seen_keys = set()
@@ -555,8 +578,25 @@ def badge_class(row, median):
 
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    context = browser.new_context(viewport={"width": 1600, "height": 1000})
+    browser = p.chromium.launch(
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--disable-dev-shm-usage",
+            "--no-sandbox",
+        ],
+    )
+    context = browser.new_context(
+        viewport={"width": 1600, "height": 1000},
+        user_agent=VALENCE_USER_AGENT,
+        locale="fr-FR",
+        timezone_id="Europe/Paris",
+        ignore_https_errors=True,
+        extra_http_headers={
+            "Accept-Language": "fr-FR,fr;q=0.9",
+            "Upgrade-Insecure-Requests": "1",
+        },
+    )
     page = context.new_page()
 
     cluster = find_valence_config()
