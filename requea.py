@@ -995,12 +995,56 @@ h2{{margin:0;font-size:30px;line-height:1.05;font-weight:900;letter-spacing:-.04
 .filter-shell{{overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}}
 .filter{{
     position:relative;display:inline-flex;gap:5px;min-width:max-content;padding:7px;border-radius:999px;
-    background:rgba(255,255,255,.43);border:1px solid rgba(255,255,255,.66);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 14px 30px rgba(15,23,42,.06);
+    background:linear-gradient(145deg,rgba(255,255,255,.38),rgba(255,255,255,.18));
+    border:1px solid rgba(255,255,255,.72);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.82),
+        inset 0 -8px 18px rgba(255,255,255,.18),
+        0 16px 38px rgba(15,23,42,.08);
+    backdrop-filter:blur(26px) saturate(190%);
+    -webkit-backdrop-filter:blur(26px) saturate(190%);
 }}
-.slider{{position:absolute;top:7px;left:7px;height:calc(100% - 14px);border-radius:999px;background:linear-gradient(145deg,#1677ff,#7c3aed);box-shadow:0 10px 24px rgba(22,119,255,.26);transition:transform .28s cubic-bezier(.2,.8,.2,1),width .28s cubic-bezier(.2,.8,.2,1);}}
-.seg-btn{{position:relative;z-index:2;border:0;background:transparent;border-radius:999px;padding:11px 17px;color:#334155;font-weight:850;white-space:nowrap;cursor:pointer;}}
-.seg-btn.active{{color:white;}}
+.slider{{
+    position:absolute;
+    top:7px;
+    left:7px;
+    height:calc(100% - 14px);
+    border-radius:999px;
+    background:
+        radial-gradient(circle at 28% 18%, rgba(255,255,255,.98), rgba(255,255,255,.50) 22%, rgba(255,255,255,.22) 58%, rgba(255,255,255,.10) 100%);
+    border:1px solid rgba(255,255,255,.86);
+    box-shadow:
+        0 14px 34px rgba(15,23,42,.12),
+        inset 0 1px 1px rgba(255,255,255,.98),
+        inset 0 -12px 22px rgba(255,255,255,.28),
+        inset 0 0 0 1px rgba(255,255,255,.42);
+    backdrop-filter:blur(28px) saturate(210%) contrast(112%);
+    -webkit-backdrop-filter:blur(28px) saturate(210%) contrast(112%);
+    transition:transform .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1);
+}}
+.slider::before{{
+    content:"";
+    position:absolute;
+    inset:2px 12px auto 12px;
+    height:42%;
+    border-radius:999px;
+    background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.18));
+    pointer-events:none;
+}}
+.slider::after{{
+    content:"";
+    position:absolute;
+    right:10px;
+    bottom:7px;
+    width:18px;
+    height:18px;
+    border-radius:999px;
+    background:rgba(255,255,255,.36);
+    filter:blur(.2px);
+    pointer-events:none;
+}}
+.seg-btn{{position:relative;z-index:2;border:0;background:transparent;border-radius:999px;padding:11px 17px;color:#334155;font-weight:850;white-space:nowrap;cursor:pointer;transition:color .22s ease,text-shadow .22s ease;}}
+.seg-btn.active{{color:#07101f;text-shadow:0 1px 0 rgba(255,255,255,.65);}}
 .table-wrap{{overflow:auto;border-radius:24px;border:1px solid rgba(255,255,255,.62);background:rgba(255,255,255,.28);}}
 table{{width:100%;min-width:1500px;border-collapse:collapse;}}
 th{{position:sticky;top:0;z-index:3;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#475467;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.035em;padding:14px;}}
@@ -1147,7 +1191,7 @@ html_page += """
     </div>
 </section>
 <section class="panel">
-    <div class="section-head"><div><h2>Filtre clusters</h2><div class="section-caption">Sélection fluide avec indicateur glissant.</div></div></div>
+    <div class="section-head"><div><h2>Filtrer les clusters</h2><div class="section-caption">Filtrage par cluster avec effet Liquid Glass.</div></div></div>
     <div class="filter-row"><div class="filter-shell"><div class="filter"><div class="slider"></div><button class="seg-btn active" data-cluster="ALL">Tous</button>
 """
 
