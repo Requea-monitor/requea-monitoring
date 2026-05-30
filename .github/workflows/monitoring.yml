@@ -58,14 +58,6 @@ jobs:
 
           REQUEA_CONFIG: ${{ secrets.REQUEA_CONFIG }}
 
-      - name: Run Valence traffic monitoring
-
-        run: python valence_traffic.py
-
-        env:
-
-          REQUEA_CONFIG: ${{ secrets.REQUEA_CONFIG }}
-
       - name: Save history
 
         run: |
