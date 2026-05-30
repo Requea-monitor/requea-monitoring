@@ -105,10 +105,9 @@ def find_valence_config():
 
 
 def login(page, cluster):
-    # Valence peut renvoyer une page vide au premier accès headless, alors on ne bloque pas
-    # si l'URL applicative est atteinte. La vraie validation se fait ensuite sur le listing AJAX.
     start_urls = [
         f"{VALENCE_URL}/do/Network/iotGateway:list",
+        f"{VALENCE_URL}/do/Network/Home/iotGateway:list",
         VALENCE_URL,
     ]
 
@@ -119,25 +118,21 @@ def login(page, cluster):
 
         try:
             page.goto(start_url, wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_timeout(3500)
+            page.wait_for_timeout(5000)
 
             body = clean(page.locator("body").inner_text())
+            content = page.content()
             current_url = page.url
 
-            # Cas qui fonctionnait déjà : accès à la route applicative.
-            if "iotGateway:list" in current_url:
-                print("Accès Valence OK:", current_url)
-                return
-
-            # Déjà connecté avec contenu visible.
+            # OK seulement si le contenu applicatif est réellement présent.
+            # Ne jamais valider uniquement sur l'URL.
             if (
-                "Sign out" in body
-                or "Déconnexion" in body
-                or "Deconnexion" in body
-                or "Export Excel" in body
+                "Export Excel" in body
                 or "Liste des passerelles" in body
+                or "rqtblcel" in content
+                or "iotGateway:get" in content
             ) and "Mot de passe oublié" not in body:
-                print("Accès Valence OK:", current_url)
+                print("Accès Valence OK avec contenu:", current_url)
                 return
 
             username = None
@@ -182,34 +177,64 @@ def login(page, cluster):
                 "tested_url": start_url,
                 "current_url": current_url,
                 "title": page.title(),
-                "body_start": body[:1000],
+                "body_len": len(body),
+                "content_len": len(content),
+                "body_start": body[:1200],
                 "input_count": page.locator("input").count(),
             }
 
             if not username or not password:
+                print("Pas de formulaire visible sur", current_url, "body_len", len(body), "content_len", len(content))
                 continue
 
             username.fill(cluster.get("login", ""))
             password.fill(cluster.get("password", ""))
             page.wait_for_timeout(300)
             password.press("Enter")
-            page.wait_for_timeout(7000)
+            page.wait_for_timeout(8000)
 
             body = clean(page.locator("body").inner_text())
+            content = page.content()
 
             if "Mot de passe oublié" in body or "Forgot your password" in body:
                 raise Exception("Connexion refusée")
 
-            print("Connexion Valence OK:", page.url)
-            return
+            if (
+                "Export Excel" in body
+                or "Liste des passerelles" in body
+                or "rqtblcel" in content
+                or "iotGateway:get" in content
+            ):
+                print("Connexion Valence OK avec contenu:", page.url)
+                return
+
+            last_debug = {
+                "tested_url": start_url,
+                "current_url": page.url,
+                "title": page.title(),
+                "body_len": len(body),
+                "content_len": len(content),
+                "body_start": body[:1200],
+                "input_count": page.locator("input").count(),
+                "after_submit": True,
+            }
 
         except Exception as e:
             last_debug["exception"] = str(e)
 
-    # On tente quand même la suite si la route applicative est accessible mais vide.
-    # Si le listing ne remonte rien, l'erreur sera explicite dans collect_valence_gateways.
-    print("Connexion non confirmée, tentative listing malgré tout:", json.dumps(last_debug, ensure_ascii=False))
-    return
+    os.makedirs("public", exist_ok=True)
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write(
+            "<!doctype html><html><head><meta charset='utf-8'>"
+            "<title>Diagnostic connexion Valence</title></head><body>"
+            "<h1>Connexion Valence impossible</h1><pre>"
+            + esc(json.dumps(last_debug, indent=2, ensure_ascii=False))
+            + "</pre></body></html>"
+        )
+
+    print("DIAGNOSTIC CONNEXION VALENCE")
+    print(json.dumps(last_debug, indent=2, ensure_ascii=False))
+    raise Exception("Connexion Valence impossible : aucun contenu applicatif exploitable")
 
 
 def click_next(page):
