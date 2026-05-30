@@ -5,6 +5,26 @@ import os, json, html, re
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
 
+EXTRA_CLUSTERS = [
+    {"name": "SIEA", "url": "https://siea.requea.com"},
+    {"name": "CCVCMB", "url": "https://ccvcmb.requea.com"},
+    {"name": "Valence Romans", "url": "https://lora.valenceromansagglo.fr"},
+]
+
+if CONFIG:
+    default_login = CONFIG[0].get("login", "")
+    default_password = CONFIG[0].get("password", "")
+    existing = {c["url"].rstrip("/") for c in CONFIG}
+
+    for extra in EXTRA_CLUSTERS:
+        if extra["url"].rstrip("/") not in existing:
+            CONFIG.append({
+                "name": extra["name"],
+                "url": extra["url"],
+                "login": default_login,
+                "password": default_password
+            })
+
 PARIS = ZoneInfo("Europe/Paris")
 NOW = datetime.now(PARIS)
 HISTORY_FILE = "history.json"
@@ -401,6 +421,14 @@ def parse_gateway(values, raw, cluster_name, detail_url=""):
             if geolocation:
                 break
 
+    geolocation = normalize_geolocation(geolocation)
+
+    # Filtre anti-obsolètes / provisionnement :
+    # une passerelle réellement exploitable sur la carte réseau doit avoir des coordonnées GPS.
+    # Les entrées Active sans GPS sont ignorées pour éviter les doublons/remplacements/anciennes fiches.
+    if not geolocation:
+        return None
+
     city = ""
 
     if firmware and firmware in values:
@@ -428,7 +456,7 @@ def parse_gateway(values, raw, cluster_name, detail_url=""):
         "connection": connection,
         "firmware": firmware,
         "city": city,
-        "geolocation": normalize_geolocation(geolocation),
+        "geolocation": geolocation,
         "down": is_down,
         "detail_url": detail_url,
         "last_connection": None,
@@ -783,7 +811,10 @@ with open(HISTORY_FILE, "w", encoding="utf-8") as f:
     json.dump(history, f, indent=2, ensure_ascii=False)
 
 
-active_gateways = [g for g in gateways if g["status"] == "Active"]
+active_gateways = [
+    g for g in gateways
+    if g["status"] == "Active" and normalize_geolocation(g.get("geolocation"))
+]
 
 total = len(active_gateways)
 down = len([g for g in active_gateways if g["down"]])
