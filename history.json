@@ -13,9 +13,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=54e726e08d5546a3921a51ba71d8655b&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=54e726e08d5546a3921a51ba71d8655b&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D7347": {
     "down_since": null,
@@ -31,9 +35,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=61a6014fa93248a39189dd9567c34b9e&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=61a6014fa93248a39189dd9567c34b9e&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D79EE": {
     "down_since": null,
@@ -49,9 +57,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=65e6032088c3491d9ad02f6332f4117c&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=65e6032088c3491d9ad02f6332f4117c&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D7368": {
     "down_since": null,
@@ -67,9 +79,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=a84e3aa1c87e42c58f8cd0e187f5083f&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=a84e3aa1c87e42c58f8cd0e187f5083f&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004C8531": {
     "down_since": null,
@@ -85,9 +101,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682cd78d864f3&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682cd78d864f3&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004C8532": {
     "down_since": null,
@@ -103,9 +123,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682cf952a7dc3&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682cf952a7dc3&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004C7447": {
     "down_since": null,
@@ -121,9 +145,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682d1871060a5&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682d1871060a5&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004C7448": {
     "down_since": null,
@@ -139,9 +167,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682d1d5081219&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682d1d5081219&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004CF990": {
     "down_since": "2026-05-23T11:05:14+02:00",
@@ -157,10 +189,14 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": false
       }
     ],
     "last_connection": "2026-05-23T11:05:14+02:00",
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba2b9bd13c88&pctx=e6965772f2b545358d3b8109d48f4d65",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba2b9bd13c88&pctx=a3f0075238b4437995f18e2cd9310485",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">8988247000015976369</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103650039</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
     "commentaire": "Network REQUEA LoRaWAN REQUEA Roaming Firmware Version Municipality Geo location Hauteur 00000008004CD2D9 Active 00000008004CD2D9 Multitech IP67 Outdoor L4E1 Co"
@@ -179,9 +215,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba2bc2e54225&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba2bc2e54225&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004CFA2B": {
     "down_since": null,
@@ -197,9 +237,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba300e8c6cfd&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba300e8c6cfd&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004CF98F": {
     "down_since": null,
@@ -215,9 +259,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba30f40e28f8&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba30f40e28f8&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004CD301": {
     "down_since": null,
@@ -233,9 +281,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488bddf530188c34595476a6f&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488bddf530188c34595476a6f&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004C744F": {
     "down_since": null,
@@ -251,9 +303,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90867f8420018682d374a97e4c&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90867f8420018682d374a97e4c&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004C7450": {
     "down_since": null,
@@ -269,9 +325,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90867f8420018682d40d3405a0&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90867f8420018682d40d3405a0&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004CF991": {
     "down_since": null,
@@ -287,9 +347,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba2b8e40439d&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba2b8e40439d&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004CF98E": {
     "down_since": null,
@@ -305,9 +369,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba32b62559be&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba32b62559be&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004CF994": {
     "down_since": null,
@@ -323,9 +391,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba3583b83e0f&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba3583b83e0f&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D7367": {
     "down_since": null,
@@ -341,9 +413,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=c24d1d427533493c86913bbc3009345b&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=c24d1d427533493c86913bbc3009345b&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D799D": {
     "down_since": null,
@@ -359,9 +435,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=d54f697f9a4d41a690189c176578577e&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=d54f697f9a4d41a690189c176578577e&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D799C": {
     "down_since": null,
@@ -377,9 +457,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=e0ac05237cae425b8ece3df63c5c289c&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=e0ac05237cae425b8ece3df63c5c289c&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D7348": {
     "down_since": null,
@@ -395,9 +479,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f0becbbc9970419aaed468cb11883c55&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f0becbbc9970419aaed468cb11883c55&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D734A": {
     "down_since": null,
@@ -413,9 +501,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f3603dc939184af18177d6cc1e7f0349&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f3603dc939184af18177d6cc1e7f0349&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D79EF": {
     "down_since": null,
@@ -431,9 +523,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f7e2ddf1f9a441a2bad37a83e375d214&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f7e2ddf1f9a441a2bad37a83e375d214&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004BFD15": {
     "down_since": null,
@@ -449,12 +545,16 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=5d8b9281ae7b4b43ba60fed63ee40284&pctx=903197e1d1274ed39323fb4731c1191a"
   },
   "00000008004C5179": {
-    "down_since": "2026-05-30T09:00:32+02:00",
+    "down_since": null,
     "samples": [
       {
         "time": "2026-05-29T14:35:05.750887+02:00",
@@ -467,6 +567,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "last_connection": "2026-05-30T09:00:32+02:00",
@@ -489,6 +593,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af48196367d0181a4dd5d823613&pctx=903197e1d1274ed39323fb4731c1191a"
@@ -506,6 +614,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -525,6 +637,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a660188496495460f6e&pctx=903197e1d1274ed39323fb4731c1191a"
@@ -542,6 +658,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -561,6 +681,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a6601884973862a4f70&pctx=903197e1d1274ed39323fb4731c1191a"
@@ -578,6 +702,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -597,6 +725,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e801884962993266b6&pctx=903197e1d1274ed39323fb4731c1191a"
@@ -614,6 +746,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -633,6 +769,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e80188496b4d3d5f54&pctx=903197e1d1274ed39323fb4731c1191a"
@@ -650,6 +790,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -669,6 +813,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=ee7a2b1e96fd4b22843eadba41b92a83&pctx=903197e1d1274ed39323fb4731c1191a"
@@ -687,10 +835,14 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": false
       }
     ],
     "last_connection": "2026-04-29T15:35:29+02:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e90a0f05780&pctx=035b8befa1f94a8c97ba4d0d56c532b1",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e90a0f05780&pctx=14bcb847bac143d18f13f6f31bbd4dcf",
     "sim": "Transatel Edit View messages View gateway logs Toggle Dropdown",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103418593</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
     "commentaire": "Carte"
@@ -709,9 +861,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e98765e2423&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e98765e2423&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C537A": {
     "down_since": null,
@@ -727,9 +883,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e99961238a3&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e99961238a3&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C5375": {
     "down_since": null,
@@ -745,9 +905,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823ea4151f4dfb&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823ea4151f4dfb&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C5381": {
     "down_since": "2025-02-24T16:23:48+01:00",
@@ -763,10 +927,14 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": false
       }
     ],
     "last_connection": "2025-02-24T16:23:48+01:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823ea484645462&pctx=035b8befa1f94a8c97ba4d0d56c532b1",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823ea484645462&pctx=14bcb847bac143d18f13f6f31bbd4dcf",
     "sim": "8988247000016859713",
     "imei": "351626103435050 3G/4G",
     "commentaire": "Network REQUEA LoRaWAN Firmware Version Municipality Geo location Hauteur Coulange-lès-Nevers Active 00000008004C5176 Multitech IP67 Outdoor L4E1 Closed Carte S"
@@ -785,9 +953,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823efd750b10e4&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823efd750b10e4&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C5376": {
     "down_since": "2023-08-17T17:31:00+02:00",
@@ -803,10 +975,14 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": false
       }
     ],
     "last_connection": "2023-08-17T17:31:00+02:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f07d88e42df&pctx=035b8befa1f94a8c97ba4d0d56c532b1",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f07d88e42df&pctx=14bcb847bac143d18f13f6f31bbd4dcf",
     "sim": "8988247000015976484",
     "imei": "351626103420557 3G/4G",
     "commentaire": "Network REQUEA LoRaWAN Firmware Version Municipality Geo location Hauteur Coulange-lès-Nevers Active 00000008004C5176 Multitech IP67 Outdoor L4E1 Closed Carte S"
@@ -825,9 +1001,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f08d0e05c9f&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f08d0e05c9f&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C537F": {
     "down_since": null,
@@ -843,9 +1023,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f1bff410c40&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f1bff410c40&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C5182": {
     "down_since": null,
@@ -861,9 +1045,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f1cf7292082&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f1cf7292082&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C517D": {
     "down_since": null,
@@ -879,9 +1067,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e8eb8d40d51&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e8eb8d40d51&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C5175": {
     "down_since": null,
@@ -897,9 +1089,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e91c6c16d55&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e91c6c16d55&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C517E": {
     "down_since": null,
@@ -915,9 +1111,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e997d8e37e1&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e997d8e37e1&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C5374": {
     "down_since": null,
@@ -933,9 +1133,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e9a906e5c57&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e9a906e5c57&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C5380": {
     "down_since": "2023-08-17T16:47:28+02:00",
@@ -951,10 +1155,14 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": false
       }
     ],
     "last_connection": "2023-08-17T16:47:28+02:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823ea427a76eb3&pctx=035b8befa1f94a8c97ba4d0d56c532b1",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823ea427a76eb3&pctx=14bcb847bac143d18f13f6f31bbd4dcf",
     "sim": "8988247000015976492",
     "imei": "351626103418387 3G/4G",
     "commentaire": "Network REQUEA LoRaWAN Firmware Version Municipality Geo location Hauteur Coulange-lès-Nevers Active 00000008004C5176 Multitech IP67 Outdoor L4E1 Closed Carte S"
@@ -973,9 +1181,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823ea494077682&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823ea494077682&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C5379": {
     "down_since": null,
@@ -991,9 +1203,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823efd6b107cd7&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823efd6b107cd7&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C516D": {
     "down_since": null,
@@ -1009,9 +1225,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823efea713167a&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823efea713167a&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C516E": {
     "down_since": "2026-02-15T14:32:37+01:00",
@@ -1027,10 +1247,14 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": false
       }
     ],
     "last_connection": "2026-02-15T14:32:37+01:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f07b7c10a28&pctx=035b8befa1f94a8c97ba4d0d56c532b1",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f07b7c10a28&pctx=14bcb847bac143d18f13f6f31bbd4dcf",
     "sim": "8988247000016763675",
     "imei": "351626103418346 3G/4G",
     "commentaire": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">Carte SIM Requea dans Routeur</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx"
@@ -1049,10 +1273,14 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": false
       }
     ],
     "last_connection": "2026-03-18T18:14:16+01:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f08dea23157&pctx=035b8befa1f94a8c97ba4d0d56c532b1",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f08dea23157&pctx=14bcb847bac143d18f13f6f31bbd4dcf",
     "sim": "8988247000070961074",
     "imei": "351626103420771 3G/4G",
     "commentaire": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">Carte SIM + Routeur</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert"
@@ -1071,9 +1299,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f1b9a6d1174&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f1b9a6d1174&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004C537E": {
     "down_since": null,
@@ -1089,9 +1321,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f1ba0be11c2&pctx=035b8befa1f94a8c97ba4d0d56c532b1"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f1ba0be11c2&pctx=14bcb847bac143d18f13f6f31bbd4dcf"
   },
   "00000008004D7A02": {
     "down_since": null,
@@ -1106,6 +1342,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -1125,6 +1365,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://hautbugey.requea.com/#"
@@ -1142,6 +1386,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -1161,12 +1409,16 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://hautbugey.requea.com/#"
   },
   "00000008004F27D9": {
-    "down_since": "2026-04-15T09:41:01+02:00",
+    "down_since": null,
     "samples": [
       {
         "time": "2026-05-29T14:35:05.750887+02:00",
@@ -1178,6 +1430,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": false
       }
     ],
@@ -1200,6 +1456,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://hautbugey.requea.com/#"
@@ -1217,6 +1477,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -1236,6 +1500,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://hautbugey.requea.com/#"
@@ -1253,6 +1521,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -1272,6 +1544,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://hautbugey.requea.com/#"
@@ -1289,6 +1565,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -1308,12 +1588,16 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://hautbugey.requea.com/#"
   },
   "00000008004D7996": {
-    "down_since": "2026-03-03T10:56:50+01:00",
+    "down_since": null,
     "samples": [
       {
         "time": "2026-05-29T14:35:05.750887+02:00",
@@ -1325,6 +1609,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": false
       }
     ],
@@ -1347,6 +1635,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://hautbugey.requea.com/#"
@@ -1365,12 +1657,16 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://hautbugey.requea.com/#"
   },
   "00000008004E6300": {
-    "down_since": "2025-09-23T17:40:26+02:00",
+    "down_since": null,
     "samples": [
       {
         "time": "2026-05-29T14:35:05.750887+02:00",
@@ -1382,6 +1678,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": false
       }
     ],
@@ -1404,12 +1704,16 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
     "detail_url": "https://siea.requea.com/#"
   },
   "00000008004E17AA": {
-    "down_since": "2025-10-01T14:49:27+02:00",
+    "down_since": null,
     "samples": [
       {
         "time": "2026-05-29T14:35:05.750887+02:00",
@@ -1421,6 +1725,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": false
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": false
       }
     ],
@@ -1441,6 +1749,10 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": false
       }
     ],
     "detail_url": "https://siea.requea.com/#"
@@ -1459,9 +1771,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=2e12e6a5579d484a9a2729338e1cb25f&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=2e12e6a5579d484a9a2729338e1cb25f&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004CFA2D": {
     "down_since": null,
@@ -1477,9 +1793,13 @@
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
         "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=41ef483bc9aa4b4f8578c31c77973b07&pctx=e6965772f2b545358d3b8109d48f4d65"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=41ef483bc9aa4b4f8578c31c77973b07&pctx=a3f0075238b4437995f18e2cd9310485"
   },
   "00000008004D7351": {
     "down_since": null,
@@ -1494,6 +1814,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
@@ -1512,6 +1836,10 @@
       },
       {
         "time": "2026-05-30T09:08:43.699167+02:00",
+        "up": true
+      },
+      {
+        "time": "2026-05-30T12:22:45.746585+02:00",
         "up": true
       }
     ],
