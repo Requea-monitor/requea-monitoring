@@ -92,28 +92,128 @@ def stats_from_messages(messages):
 
 
 def login(page, cluster):
-    page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(2500)
+    start_urls = [
+        f"{VALENCE_URL}/do/Network/iotGateway:list",
+        f"{VALENCE_URL}/do/Network/Home/iotGateway:list",
+        f"{VALENCE_URL}/do/NetworkMap/Home/iotGateway:list",
+        VALENCE_URL,
+    ]
 
-    username = page.locator(
-        'input:visible:not([type="password"]):not([type="hidden"])'
-    ).first
+    last_debug = {}
 
-    password = page.locator(
-        'input[type="password"]:visible'
-    ).first
+    for start_url in start_urls:
+        try:
+            print("Tentative accès Valence:", start_url)
+            page.goto(start_url, wait_until="domcontentloaded", timeout=60000)
+            page.wait_for_timeout(3500)
 
-    username.fill(cluster["login"])
-    password.fill(cluster["password"])
+            body = clean(page.locator("body").inner_text())
 
-    page.wait_for_timeout(300)
-    password.press("Enter")
-    page.wait_for_timeout(6000)
+            # Déjà connecté ou page applicative atteinte.
+            if (
+                "Sign out" in body
+                or "Déconnexion" in body
+                or "Deconnexion" in body
+                or "Liste des passerelles" in body
+                or "Export Excel" in body
+                or "iotGateway" in page.url
+                or "Network" in body and "Mot de passe oublié" not in body
+            ):
+                print("Accès Valence OK:", page.url)
+                return
 
-    body = page.locator("body").inner_text()
+            username_selectors = [
+                'input[name*="login" i]:visible',
+                'input[name*="user" i]:visible',
+                'input[name*="email" i]:visible',
+                'input[id*="login" i]:visible',
+                'input[id*="user" i]:visible',
+                'input[id*="email" i]:visible',
+                'input[type="email"]:visible',
+                'input[type="text"]:visible',
+                'input:not([type]):visible',
+                'input:visible:not([type="password"]):not([type="hidden"])',
+            ]
 
-    if "Mot de passe oublié" in body or "Forgot your password" in body:
-        raise Exception("Connexion refusée")
+            password_selectors = [
+                'input[type="password"]:visible',
+                'input[name*="password" i]:visible',
+                'input[name*="pass" i]:visible',
+                'input[id*="password" i]:visible',
+                'input[id*="pass" i]:visible',
+            ]
+
+            username = None
+            password = None
+
+            for selector in username_selectors:
+                try:
+                    loc = page.locator(selector)
+                    if loc.count() > 0:
+                        username = loc.first
+                        break
+                except Exception:
+                    pass
+
+            for selector in password_selectors:
+                try:
+                    loc = page.locator(selector)
+                    if loc.count() > 0:
+                        password = loc.first
+                        break
+                except Exception:
+                    pass
+
+            last_debug = {
+                "tested_url": start_url,
+                "current_url": page.url,
+                "title": page.title(),
+                "body_start": body[:2000],
+                "input_count": page.locator("input").count(),
+            }
+
+            if not username or not password:
+                continue
+
+            username.fill(cluster.get("login", ""))
+            password.fill(cluster.get("password", ""))
+
+            page.wait_for_timeout(300)
+            password.press("Enter")
+            page.wait_for_timeout(7000)
+
+            body = clean(page.locator("body").inner_text())
+
+            if "Mot de passe oublié" in body or "Forgot your password" in body:
+                raise Exception("Connexion refusée")
+
+            print("Connexion Valence OK:", page.url)
+            return
+
+        except Exception as e:
+            last_debug["exception"] = str(e)
+
+    os.makedirs("public", exist_ok=True)
+
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write(
+            "<!doctype html><html><head><meta charset='utf-8'>"
+            "<title>Diagnostic connexion Valence</title>"
+            "<style>body{font-family:Arial;padding:24px;background:#f6f8fb;color:#111827}"
+            "pre{white-space:pre-wrap;background:white;border:1px solid #ddd;border-radius:12px;padding:16px}</style>"
+            "</head><body>"
+            "<h1>Diagnostic connexion Valence</h1>"
+            "<p>Le formulaire de connexion est introuvable depuis GitHub Actions.</p>"
+            "<pre>"
+            + esc(json.dumps(last_debug, indent=2, ensure_ascii=False))
+            + "</pre>"
+            "</body></html>"
+        )
+
+    print("DIAGNOSTIC CONNEXION VALENCE")
+    print(json.dumps(last_debug, indent=2, ensure_ascii=False))
+
+    raise Exception("Connexion Valence impossible : diagnostic écrit dans public/valence_traffic.html")
 
 
 def click_next(page):
