@@ -1,23 +1,10 @@
 from playwright.sync_api import sync_playwright
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
 import os, json, html, re
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
-
-if CONFIG:
-    default_login = CONFIG[0].get("login", "")
-    default_password = CONFIG[0].get("password", "")
-    existing = {c["url"].rstrip("/") for c in CONFIG}
-
-    for extra in EXTRA_CLUSTERS:
-        if extra["url"].rstrip("/") not in existing:
-            CONFIG.append({
-                "name": extra["name"],
-                "url": extra["url"],
-                "login": default_login,
-                "password": default_password
-            })
 
 PARIS = ZoneInfo("Europe/Paris")
 NOW = datetime.now(PARIS)
