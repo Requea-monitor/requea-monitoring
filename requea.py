@@ -5,26 +5,6 @@ import os, json, html, re
 
 CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
 
-EXTRA_CLUSTERS = [
-    {"name": "SIEA", "url": "https://siea.requea.com"},
-    {"name": "CCVCMB", "url": "https://ccvcmb.requea.com"},
-    {"name": "Valence Romans", "url": "https://lora.valenceromansagglo.fr"},
-]
-
-if CONFIG:
-    default_login = CONFIG[0].get("login", "")
-    default_password = CONFIG[0].get("password", "")
-    existing = {c["url"].rstrip("/") for c in CONFIG}
-
-    for extra in EXTRA_CLUSTERS:
-        if extra["url"].rstrip("/") not in existing:
-            CONFIG.append({
-                "name": extra["name"],
-                "url": extra["url"],
-                "login": default_login,
-                "password": default_password
-            })
-
 PARIS = ZoneInfo("Europe/Paris")
 NOW = datetime.now(PARIS)
 HISTORY_FILE = "history.json"
@@ -274,6 +254,22 @@ def gateway_link(gateway):
         return '<span class="icon-link disabled" title="Lien Requea absent">' + svg + '</span>'
     return f'<a class="icon-link" href="{esc(url)}" target="_blank" rel="noopener" title="Ouvrir la passerelle dans Requea">{svg}</a>'
 
+
+def is_valence_cluster(cluster):
+    url = str(cluster.get("url", "")).lower()
+    name = str(cluster.get("name", "")).lower()
+    return "valenceromansagglo" in url or "valence" in name
+
+
+def gateways_list_url(cluster):
+    base = cluster["url"].rstrip("/")
+
+    if is_valence_cluster(cluster):
+        return f"{base}/do/NetworkMap/Home/iotGateway:list"
+
+    return f"{base}/page/Network_Gateways"
+
+
 def make_absolute_url(base_url, url):
     if not url:
         return ""
@@ -315,11 +311,11 @@ def login(page, cluster):
 
 
 def extract_detail_url_from_html(row_html, base_url):
-    decoded = html.unescape(row_html)
+    decoded = html.unescape(row_html).replace("&amp;", "&")
 
     patterns = [
-        r"(/do/(?:NetworkMap/)?iotGateway:get\?sysId=[^'\"&<>\s]+[^'\"<>\s]*)",
-        r"(/do/[^'\"<>\s]*iotGateway:get\?sysId=[^'\"<>\s]*)",
+        r"(/do/(?:NetworkMap/|Network/|NetworkMap/Home/|Network/Home/)?iotGateway:get\?[^'\"<>\s]+)",
+        r"(/do/[^'\"<>\s]*iotGateway:get\?[^'\"<>\s]+)",
         r"RQ\.nav\.detail\('([^']*iotGateway:get[^']*)'",
         r"RQ\.nav\.go\('([^']*iotGateway:get[^']*)'",
         r'href="([^"]*iotGateway:get[^"]*)"',
@@ -498,8 +494,15 @@ def collect_visible_rows(page, cluster):
 
         try:
             if not detail_url:
+                row_html = row.evaluate("el => el.outerHTML")
+                detail_url = extract_detail_url_from_html(row_html, cluster["url"])
+        except Exception:
+            pass
+
+        try:
+            if not detail_url:
                 onclick = row.get_attribute("onclick") or ""
-                match = re.search(r"RQ\.nav\.(?:detail|go)\('([^']+)'", onclick)
+                match = re.search(r"RQ\.nav\.(?:detail|go)\('([^']*iotGateway:get[^']*)'", onclick)
                 if match:
                     detail_url = make_absolute_url(cluster["url"], match.group(1))
         except Exception:
@@ -563,9 +566,8 @@ def click_next(page):
 def read_connection_date(context, cluster, gateway):
     detail_url = gateway.get("detail_url") or ""
 
-    # Optimisation majeure :
-    # si le listing a déjà fourni l'URL détail, on ouvre directement la fiche.
-    # On évite de recharger Network_Gateways, de paginer et de recliquer la passerelle.
+    # Ouverture directe de la fiche détail si l'URL est fournie par le listing.
+    # Si l'URL manque, on ne relance pas une recherche lente par pagination.
     if not detail_url:
         return None
 
@@ -712,7 +714,7 @@ with sync_playwright() as p:
             login(page, cluster)
 
             page.goto(
-                f'{cluster["url"]}/page/Network_Gateways',
+                gateways_list_url(cluster),
                 wait_until="domcontentloaded",
                 timeout=60000
             )
