@@ -1,0 +1,28 @@
+name: Valence Traffic Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  valence-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install playwright beautifulsoup4
+          python -m playwright install chromium
+      - name: Run Valence traffic report
+        run: python valence_traffic.py
+        env:
+          REQUEA_CONFIG: ${{ secrets.REQUEA_CONFIG }}
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: valence-traffic-report
+          path: public/valence_traffic.html
