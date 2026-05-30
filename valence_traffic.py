@@ -95,20 +95,84 @@ def login(page, cluster):
     page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
     page.wait_for_timeout(2500)
 
-    username = page.locator(
-        'input:visible:not([type="password"]):not([type="hidden"])'
-    ).first
+    body = clean(page.locator("body").inner_text())
 
-    password = page.locator(
-        'input[type="password"]:visible'
-    ).first
+    # Si la session est déjà ouverte, inutile de chercher le formulaire.
+    if (
+        "Sign out" in body
+        or "Déconnexion" in body
+        or "Deconnexion" in body
+        or "Network Map" in body
+        or "Gateways" in body
+    ):
+        return
 
-    username.fill(cluster["login"])
-    password.fill(cluster["password"])
+    username_selectors = [
+        'input[name*="login" i]:visible',
+        'input[name*="user" i]:visible',
+        'input[name*="email" i]:visible',
+        'input[type="email"]:visible',
+        'input[type="text"]:visible',
+        'input:visible:not([type="password"]):not([type="hidden"])',
+    ]
+
+    password_selectors = [
+        'input[type="password"]:visible',
+        'input[name*="password" i]:visible',
+        'input[name*="pass" i]:visible',
+    ]
+
+    username = None
+    password = None
+
+    for selector in username_selectors:
+        try:
+            loc = page.locator(selector)
+            if loc.count() > 0:
+                username = loc.first
+                break
+        except Exception:
+            pass
+
+    for selector in password_selectors:
+        try:
+            loc = page.locator(selector)
+            if loc.count() > 0:
+                password = loc.first
+                break
+        except Exception:
+            pass
+
+    if not username or not password:
+        debug = {
+            "url": page.url,
+            "title": page.title(),
+            "body_start": body[:2000],
+            "input_count": page.locator("input").count(),
+        }
+
+        os.makedirs("public", exist_ok=True)
+
+        with open("public/valence_traffic.html", "w", encoding="utf-8") as f:
+            f.write(
+                "<!doctype html><html><head><meta charset='utf-8'>"
+                "<title>Erreur connexion Valence</title></head><body>"
+                "<h1>Erreur connexion Valence</h1>"
+                "<p>Formulaire de connexion introuvable.</p>"
+                "<pre>"
+                + esc(json.dumps(debug, indent=2, ensure_ascii=False))
+                + "</pre>"
+                "</body></html>"
+            )
+
+        raise Exception("Formulaire de connexion Valence introuvable. Voir public/valence_traffic.html")
+
+    username.fill(cluster.get("login", ""))
+    password.fill(cluster.get("password", ""))
 
     page.wait_for_timeout(300)
     password.press("Enter")
-    page.wait_for_timeout(6000)
+    page.wait_for_timeout(7000)
 
     body = page.locator("body").inner_text()
 
@@ -354,7 +418,14 @@ with sync_playwright() as p:
     cluster = None
 
     for c in CONFIG:
-        if c["url"].rstrip("/") == VALENCE_URL.rstrip("/"):
+        url = str(c.get("url", "")).rstrip("/").lower()
+        name = str(c.get("name", "")).lower()
+
+        if (
+            url == VALENCE_URL.rstrip("/").lower()
+            or "valenceromans" in url
+            or "valence" in name
+        ):
             cluster = c
             break
 
