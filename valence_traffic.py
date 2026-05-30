@@ -105,6 +105,8 @@ def find_valence_config():
 
 
 def login(page, cluster):
+    # Valence peut renvoyer une page vide au premier accès headless, alors on ne bloque pas
+    # si l'URL applicative est atteinte. La vraie validation se fait ensuite sur le listing AJAX.
     start_urls = [
         f"{VALENCE_URL}/do/Network/iotGateway:list",
         VALENCE_URL,
@@ -114,86 +116,100 @@ def login(page, cluster):
 
     for start_url in start_urls:
         print("Tentative accès Valence:", start_url)
-        page.goto(start_url, wait_until="domcontentloaded", timeout=60000)
-        page.wait_for_timeout(3000)
 
-        body = clean(page.locator("body").inner_text())
+        try:
+            page.goto(start_url, wait_until="domcontentloaded", timeout=60000)
+            page.wait_for_timeout(3500)
 
-        if (
-            "Sign out" in body
-            or "Déconnexion" in body
-            or "Deconnexion" in body
-            or "Export Excel" in body
-            or "Liste des passerelles" in body
-            or ("iotGateway:list" in page.url and ("Export Excel" in body or "rqsrch" in body or "Passerelles" in body))
-        ) and "Mot de passe oublié" not in body:
-            print("Accès Valence OK:", page.url)
+            body = clean(page.locator("body").inner_text())
+            current_url = page.url
+
+            # Cas qui fonctionnait déjà : accès à la route applicative.
+            if "iotGateway:list" in current_url:
+                print("Accès Valence OK:", current_url)
+                return
+
+            # Déjà connecté avec contenu visible.
+            if (
+                "Sign out" in body
+                or "Déconnexion" in body
+                or "Deconnexion" in body
+                or "Export Excel" in body
+                or "Liste des passerelles" in body
+            ) and "Mot de passe oublié" not in body:
+                print("Accès Valence OK:", current_url)
+                return
+
+            username = None
+            password = None
+
+            for selector in [
+                'input[name*="login" i]:visible',
+                'input[name*="user" i]:visible',
+                'input[name*="email" i]:visible',
+                'input[id*="login" i]:visible',
+                'input[id*="user" i]:visible',
+                'input[id*="email" i]:visible',
+                'input[type="email"]:visible',
+                'input[type="text"]:visible',
+                'input:not([type]):visible',
+                'input:visible:not([type="password"]):not([type="hidden"])',
+            ]:
+                try:
+                    loc = page.locator(selector)
+                    if loc.count() > 0:
+                        username = loc.first
+                        break
+                except Exception:
+                    pass
+
+            for selector in [
+                'input[type="password"]:visible',
+                'input[name*="password" i]:visible',
+                'input[name*="pass" i]:visible',
+                'input[id*="password" i]:visible',
+                'input[id*="pass" i]:visible',
+            ]:
+                try:
+                    loc = page.locator(selector)
+                    if loc.count() > 0:
+                        password = loc.first
+                        break
+                except Exception:
+                    pass
+
+            last_debug = {
+                "tested_url": start_url,
+                "current_url": current_url,
+                "title": page.title(),
+                "body_start": body[:1000],
+                "input_count": page.locator("input").count(),
+            }
+
+            if not username or not password:
+                continue
+
+            username.fill(cluster.get("login", ""))
+            password.fill(cluster.get("password", ""))
+            page.wait_for_timeout(300)
+            password.press("Enter")
+            page.wait_for_timeout(7000)
+
+            body = clean(page.locator("body").inner_text())
+
+            if "Mot de passe oublié" in body or "Forgot your password" in body:
+                raise Exception("Connexion refusée")
+
+            print("Connexion Valence OK:", page.url)
             return
 
-        username = None
-        password = None
+        except Exception as e:
+            last_debug["exception"] = str(e)
 
-        for selector in [
-            'input[name*="login" i]:visible',
-            'input[name*="user" i]:visible',
-            'input[name*="email" i]:visible',
-            'input[id*="login" i]:visible',
-            'input[id*="user" i]:visible',
-            'input[id*="email" i]:visible',
-            'input[type="email"]:visible',
-            'input[type="text"]:visible',
-            'input:not([type]):visible',
-            'input:visible:not([type="password"]):not([type="hidden"])',
-        ]:
-            try:
-                loc = page.locator(selector)
-                if loc.count() > 0:
-                    username = loc.first
-                    break
-            except Exception:
-                pass
-
-        for selector in [
-            'input[type="password"]:visible',
-            'input[name*="password" i]:visible',
-            'input[name*="pass" i]:visible',
-            'input[id*="password" i]:visible',
-            'input[id*="pass" i]:visible',
-        ]:
-            try:
-                loc = page.locator(selector)
-                if loc.count() > 0:
-                    password = loc.first
-                    break
-            except Exception:
-                pass
-
-        last_debug = {
-            "tested_url": start_url,
-            "current_url": page.url,
-            "title": page.title(),
-            "body_start": body[:2000],
-            "input_count": page.locator("input").count(),
-        }
-
-        if not username or not password:
-            continue
-
-        username.fill(cluster.get("login", ""))
-        password.fill(cluster.get("password", ""))
-        page.wait_for_timeout(300)
-        password.press("Enter")
-        page.wait_for_timeout(7000)
-
-        body = clean(page.locator("body").inner_text())
-
-        if "Mot de passe oublié" in body or "Forgot your password" in body:
-            raise Exception("Connexion refusée")
-
-        print("Connexion Valence OK:", page.url)
-        return
-
-    raise Exception("Connexion Valence impossible: " + json.dumps(last_debug, ensure_ascii=False))
+    # On tente quand même la suite si la route applicative est accessible mais vide.
+    # Si le listing ne remonte rien, l'erreur sera explicite dans collect_valence_gateways.
+    print("Connexion non confirmée, tentative listing malgré tout:", json.dumps(last_debug, ensure_ascii=False))
+    return
 
 
 def click_next(page):
@@ -328,7 +344,7 @@ def collect_valence_gateways(page):
     page.on("response", on_response)
 
     page.goto(f"{VALENCE_URL}/do/Network/iotGateway:list", wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(8000)
+    page.wait_for_timeout(12000)
 
     found = {}
     visited_signatures = set()
