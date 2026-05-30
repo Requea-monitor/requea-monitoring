@@ -1,2464 +1,1175 @@
+from playwright.sync_api import sync_playwright
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import os, json, html, re
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="robots" content="noindex"/>
-    <link href="/resource/css/resource.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/sys/css/tooltipster.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/sys/css/themes/tooltipster-shadow.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/sys/css/jsPlumbToolkit-defaults.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/sys/bootstrap-4.6.2/bootstrap.min.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/sys/css/requea-4.1.159.min.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/dashboard/css/dashboard.css?v=4.1.1115" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/dashboard/css/toolbox.css?v=4.1.1115" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/dashboard/css/customwidget.css?v=4.1.1115" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/sys/css/coloris.css?v=4.1.1115" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link rel="stylesheet" type="text/css" href="/sys/css/extra.css?v=4.1.1115"/>
-    <style type="text/css">
-    * html #coloredit #coloredit_container .yui-picker-bg {
-        background-image: none;
-        filter: progid: DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod='scale', src='/yui/build/colorpicker/assets/picker_mask.png');
+CONFIG = json.loads(os.environ["REQUEA_CONFIG"])
+
+EXTRA_CLUSTERS = [
+    {"name": "SIEA", "url": "https://siea.requea.com"},
+    {"name": "CCVCMB", "url": "https://ccvcmb.requea.com"},
+    {"name": "Valence Romans", "url": "https://lora.valenceromansagglo.fr"},
+]
+
+if CONFIG:
+    default_login = CONFIG[0].get("login", "")
+    default_password = CONFIG[0].get("password", "")
+    existing = {c["url"].rstrip("/") for c in CONFIG}
+
+    for extra in EXTRA_CLUSTERS:
+        if extra["url"].rstrip("/") not in existing:
+            CONFIG.append({
+                "name": extra["name"],
+                "url": extra["url"],
+                "login": default_login,
+                "password": default_password
+            })
+
+PARIS = ZoneInfo("Europe/Paris")
+NOW = datetime.now(PARIS)
+HISTORY_FILE = "history.json"
+
+try:
+    with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+        history = json.load(f)
+except Exception:
+    history = {}
+
+gateways = []
+
+
+def esc(v):
+    return html.escape(str(v or ""))
+
+
+def clean(v):
+    return " ".join(str(v or "").replace("\n", " ").replace("\t", " ").replace("\xa0", " ").split()).strip()
+
+
+def strip_tags(v):
+    v = html.unescape(str(v or ""))
+    v = re.sub(r"<script.*?</script>", " ", v, flags=re.I | re.S)
+    v = re.sub(r"<style.*?</style>", " ", v, flags=re.I | re.S)
+    v = re.sub(r"<[^>]+>", " ", v)
+    return clean(v)
+
+
+def fmt_date(v):
+    if not v:
+        return "-"
+    try:
+        return datetime.fromisoformat(v).astimezone(PARIS).strftime("%d/%m/%Y %H:%M:%S")
+    except Exception:
+        return str(v)
+
+
+def parse_requea_date(text):
+    text = html.unescape(str(text or ""))
+    text = clean(text)
+
+    m = re.search(
+        r"([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        text,
+        re.I
+    )
+
+    if m:
+        try:
+            return datetime.strptime(m.group(1), "%d/%m/%Y %H:%M:%S").replace(tzinfo=PARIS)
+        except Exception:
+            pass
+
+    m = re.search(
+        r"([0-9]{1,2}/[0-9]{1,2}/[0-9]{4},\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}\s+[AP]M)",
+        text,
+        re.I
+    )
+
+    if m:
+        try:
+            return datetime.strptime(m.group(1), "%m/%d/%Y, %I:%M:%S %p").replace(tzinfo=PARIS)
+        except Exception:
+            pass
+
+    return None
+
+
+def parse_last_connection_from_html(html_text):
+    decoded = html.unescape(str(html_text or ""))
+    text = strip_tags(decoded)
+
+    patterns = [
+        r"Derni[eè]re\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Derniere\s+connexion[^0-9]*([0-9]{2}/[0-9]{2}/[0-9]{4}\s+[0-9]{2}:[0-9]{2}:[0-9]{2})",
+        r"Last\s+connection[^0-9]*([0-9]{1,2}/[0-9]{1,2}/[0-9]{4},\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}\s+[AP]M)",
+    ]
+
+    for source in [decoded, text]:
+        for pattern in patterns:
+            m = re.search(pattern, source, re.I | re.S)
+            if m:
+                return parse_requea_date(m.group(1))
+
+    return None
+
+
+def normalize_connection(v):
+    t = str(v or "").lower()
+
+    if "déconnect" in t or "deconnect" in t or "closed" in t or "offline" in t or "down" in t:
+        return "Déconnectée", True
+
+    if "connectée" in t or "connectee" in t or "connected" in t or "online" in t:
+        return "Connectée", False
+
+    return clean(v) or "Inconnue", True
+
+
+def geoloc_from_text(text):
+    text = clean(text)
+
+    patterns = [
+        r"([0-9]{2}\.[0-9]+)\s*,\s*([0-9]{1,2}\.[0-9]+)",
+        r"([0-9]{2}\.[0-9]+)\s+([0-9]{1,2}\.[0-9]+)",
+    ]
+
+    for pattern in patterns:
+        m = re.search(pattern, text, re.I)
+        if m:
+            return normalize_geolocation(f"{m.group(1)}, {m.group(2)}")
+
+    return ""
+
+
+def normalize_geolocation(value):
+    """Retourne une seule paire GPS propre, même si le texte contient les coordonnées plusieurs fois."""
+    text = clean(value)
+    m = re.search(r"([0-9]{2}\.[0-9]+)\s*,\s*([0-9]{1,2}\.[0-9]+)", text)
+    if not m:
+        return ""
+    return f"{m.group(1)}, {m.group(2)}"
+
+
+def gps_display(value):
+    return normalize_geolocation(value) or "-"
+
+
+def parse_label_value(text, labels):
+    text = clean(text)
+    labels = [re.escape(label) for label in labels]
+
+    if not labels:
+        return ""
+
+    label_pattern = "|".join(labels)
+
+    patterns = [
+        rf"(?:{label_pattern})\s*:\s*(.+?)(?=\s+[A-ZÀ-Ÿ][A-Za-zÀ-ÿ0-9 /_-]{{2,40}}\s*:|$)",
+        rf"(?:{label_pattern})\s+(.+?)(?=\s+[A-ZÀ-Ÿ][A-Za-zÀ-ÿ0-9 /_-]{{2,40}}\s*:|$)",
+    ]
+
+    for pattern in patterns:
+        m = re.search(pattern, text, re.I | re.S)
+        if m:
+            value = clean(m.group(1))
+            value = re.sub(
+                r"\s+(Informations|Network|Connectivity|Supervision|Radio Links|Modbus/Bacnet|Spectral Analysis|Remote Shell|Alarms)\b.*$",
+                "",
+                value,
+                flags=re.I
+            )
+            return value[:160]
+
+    return ""
+
+
+def enrich_gateway_from_detail_text(gateway, text):
+    if not text:
+        return
+
+    gps = geoloc_from_text(text)
+    if gps:
+        gateway["geolocation"] = gps
+
+    sim = parse_label_value(text, [
+        "SIM", "Carte SIM", "SIM card", "ICCID", "N° SIM", "Numero SIM", "Numéro SIM"
+    ])
+
+    imei = parse_label_value(text, [
+        "IMEI", "Modem IMEI", "Identifiant IMEI"
+    ])
+
+    commentaire = parse_label_value(text, [
+        "Commentaire", "Commentaires", "Comment", "Comments", "Description"
+    ])
+
+    connection_serveur = parse_label_value(text, [
+        "Connection serveur", "Connexion serveur", "Server connection", "Server status",
+        "Etat serveur", "État serveur", "Etat de connexion serveur"
+    ])
+
+    alimentation = parse_label_value(text, [
+        "Alimentation", "Power", "Power supply", "Supply", "Batterie", "Battery",
+        "Tension", "Voltage"
+    ])
+
+    if sim and not gateway.get("sim"):
+        gateway["sim"] = sim
+
+    if imei and not gateway.get("imei"):
+        gateway["imei"] = imei
+
+    if commentaire and not gateway.get("commentaire"):
+        gateway["commentaire"] = commentaire
+
+    if connection_serveur and not gateway.get("connection_serveur"):
+        gateway["connection_serveur"] = connection_serveur
+
+    if alimentation and not gateway.get("alimentation"):
+        gateway["alimentation"] = alimentation
+
+
+def gps_pair(geolocation):
+    m = re.search(r"([0-9]{2}\.[0-9]+)\s*,\s*([0-9]{1,2}\.[0-9]+)", str(geolocation or ""))
+    if not m:
+        return None, None
+    return m.group(1), m.group(2)
+
+
+def maps_url(geolocation):
+    lat, lon = gps_pair(geolocation)
+    if not lat or not lon:
+        return ""
+    return f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
+
+
+def waze_url(geolocation):
+    lat, lon = gps_pair(geolocation)
+    if not lat or not lon:
+        return ""
+    return f"https://waze.com/ul?ll={lat},{lon}&navigate=yes"
+
+
+def icon_link(url, label, svg):
+    if not url:
+        return '<span class="icon-link disabled" title="Coordonnées absentes">' + svg + '</span>'
+    return f'<a class="icon-link" href="{esc(url)}" target="_blank" rel="noopener" title="{esc(label)}">{svg}</a>'
+
+
+def gps_actions(geolocation):
+    map_svg = '<svg viewBox="0 0 24 24"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15M15 6v15"/></svg>'
+    waze_svg = '<svg viewBox="0 0 24 24"><path d="M5 14a7 7 0 1 1 2 5l-3 1 1-3a7 7 0 0 1 0-3Z"/><circle cx="9" cy="12" r=".6"/><circle cx="15" cy="12" r=".6"/><path d="M9 16c1.8 1 4.2 1 6 0"/></svg>'
+    return (
+        '<span class="gps-actions">'
+        + icon_link(maps_url(geolocation), "Ouvrir dans Maps", map_svg)
+        + icon_link(waze_url(geolocation), "Ouvrir dans Waze", waze_svg)
+        + '</span>'
+    )
+
+
+def gateway_link(gateway):
+    url = gateway.get("detail_url") or ""
+    svg = '<svg viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M21 3 10 14"/><path d="M12 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/></svg>'
+    if not url:
+        return '<span class="icon-link disabled" title="Lien Requea absent">' + svg + '</span>'
+    return f'<a class="icon-link" href="{esc(url)}" target="_blank" rel="noopener" title="Ouvrir la passerelle dans Requea">{svg}</a>'
+
+def make_absolute_url(base_url, url):
+    if not url:
+        return ""
+
+    url = html.unescape(url).replace("&amp;", "&")
+
+    if url.startswith("http"):
+        return url
+
+    if url.startswith("/"):
+        return base_url.rstrip("/") + url
+
+    return base_url.rstrip("/") + "/" + url.lstrip("/")
+
+
+def login(page, cluster):
+    page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_timeout(2500)
+
+    username = page.locator(
+        'input:visible:not([type="password"]):not([type="hidden"])'
+    ).first
+
+    password = page.locator(
+        'input[type="password"]:visible'
+    ).first
+
+    username.fill(cluster["login"])
+    password.fill(cluster["password"])
+
+    page.wait_for_timeout(500)
+    password.press("Enter")
+    page.wait_for_timeout(6000)
+
+    body = page.locator("body").inner_text()
+
+    if "Mot de passe oublié" in body or "Forgot your password" in body:
+        raise Exception("Connexion refusée")
+
+
+def extract_detail_url_from_html(row_html, base_url):
+    decoded = html.unescape(row_html)
+
+    patterns = [
+        r"(/do/(?:NetworkMap/)?iotGateway:get\?sysId=[^'\"&<>\s]+[^'\"<>\s]*)",
+        r"(/do/[^'\"<>\s]*iotGateway:get\?sysId=[^'\"<>\s]*)",
+        r"RQ\.nav\.detail\('([^']*iotGateway:get[^']*)'",
+        r"RQ\.nav\.go\('([^']*iotGateway:get[^']*)'",
+        r'href="([^"]*iotGateway:get[^"]*)"',
+        r"href='([^']*iotGateway:get[^']*)'",
+    ]
+
+    for pattern in patterns:
+        m = re.search(pattern, decoded, re.I)
+        if m:
+            return make_absolute_url(base_url, m.group(1))
+
+    return ""
+
+
+def parse_gateway(values, raw, cluster_name, detail_url=""):
+    values = [clean(v) for v in values if clean(v)]
+
+    gateway_id = ""
+
+    for v in values:
+        if re.fullmatch(r"[0-9A-Fa-f]{12,32}", v):
+            gateway_id = v
+            break
+
+    if not gateway_id:
+        return None
+
+    status = ""
+
+    for v in values:
+        if v.lower() == "active":
+            status = "Active"
+            break
+
+    if status != "Active":
+        return None
+
+    connection_raw = ""
+
+    for v in values:
+        low = v.lower()
+        if "connect" in low or "closed" in low or "offline" in low or "déconnect" in low or "deconnect" in low:
+            connection_raw = v
+            break
+
+    connection, is_down = normalize_connection(connection_raw)
+
+    firmware = ""
+
+    for v in values:
+        low = v.lower()
+        if "mtcdt" in low or "mtcap" in low or "firmware" in low:
+            firmware = v
+            break
+
+    sim_from_listing = ""
+
+    for v in values:
+        candidate = clean(v).replace(" ", "")
+        if candidate != gateway_id and re.fullmatch(r"[0-9]{18,24}", candidate):
+            sim_from_listing = candidate
+            break
+
+    model = ""
+
+    for v in values:
+        if "multitech" in v.lower() or "kerlink" in v.lower():
+            model = v
+            break
+
+    name = gateway_id
+
+    if "Active" in values:
+        idx = values.index("Active")
+        if idx > 0:
+            name = values[idx - 1]
+
+    geolocation = geoloc_from_text(raw)
+
+    if not geolocation:
+        for v in values:
+            geolocation = geoloc_from_text(v)
+            if geolocation:
+                break
+
+    city = ""
+
+    if firmware and firmware in values:
+        idx = values.index(firmware)
+        if idx + 1 < len(values):
+            city = values[idx + 1]
+
+    if not city:
+        for v in reversed(values):
+            if (
+                v
+                and v not in [gateway_id, name, status, model, firmware, connection_raw, geolocation]
+                and not geoloc_from_text(v)
+                and len(v) < 80
+            ):
+                city = v
+                break
+
+    return {
+        "cluster": cluster_name,
+        "name": name,
+        "status": "Active",
+        "gateway_id": gateway_id,
+        "model": model,
+        "connection": connection,
+        "firmware": firmware,
+        "city": city,
+        "geolocation": normalize_geolocation(geolocation),
+        "down": is_down,
+        "detail_url": detail_url,
+        "last_connection": None,
+        "connected_since": None,
+        "sim": sim_from_listing,
+        "imei": "",
+        "commentaire": "",
+        "connection_serveur": "",
+        "alimentation": "",
     }
-    </style>
-    <link rel="stylesheet" type="text/css" href="/custom/valence/css/style.css?v=1.0.40"/>
-    <link rel="shortcut icon" type="image/x-icon" href="/custom/valence/valence.ico"/>
-    <script type="text/javascript">
-    ContextPath = "";
-    PageId = "bb6e801aaa944bd1bf7b92898866a423";
-    PageName = "Network";
-    PageCustomizable = false;
-    UserLogged = true;
-    AutoLogoutTimeout = 0;
-    LoginApplication = "sysNewSysLogin";
-    AjaxMode = 'ajax';
-    Context = "";
-    UserLang = "fr";
-    rqCalFirstDay = 1;
-    rqCalFormat = "%d/%m/%Y";
-    rqCalClientCheck = true;
-    BrowserMobile = false;
-    UserAgent = "SAFARI";
-    BrowserVersion = 605;
-    WaiterDefaultTimeout = 1000
-    </script>
-    <script type="text/javascript" src="/sys/js/jquery.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/yui/yui-min.js"></script>
-    <script type="text/javascript" src="/sys/js/easyResponsiveTabs.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/coloris.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/jquery-ui-custom.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/jquery.plugins.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/dispatcher.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/jquery.sparkline.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/jquery.treeTable.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/jquery.dynatree.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/calendar.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/lang/calendar-fr.min.js"></script>
-    <script type="text/javascript" src="/sys/js/jquery.tooltipster.min.js"></script>
-    <script type="text/javascript" src="/sys/js/masonry.pkgd.min.js"></script>
-    <script type="text/javascript" src="/sys/js/jsPlumb-1.7.10.js"></script>
-    <script type="text/javascript" src="/sys/js/atmosphere.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/bootstrap-4.6.2/bootstrap.bundle.min.js"></script>
-    <script type="text/javascript" src="/sys/js/requea.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/codemirror.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/mode/javascript.min.js"></script>
-    <script type="text/javascript" src="/sys/js/mode/xml.min.js"></script>
-    <script type="text/javascript" src="/sys/js/mode/sql.js"></script>
-    <script type="text/javascript" src="/sys/js/mode/template.js"></script>
-    <script type="text/javascript" src="/sys/js/fold-4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/uikit-modal.js"></script>
-    <script type="text/javascript" src="/sys/js/uikit-tooltip.js"></script>
-    <script type="text/javascript" src="/sys/js/react/react-with-addons.min.js"></script>
-    <script type="text/javascript" src="/sys/js/react/react-dom.min.js"></script>
-    <link href="/mapboxgl/css/mapbox-gl-2.3.1.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/mapboxgl/css/mapbox-gl-draw-1.3.0.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <link href="/mapboxgl/css/rqmapboxgl.css" rel="stylesheet" charset="utf-8" type="text/css"/>
-    <script type="text/javascript" language="JavaScript" src="/mapboxgl/js/mapbox-gl-2.3.1.js"></script>
-    <script type="text/javascript" language="JavaScript" src="/mapboxgl/js/mapbox-gl-draw-1.3.0.js"></script>
-    <script type="text/javascript" language="JavaScript" src="/mapboxgl/js/rqmapboxgl.js"></script>
 
-    <title>La gestion des ressources</title>
-    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+
+def parse_ajax_html(html_text, cluster_name, base_url):
+    found = {}
+
+    rows = re.findall(r"<tr[^>]*>.*?</tr>", html_text, flags=re.I | re.S)
+
+    for row_html in rows:
+        raw = strip_tags(row_html)
+
+        if not re.search(r"[0-9A-Fa-f]{12,32}", raw):
+            continue
+
+        cells = re.findall(r"<td[^>]*>(.*?)</td>", row_html, flags=re.I | re.S)
+        values = [strip_tags(c) for c in cells]
+
+        detail_url = extract_detail_url_from_html(row_html, base_url)
+
+        gateway = parse_gateway(values, raw, cluster_name, detail_url)
+
+        if gateway:
+            found[gateway["gateway_id"]] = gateway
+
+    return found
+
+
+def collect_visible_rows(page, cluster):
+    found = {}
+
+    rows = page.locator("tr")
+
+    for i in range(rows.count()):
+        row = rows.nth(i)
+        raw = clean(row.inner_text())
+
+        if not re.search(r"[0-9A-Fa-f]{12,32}", raw):
+            continue
+
+        cells = row.locator("td")
+        values = [cells.nth(j).inner_text() for j in range(cells.count())]
+
+        detail_url = ""
+
+        try:
+            links = row.locator("a")
+            for link_index in range(links.count()):
+                href = links.nth(link_index).get_attribute("href") or ""
+                if "iotGateway:get" in href:
+                    detail_url = make_absolute_url(cluster["url"], href)
+                    break
+        except Exception:
+            pass
+
+        try:
+            if not detail_url:
+                onclick = row.get_attribute("onclick") or ""
+                match = re.search(r"RQ\.nav\.(?:detail|go)\('([^']+)'", onclick)
+                if match:
+                    detail_url = make_absolute_url(cluster["url"], match.group(1))
+        except Exception:
+            pass
+
+        gateway = parse_gateway(values, raw, cluster["name"], detail_url)
+
+        if gateway:
+            found[gateway["gateway_id"]] = gateway
+
+    return found
+
+
+def click_next(page):
+    clicked = page.evaluate("""
+() => {
+    const els = Array.from(document.querySelectorAll("a,button,span,div"));
+    const visible = el => {
+        const r = el.getBoundingClientRect();
+        const s = window.getComputedStyle(el);
+        return r.width > 0 && r.height > 0 && s.display !== "none" && s.visibility !== "hidden";
+    };
+
+    for (const el of els) {
+        if (!visible(el)) continue;
+
+        const txt = (el.innerText || el.textContent || "").trim().toLowerCase();
+        const cls = (el.className || "").toString().toLowerCase();
+        const title = (el.getAttribute("title") || "").toLowerCase();
+        const aria = (el.getAttribute("aria-label") || "").toLowerCase();
+
+        if (cls.includes("disabled")) continue;
+        if (el.getAttribute("disabled") !== null) continue;
+
+        if (
+            txt === ">" ||
+            txt === "›" ||
+            txt === "suivant" ||
+            txt === "next" ||
+            cls.includes("next") ||
+            title.includes("suivant") ||
+            title.includes("next") ||
+            aria.includes("suivant") ||
+            aria.includes("next")
+        ) {
+            el.click();
+            return true;
+        }
+    }
+
+    return false;
+}
+""")
+
+    if clicked:
+        page.wait_for_timeout(2500)
+
+    return clicked
+
+
+def read_connection_date(context, cluster, gateway):
+    detail_url = gateway.get("detail_url") or ""
+
+    # Optimisation majeure :
+    # si le listing a déjà fourni l'URL détail, on ouvre directement la fiche.
+    # On évite de recharger Network_Gateways, de paginer et de recliquer la passerelle.
+    if not detail_url:
+        return None
+
+    p = context.new_page()
+
+    try:
+        p.goto(detail_url, wait_until="domcontentloaded", timeout=60000)
+        p.wait_for_timeout(2500)
+
+        gateway["detail_url"] = p.url
+
+        body_text = p.locator("body").inner_text()
+        html_detail = p.content()
+
+        last = parse_last_connection_from_html(body_text)
+
+        if not last:
+            last = parse_last_connection_from_html(html_detail)
+
+        enrich_gateway_from_detail_text(gateway, body_text)
+        enrich_gateway_from_detail_text(gateway, html_detail)
+
+        detail_tabs = [
+            "Connectivité", "Connectivity",
+            "Réseau", "Network",
+            "Supervision",
+            "Accès distant", "Remote Shell",
+            "Modbus/Bacnet"
+        ]
+
+        for tab in detail_tabs:
+            try:
+                p.get_by_text(tab, exact=True).first.click()
+                p.wait_for_timeout(700)
+                tab_text = p.locator("body").inner_text()
+                enrich_gateway_from_detail_text(gateway, tab_text)
+            except Exception:
+                pass
+
+        p.close()
+        return last
+
+    except Exception:
+        try:
+            p.close()
+        except Exception:
+            pass
+
+        return None
+
+
+def apply_history(g):
+    key = g["gateway_id"]
+
+    if key not in history:
+        history[key] = {
+            "down_since": None,
+            "samples": []
+        }
+
+    if g["down"]:
+        if g["last_connection"]:
+            history[key]["down_since"] = g["last_connection"]
+        else:
+            history[key]["down_since"] = None
+    else:
+        history[key]["down_since"] = None
+
+    history[key]["samples"].append({
+        "time": NOW.isoformat(),
+        "up": not g["down"]
+    })
+
+    history[key]["samples"] = [
+        s for s in history[key]["samples"]
+        if (NOW - datetime.fromisoformat(s["time"])).total_seconds() <= 86400
+    ]
+
+    samples = history[key]["samples"]
+
+    g["service_24h"] = (
+        round(sum(1 for s in samples if s["up"]) / len(samples) * 100, 1)
+        if samples else 0
+    )
+
+    g["down_since"] = history[key]["down_since"]
+    g["down_hours"] = 0
+
+    if g["down_since"]:
+        start = datetime.fromisoformat(g["down_since"])
+        g["down_hours"] = round((NOW - start).total_seconds() / 3600, 1)
+
+    g["maintenance"] = g["down_hours"] >= 24
+
+    # Cache des champs de fiche détail : on évite de rouvrir les fiches inutilement.
+    cached_fields = [
+        "last_connection",
+        "detail_url",
+        "sim",
+        "imei",
+        "commentaire",
+        "connection_serveur",
+        "alimentation",
+    ]
+
+    for field in cached_fields:
+        if g.get(field):
+            history[key][field] = g[field]
+        elif history[key].get(field):
+            g[field] = history[key][field]
+
+
+    if not g["down"]:
+        g["connected_since"] = g["last_connection"]
+
+    return g
+
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+
+    for cluster in CONFIG:
+        context = browser.new_context()
+        page = context.new_page()
+
+        ajax_payloads = []
+
+        def on_response(response):
+            try:
+                if "/ajax" in response.url:
+                    txt = response.text()
+                    if (
+                        "iotGateway" in txt
+                        or "mtcdt" in txt
+                        or re.search(r"[0-9A-Fa-f]{12,32}", txt)
+                    ):
+                        ajax_payloads.append(txt)
+            except Exception:
+                pass
+
+        page.on("response", on_response)
+
+        try:
+            login(page, cluster)
+
+            page.goto(
+                f'{cluster["url"]}/page/Network_Gateways',
+                wait_until="domcontentloaded",
+                timeout=60000
+            )
+
+            page.wait_for_timeout(5000)
+
+            seen = {}
+            visited = set()
+
+            for _ in range(20):
+                for k, v in collect_visible_rows(page, cluster).items():
+                    seen[k] = v
+
+                for payload in ajax_payloads:
+                    for k, v in parse_ajax_html(payload, cluster["name"], cluster["url"]).items():
+                        seen[k] = v
+
+                sig = "|".join(sorted(seen.keys()))
+
+                if sig in visited:
+                    break
+
+                visited.add(sig)
+
+                if not click_next(page):
+                    break
+
+            for gateway_id, gateway in seen.items():
+                # Optimisation : la fiche détail est lente. On l'ouvre uniquement pour les passerelles HS,
+                # car c'est là que la dernière connexion et les champs diagnostic sont réellement utiles.
+                if gateway["down"]:
+                    connection_date = read_connection_date(context, cluster, gateway)
+
+                    if connection_date:
+                        gateway["last_connection"] = connection_date.isoformat()
+
+                gateways.append(apply_history(gateway))
+
+        except Exception as e:
+            gateways.append({
+                "cluster": cluster["name"],
+                "name": "ERREUR",
+                "status": "Erreur",
+                "gateway_id": "",
+                "model": "",
+                "connection": str(e),
+                "firmware": "",
+                "city": "",
+                "geolocation": "",
+                "down": True,
+                "detail_url": "",
+                "last_connection": None,
+                "connected_since": None,
+                "down_since": None,
+                "down_hours": 0,
+                "service_24h": 0,
+                "maintenance": False
+            })
+
+        context.close()
+
+    browser.close()
+
+
+with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+    json.dump(history, f, indent=2, ensure_ascii=False)
+
+
+active_gateways = [g for g in gateways if g["status"] == "Active"]
+
+total = len(active_gateways)
+down = len([g for g in active_gateways if g["down"]])
+ok = total - down
+maintenance = len([g for g in active_gateways if g["maintenance"]])
+service = round(ok / total * 100, 1) if total else 0
+
+clusters = sorted(set(g["cluster"] for g in active_gateways))
+
+cluster_stats = {}
+
+for c in clusters:
+    cg = [g for g in active_gateways if g["cluster"] == c]
+
+    c_total = len(cg)
+    c_down = len([g for g in cg if g["down"]])
+    c_ok = c_total - c_down
+
+    cluster_stats[c] = {
+        "total": c_total,
+        "ok": c_ok,
+        "down": c_down,
+        "service": round(c_ok / c_total * 100, 1) if c_total else 0
+    }
+
+
+def fmt_duration(hours):
+    try:
+        h = float(hours)
+    except Exception:
+        return "-"
+
+    if h <= 0:
+        return "0 min"
+
+    if h < 1:
+        return f"{round(h * 60)} min"
+
+    if h < 24:
+        return f"{h:.1f} h"
+
+    days = int(h // 24)
+    remaining_hours = int(h % 24)
+
+    if days == 1:
+        return f"1 jour {remaining_hours} h"
+
+    return f"{days} jours {remaining_hours} h"
+
+
+html_page = f"""
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoring Requea</title>
+<style>
+:root {{
+    --ink:#0b1220;
+    --muted:#667085;
+    --line:rgba(255,255,255,.58);
+    --glass:rgba(255,255,255,.34);
+    --glass2:rgba(255,255,255,.52);
+    --shadow:0 18px 60px rgba(31,41,55,.13), inset 0 1px 0 rgba(255,255,255,.65);
+    --blue:#1677ff;
+    --cyan:#05bdf2;
+    --green:#19c37d;
+    --red:#ff3b5c;
+    --orange:#ff9f0a;
+    --violet:#7c3aed;
+}}
+*{{box-sizing:border-box}}
+html{{-webkit-font-smoothing:antialiased;}}
+body{{
+    margin:0;
+    padding:22px;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;
+    color:var(--ink);
+    background:
+        radial-gradient(circle at 12% 8%, rgba(22,119,255,.26), transparent 26%),
+        radial-gradient(circle at 84% 6%, rgba(124,58,237,.22), transparent 28%),
+        radial-gradient(circle at 52% 95%, rgba(5,189,242,.20), transparent 32%),
+        linear-gradient(180deg,#ffffff 0%,#f7faff 44%,#edf4ff 100%);
+}}
+body::before{{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.32) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,.26) 1px, transparent 1px);
+    background-size:44px 44px;
+    mask-image:linear-gradient(to bottom,rgba(0,0,0,.35),transparent 70%);
+}}
+.shell{{max-width:1680px;margin:0 auto;}}
+.hero,.panel{{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(145deg,rgba(255,255,255,.50),rgba(255,255,255,.24));
+    border:1px solid var(--line);
+    box-shadow:var(--shadow);
+    backdrop-filter:blur(34px) saturate(190%);
+    -webkit-backdrop-filter:blur(34px) saturate(190%);
+}}
+.hero::after,.panel::after{{
+    content:"";
+    position:absolute;
+    inset:1px;
+    border-radius:inherit;
+    pointer-events:none;
+    background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(255,255,255,0) 38%,rgba(255,255,255,.18));
+}}
+.hero>* ,.panel>*{{position:relative;z-index:2}}
+.hero{{border-radius:36px;padding:32px;margin-bottom:22px;}}
+.topbar{{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;}}
+.brand{{display:flex;align-items:center;gap:16px;}}
+.logo{{
+    width:64px;height:64px;border-radius:22px;
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-weight:900;font-size:22px;letter-spacing:-.04em;
+    background:linear-gradient(145deg,#1677ff,#7c3aed);
+    box-shadow:0 18px 38px rgba(22,119,255,.30),inset 0 1px 0 rgba(255,255,255,.38);
+}}
+h1{{margin:0;font-size:44px;line-height:.96;font-weight:900;letter-spacing:-.055em;}}
+.eyebrow{{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2563eb;margin-bottom:8px;}}
+.subtitle{{color:var(--muted);font-size:15px;margin-top:10px;font-weight:550;}}
+.updated{{
+    padding:12px 17px;border-radius:999px;
+    background:rgba(255,255,255,.46);border:1px solid rgba(255,255,255,.68);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 12px 30px rgba(15,23,42,.07);
+    color:#344054;font-size:14px;font-weight:750;
+}}
+.kpis{{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-top:28px;}}
+.kpi{{
+    position:relative;overflow:hidden;min-height:134px;padding:18px;border-radius:26px;color:white;
+    box-shadow:0 18px 44px rgba(15,23,42,.13), inset 0 1px 0 rgba(255,255,255,.35);
+}}
+.kpi::before{{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.34),rgba(255,255,255,.06));}}
+.kpi::after{{content:"";position:absolute;right:-34px;top:-34px;width:116px;height:116px;border-radius:999px;background:rgba(255,255,255,.20);}}
+.kpi>*{{position:relative;z-index:2}}
+.kpi-icon{{width:42px;height:42px;border-radius:15px;background:rgba(255,255,255,.23);display:grid;place-items:center;margin-bottom:15px;}}
+.kpi-icon svg{{width:22px;height:22px;stroke:white;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round;}}
+.kpi-label{{font-size:13px;font-weight:800;opacity:.95;}}
+.kpi-value{{font-size:34px;font-weight:900;letter-spacing:-.045em;margin-top:5px;}}
+.g-blue{{background:linear-gradient(145deg,#1677ff,#55b6ff)}}
+.g-cyan{{background:linear-gradient(145deg,#06b6d4,#67e8f9)}}
+.g-green{{background:linear-gradient(145deg,#12b76a,#4ade80)}}
+.g-red{{background:linear-gradient(145deg,#f43f5e,#fb7185)}}
+.g-orange{{background:linear-gradient(145deg,#f79009,#facc15)}}
+.g-violet{{background:linear-gradient(145deg,#7c3aed,#a78bfa)}}
+.panel{{border-radius:32px;padding:24px;margin-bottom:22px;}}
+.section-head{{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;}}
+h2{{margin:0;font-size:30px;line-height:1.05;font-weight:900;letter-spacing:-.045em;}}
+.section-caption{{color:var(--muted);font-weight:600;font-size:14px;margin-top:6px;}}
+.cluster-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}}
+.cluster-card{{
+    position:relative;overflow:hidden;border-radius:24px;padding:18px;
+    background:linear-gradient(145deg,rgba(255,255,255,.48),rgba(255,255,255,.22));
+    border:1px solid rgba(255,255,255,.64);
+    backdrop-filter:blur(26px) saturate(180%);
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    box-shadow:0 12px 34px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.7);
+}}
+.cluster-card::after{{content:"";position:absolute;right:-24px;top:-24px;width:92px;height:92px;border-radius:999px;background:linear-gradient(145deg,rgba(22,119,255,.18),rgba(124,58,237,.16));}}
+.cluster-top{{display:flex;align-items:center;gap:12px;position:relative;z-index:2;}}
+.cluster-mark{{
+    width:44px;height:44px;border-radius:16px;display:grid;place-items:center;color:white;
+    background:linear-gradient(145deg,#1677ff,#7c3aed);box-shadow:0 12px 28px rgba(22,119,255,.22);
+}}
+.cluster-mark svg{{width:22px;height:22px;stroke:white;fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}}
+.cluster-name{{font-size:18px;font-weight:900;letter-spacing:-.03em;}}
+.cluster-stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;position:relative;z-index:2;}}
+.cluster-num{{font-size:24px;font-weight:900;letter-spacing:-.04em;}}
+.cluster-sub{{font-size:11px;color:var(--muted);font-weight:750;text-transform:uppercase;letter-spacing:.04em;}}
+.progress{{position:relative;height:11px;background:rgba(226,232,240,.82);border-radius:999px;overflow:hidden;margin-top:16px;box-shadow:inset 0 1px 2px rgba(15,23,42,.08);}}
+.progress span{{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#1677ff,#05bdf2 55%,#19c37d);box-shadow:0 0 18px rgba(5,189,242,.35);}}
+.progress-label{{font-size:12px;font-weight:850;color:#344054;text-align:right;margin-top:7px;}}
+.filter-shell{{overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}}
+.filter{{
+    position:relative;display:inline-flex;gap:5px;min-width:max-content;padding:7px;border-radius:999px;
+    background:rgba(255,255,255,.43);border:1px solid rgba(255,255,255,.66);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 14px 30px rgba(15,23,42,.06);
+}}
+.slider{{position:absolute;top:7px;left:7px;height:calc(100% - 14px);border-radius:999px;background:linear-gradient(145deg,#1677ff,#7c3aed);box-shadow:0 10px 24px rgba(22,119,255,.26);transition:transform .28s cubic-bezier(.2,.8,.2,1),width .28s cubic-bezier(.2,.8,.2,1);}}
+.seg-btn{{position:relative;z-index:2;border:0;background:transparent;border-radius:999px;padding:11px 17px;color:#334155;font-weight:850;white-space:nowrap;cursor:pointer;}}
+.seg-btn.active{{color:white;}}
+.table-wrap{{overflow:auto;border-radius:24px;border:1px solid rgba(255,255,255,.62);background:rgba(255,255,255,.28);}}
+table{{width:100%;min-width:1500px;border-collapse:collapse;}}
+th{{position:sticky;top:0;z-index:3;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#475467;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.035em;padding:14px;}}
+td{{padding:14px;border-bottom:1px solid rgba(148,163,184,.15);white-space:nowrap;font-size:13px;}}
+tr:hover{{background:rgba(255,255,255,.34);}}
+.badge{{display:inline-flex;align-items:center;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:850;}}
+.ok{{background:#dcfae6;color:#067647}}
+.ko{{background:#fee4e2;color:#b42318}}
+.down{{background:rgba(254,226,226,.28)}}
+.maintenance{{background:rgba(255,237,213,.35)}}
+@media(max-width:1180px){{.kpis{{grid-template-columns:repeat(3,1fr)}}}}
+@media(max-width:760px){{body{{padding:10px}}.hero,.panel{{border-radius:24px;padding:16px}}.logo{{width:54px;height:54px;border-radius:18px}}h1{{font-size:30px}}h2{{font-size:24px}}.kpis{{grid-template-columns:repeat(2,1fr);gap:10px}}.kpi{{min-height:118px;padding:14px;border-radius:21px}}.kpi-icon{{width:34px;height:34px;border-radius:12px;margin-bottom:11px}}.kpi-icon svg{{width:18px;height:18px}}.kpi-label{{font-size:12px}}.kpi-value{{font-size:28px}}.cluster-grid{{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}.cluster-card{{padding:13px;border-radius:20px}}.cluster-mark{{width:36px;height:36px;border-radius:13px}}.cluster-name{{font-size:15px}}.cluster-num{{font-size:20px}}.cluster-sub{{font-size:10px}}.progress{{height:9px}}.seg-btn{{padding:10px 14px;font-size:13px}}}}
+
+.kpi-sub{{margin-top:8px;font-size:12px;font-weight:700;opacity:.88;}}
+.filter-row{{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px;}}
+.search{{min-width:270px;flex:1;}}
+.search input{{width:100%;border:1px solid rgba(255,255,255,.68);background:rgba(255,255,255,.52);border-radius:999px;padding:13px 17px;outline:none;font-weight:750;color:#344054;box-shadow:0 12px 34px rgba(31,41,55,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}}
+@media(max-width:760px){{.search{{min-width:100%;}}.kpi-sub{{font-size:11px}}}}
+
+
+.icon-link{{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:999px;margin-left:6px;background:rgba(255,255,255,.48);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 20px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#2563eb;text-decoration:none;vertical-align:middle;transition:transform .18s ease,box-shadow .18s ease,background .18s ease;}}
+.icon-link:hover{{transform:translateY(-1px);background:rgba(255,255,255,.72);box-shadow:0 12px 26px rgba(15,23,42,.12),inset 0 1px 0 rgba(255,255,255,.86);}}
+.icon-link svg{{width:16px;height:16px;stroke:currentColor;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round;}}
+.icon-link.disabled{{opacity:.28;cursor:not-allowed;color:#98a2b3;}}
+.gps-cell,.gateway-cell{{display:inline-flex;align-items:center;gap:6px;}}
+.gps-actions{{display:inline-flex;align-items:center;white-space:nowrap;}}
+
+</style>
+<script>
+function initSegmented() {{
+    const buttons = Array.from(document.querySelectorAll(".seg-btn"));
+    const slider = document.querySelector(".slider");
+    const search = document.querySelector("#searchInput");
+
+    function move(btn) {{
+        if (!slider || !btn) return;
+        slider.style.width = btn.offsetWidth + "px";
+        slider.style.transform = `translateX(${{btn.offsetLeft}}px)`;
+    }}
+
+    function apply() {{
+        const active = document.querySelector(".seg-btn.active");
+        const cluster = active ? active.dataset.cluster : "ALL";
+        const q = search ? search.value.toLowerCase().trim() : "";
+
+        document.querySelectorAll(".gateway-row").forEach(row => {{
+            const clusterOk = cluster === "ALL" || row.dataset.cluster === cluster;
+            const searchOk = !q || row.innerText.toLowerCase().includes(q);
+            row.style.display = clusterOk && searchOk ? "" : "none";
+        }});
+
+        move(active);
+    }}
+
+    buttons.forEach(btn => {{
+        btn.addEventListener("click", () => {{
+            buttons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            apply();
+        }});
+    }});
+
+    if (search) search.addEventListener("input", apply);
+    window.addEventListener("resize", apply);
+    apply();
+}}
+window.addEventListener("load", initSegmented);
+</script>
 </head>
-<body onload="onBodyLoad()" class="rqbody safari safari605">
-    <iframe id="flif" class="flbif" src="javascript:false" frameborder="0" scrolling="no"></iframe>
-    <div class="flyby" id="flflb"></div>
-    <div id="rqmodal" class="uk-modal">
-        <div class="uk-modal-dialog medium">
-            <div class="modalcontent"></div>
-        </div>
-    </div>
-
-    <div id="it">
-        <div class="it2">
-            <div class="it3">
-                <div class="it4">
-                    <div class="it5">
-                        <div class="it6">
-                            <div class="it7">
-                                <div class="it8">
-                                    <div id="il">
-                                        <div id="inner " class="rqinnerverticalmenu ">
-                                            <div class="rqbanner ">
-
-                                                <div id="top" class="rqnewtop">
-
-                                                    <div class="rqnavbarimg" onclick="window.location.href='/page'"></div>
-                                                    <nav class="navbar navbar-main navbar-expand-lg navbar-light pb-0 h-100">
-                                                        <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbartop" aria-controls="#navbartop" aria-expanded="false" aria-label="Toggle navigation">
-                                                            <span class="navbar-toggler-icon"></span>
-                                                        </button>
-
-                                                        <div class="collapse navbar-collapse" id="navbartop">
-
-                                                            <ul class="navbar-nav nav-bar-rqtopsearch navbar-light pb-0 h-100 mr-3 ml-auto">
-                                                                <li class="nav-item justify-content-lg-center d-flex w-100">
-                                                                    <div class="rqtopsearchimg mr-2 my-auto"></div>
-                                                                    <input id="rqtopsearch" type="text" class="form-control rqsearchcontentinput" aria-label="Text input with radio button" placeholder="Rechercher...">
-                                                                </li>
-                                                            </ul>
-
-                                                            <ul class="navbar-nav justify-content-end align-items-center">
-
-                                                                <li class="nav-item"></li>
-                                                                <li class="nav-item"></li>
-                                                                <li class="nav-item">
-                                                                    <a class="nav-link nav-link-userid mx-2" id="usr_f91b68bf0ee645a78048cc5809575094">Julien Ronjat</a>
-                                                                </li>
-
-                                                                <li class="nav-item">
-                                                                    <div class="fm1" id="menuConfig" onmouseover="RQ.menu.setMenuVisible('menuConfig');" onmouseout="RQ.menu.hideMenus();">
-                                                                        <div class="fm1i">
-                                                                            <ul class="ul2">
-                                                                                <li>
-                                                                                    <a href="/page/Network?op=style&amp;rqstyle=valence">valence</a>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <a href="/page/Network?op=style&amp;rqstyle=valenceromansagglo">valenceromansagglo</a>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <a href="/page/Network?op=style&amp;rqstyle=iot">iot</a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-                                                                    </div>
-                                                                    <a class="nav-link nav-link-configuration mr-3" onclick="RQ.menu.showMenu(this,'menuConfig');"></a>
-                                                                </li>
-
-                                                                <li class="nav-item">
-                                                                    <a class="nav-link nav-link-disconnect mr-1" href="/do/sysNewSysLogin:logout">Se déconnecter</a>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </nav>
-
-                                                    <div class="iotcontexts float-right mx-2 mb-1 mb-lg-0">
-
-                                                        <script>
-                                                        jQuery("#rqiotctxselector").change(
-                                                        function(evt) {
-                                                            var url = ContextPath
-                                                            + "/ajax?op=action&opparam="
-                                                            + encodeURIComponent("iotContext:set?sysId="
-                                                            + this.value);
-                                                            // load tooltip with ajax
-                                                            jQuery.ajax({
-                                                                type: 'GET',
-                                                                url: url,
-                                                                success: function(data) {
-                                                                    // reload the page
-                                                                    url = ContextPath + "/page";
-                                                                    if (typeof (PageName) != "undefined") {
-                                                                        url += "/" + PageName;
-                                                                    }
-                                                                    document.location = url;
-                                                                }
-                                                            });
-                                                        });
-                                                        </script>
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-                                            <div class="rqcontainerverticalmenu">
-
-                                                <div id="rqdynamicmbarvertical">
-                                                    <!-- optional image -->
-                                                    <div class="rqdynamicmbarvertical-logo"></div>
-                                                    <!-- Top of the menu bar -->
-                                                    <nav class="navbar navbar-dark bg-dark flex-column align-items-start p-0 w-100">
-
-                                                        <a class="navbar-brand w-100 mr-0 " href="#" onclick="window.location.href='/page/NetworkMap';">
-
-                                                            <img src="/sys/img/material/place_white_24px.svg" width="24" height="24" class="d-inline-block align-middle" alt="">
-
-                                                            <span class="rqdynamicmbartitle align-middle">Cartographie réseau</span>
-                                                        </a>
-
-                                                        <a class="navbar-brand w-100 mr-0 " href="#" onclick="window.location.href='/page/Devices';">
-
-                                                            <img src="/iotcore/img/devices.svg" width="24" height="24" class="d-inline-block align-middle" alt="">
-
-                                                            <span class="rqdynamicmbartitle align-middle">Modules et compteurs</span>
-                                                        </a>
-
-                                                        <a class="navbar-brand w-100 mr-0 " href="#" onclick="window.location.href='/page/Alarms';">
-
-                                                            <img src="/iotcore/img/danger.svg" width="24" height="24" class="d-inline-block align-middle" alt="">
-
-                                                            <span class="rqdynamicmbartitle align-middle">Alarmes</span>
-                                                        </a>
-
-                                                        <a class="navbar-brand w-100 mr-0 rqselected" href="#" onclick="window.location.href='/page/Network';">
-
-                                                            <img src="/iotcore/img/gateway.svg" width="24" height="24" class="d-inline-block align-middle" alt="">
-
-                                                            <span class="rqdynamicmbartitle align-middle">Réseau</span>
-                                                        </a>
-
-                                                    </nav>
-
-                                                    <!-- Bottom of the menu bar -->
-                                                    <nav class="navbar navbar-dark bg-dark flex-column align-items-start p-0 w-100" style="position:absolute;bottom:0px;">
-
-                                                        <a class="navbar-brand w-100 mr-0 " href="#" onclick="window.location.href='/page/MyProfile';">
-                                                            <img src="/iotcore/img/person_white_24px.svg" width="24" height="24" class="d-inline-block align-middle" alt="">
-
-                                                            <span class="rqdynamicmbartitle align-middle">Mes informations</span>
-                                                        </a>
-
-                                                        <a class="navbar-brand w-100 mr-0 " href="#" onclick="window.location.href='/page/Admin';">
-                                                            <img src="/sys/img/material/settings_white_24px.svg" width="24" height="24" class="d-inline-block align-middle" alt="">
-
-                                                            <span class="rqdynamicmbartitle align-middle">Administration</span>
-                                                        </a>
-
-                                                    </nav>
-                                                </div>
-
-                                                <script>
-
-                                                $(document).ready(function() {
-
-
-                                                    var $dynamicMenu = $("#rqdynamicmbarvertical");
-
-                                                    var $navs = $dynamicMenu.find(".navbar");
-                                                    var height = 0;
-                                                    $navs.each(function(i, v) {
-                                                        height += $(v).height();
-                                                    })
-                                                    $dynamicMenu.css("min-height", height);
-                                                    if (height == 0) {
-                                                        $dynamicMenu.css("height", "100vh");
-
-                                                    }
-                                                    var $items = $dynamicMenu.find(".navbar-brand");
-                                                    if ($items.length == 0) {
-
-                                                    }
-
-                                                })
-                                                </script>
-                                                <div class="rqscrollable">
-                                                    <div class="rqcontainersubmenu">
-
-                                                        <!-- Subpages -->
-
-                                                        <div class="rqsubmenuvertical">
-
-                                                            <div class="rqentry " onclick="window.location.href='/page/Network_Dashboard';">
-                                                                <div class="rqentrytitle">
-                                                                    <div class="rqentrytitlewrapper">Tableau de bord</div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="rqentry rqselected" onclick="window.location.href='/page/Network_Gateways';">
-                                                                <div class="rqentrytitle">
-                                                                    <div class="rqentrytitlewrapper">Passerelles</div>
-                                                                </div>
-                                                            </div>
-
-                                                        </div>
-
-                                                    </div>
-                                                    <div class="rqdefaultpagecontainer">
-
-                                                        <div class="rqpage " id="pg402877816e16754e016e180bcc1a302b">
-
-                                                            <div class="rqbannernews2main">
-                                                            </div>
-
-                                                            <!---->
-
-                                                            <table class="pgtbl row mx-0" cellpadding="0" cellspacing="0" style="">
-                                                                <tbody class="col-12">
-                                                                    <tr valign="top" class="row">
-
-                                                                        <td width="99%" class="col-lg-12 col-12 px-0">
-                                                                            <ul class="rqcol" id="col3c258d956f14bd3d016f1d42cbd8071c">
-
-                                                                                <li class="rqportlet " id="por3c258d956f14bd3d016f1d42cbd8071d">
-
-                                                                                    <div id="hdrpor3c258d956f14bd3d016f1d42cbd8071d" class="rqhdr" onmouseover="RQ.util.showTools(this)" onmouseout="RQ.util.hideTools(this)">
-                                                                                        <div class="rqhdrl">
-                                                                                            <div class="rqhdrr">
-                                                                                                <div class="rqhdrm">
-                                                                                                    <table class="rqportletheader" width="100%" cellpadding="0" cellspacing="0">
-                                                                                                        <tbody>
-                                                                                                            <tr>
-                                                                                                                <td width="20px">
-                                                                                                                </td>
-                                                                                                                <td>
-                                                                                                                    <div class="rqhdrtitle">
-                                                                                                                        <h3 class="title">
-                                                                                                                        										Liste des passerelles
-                                                                                                                        									</h3>
-                                                                                                                    </div>
-                                                                                                                </td>
-                                                                                                                <td width="20">
-                                                                                                                    <div class="tools">
-                                                                                                                    </div>
-                                                                                                                </td>
-                                                                                                                <td width="30">
-                                                                                                                </td>
-                                                                                                            </tr>
-                                                                                                        </tbody>
-                                                                                                    </table>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-
-                                                                                    <div>
-                                                                                        <div class="rqcontent">
-                                                                                            <div class="rqcontentin">
-                                                                                                <div id="por3c258d956f14bd3d016f1d42cbd8071dcnt" class="rqportletcnt">
-
-                                                                                                    <div class="rqlargedetail pt-1">
-                                                                                                        <div class="rqview">
-
-                                                                                                            <div class="results">
-                                                                                                                <div class="row mx-0">
-                                                                                                                    <div class="col-8 px-0 mr-auto">
-
-                                                                                                                        <div class="rqsrchcnt">
-                                                                                                                            <form method="post" name="rqsrch67c0d1ac5c7d4d4cb6ac31409c7802b9" autocomplete="off" class="rqsrchfrm" id="rqsrch67c0d1ac5c7d4d4cb6ac31409c7802b9" action="/do/Network/Home">
-                                                                                                                                <input type="hidden" value="67c0d1ac5c7d4d4cb6ac31409c7802b9" name="ctx"/>
-                                                                                                                                <input type="hidden" value="8a899e8258066e0e0158068c250b2b1b" name="step"/>
-                                                                                                                                <input type="hidden" value="search" name="op"/>
-                                                                                                                                <input type="hidden" value="" name="opparam"/>
-                                                                                                                                <input type="hidden" value="1234" class="rqajidx" name="ajtxid"/>
-                                                                                                                                <input type="hidden" value="" name="flt.sort"/>
-                                                                                                                                <input type="hidden" value="por3c258d956f14bd3d016f1d42cbd8071d" name="portlet"/>
-                                                                                                                                <input type="hidden" value="Network" name="page"/>
-                                                                                                                                <div class="rqsrchin">
-                                                                                                                                    <table>
-                                                                                                                                        <tbody>
-                                                                                                                                            <tr>
-                                                                                                                                                <td>
-                                                                                                                                                    <div class="rqftsearch rqftempty" id="rqsearchcnt67c0d1ac5c7d4d4cb6ac31409c7802b9">
-                                                                                                                                                        <div class="rqftcontainer">
-                                                                                                                                                            <div class="rqsearchleft"></div>
-                                                                                                                                                            <div class="rqsearchcontent">
-                                                                                                                                                                <input name="flt.text" type="text" class="rqsearchcontentinput" onkeyup="RQ.nav.filterchange('67c0d1ac5c7d4d4cb6ac31409c7802b9')" id="searchinput67c0d1ac5c7d4d4cb6ac31409c7802b9"/>
-                                                                                                                                                            </div>
-                                                                                                                                                            <div class="rqsearchright"></div>
-                                                                                                                                                            <span class="rqsearchreset" onclick="RQ.nav.fltclear('67c0d1ac5c7d4d4cb6ac31409c7802b9')"></span>
-                                                                                                                                                        </div>
-                                                                                                                                                        <input type="submit" class="rqsearchsubmit" name="submit.search" value="rechercher"/>
-                                                                                                                                                    </div>
-                                                                                                                                                </td>
-                                                                                                                                                <td>
-                                                                                                                                                </td>
-                                                                                                                                            </tr>
-                                                                                                                                        </tbody>
-                                                                                                                                    </table>
-                                                                                                                                    <div class="rqcritsearch">
-                                                                                                                                        <div class="criteria">
-
-                                                                                                                                            <div class="rqwidget">
-
-                                                                                                                                                <ul class="rqexprlist">
-
-                                                                                                                                                    <li class="rqexpr">
-                                                                                                                                                        <div class="rqexpritemcnt">
-                                                                                                                                                            <div class="rqexpritem"></div>
-                                                                                                                                                            <div class="rqexpritem">
-                                                                                                                                                                <div class="rqexpritemtxt">Etat</div>
-                                                                                                                                                                <input name="flt.sysExpression[1].sysProperty" type="hidden" value="iotStatus">
-                                                                                                                                                                </input>
-                                                                                                                                                            </div>
-                                                                                                                                                            <div class="rqexpritem">
-                                                                                                                                                                <input name="flt.sysExpression[1].sysOperator" type="hidden" value="IN">
-                                                                                                                                                                </input>
-                                                                                                                                                            </div>
-                                                                                                                                                            <div class="rqexpritem">
-                                                                                                                                                                <div class="rqexpritemtxt">
-                                                                                                                                                                    <div class="rqfltoptvalgrp">
-                                                                                                                                                                        <input class="rqfltoptval" type="checkbox" name="flt.sysExpression[1].sysValue_ck_new" value="_new"/>
-                                                                                                                                                                        <span class="rqfltoptvaltxt">Nouvelle</span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                    <div class="rqfltoptvalgrp">
-                                                                                                                                                                        <input class="rqfltoptval" type="checkbox" name="flt.sysExpression[1].sysValue_ck_candidate" value="_candidate"/>
-                                                                                                                                                                        <span class="rqfltoptvaltxt">Potentiel</span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                    <div class="rqfltoptvalgrp">
-                                                                                                                                                                        <input class="rqfltoptval" type="checkbox" name="flt.sysExpression[1].sysValue_ck_rejected" value="_rejected"/>
-                                                                                                                                                                        <span class="rqfltoptvaltxt">Annul&eacute;e</span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                    <div class="rqfltoptvalgrp">
-                                                                                                                                                                        <input class="rqfltoptval" type="checkbox" name="flt.sysExpression[1].sysValue_ck_planned" checked="checked" value="_planned"/>
-                                                                                                                                                                        <span class="rqfltoptvaltxt">Planifi&eacute;e</span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                    <div class="rqfltoptvalgrp">
-                                                                                                                                                                        <input class="rqfltoptval" type="checkbox" name="flt.sysExpression[1].sysValue_ck_provisioned" checked="checked" value="_provisioned"/>
-                                                                                                                                                                        <span class="rqfltoptvaltxt">Provisionn&eacute;e</span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                    <div class="rqfltoptvalgrp">
-                                                                                                                                                                        <input class="rqfltoptval" type="checkbox" name="flt.sysExpression[1].sysValue_ck_active" checked="checked" value="_active"/>
-                                                                                                                                                                        <span class="rqfltoptvaltxt">Active</span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                    <div class="rqfltoptvalgrp">
-                                                                                                                                                                        <input class="rqfltoptval" type="checkbox" name="flt.sysExpression[1].sysValue_ck_disposed" value="_disposed"/>
-                                                                                                                                                                        <span class="rqfltoptvaltxt">D&eacute;pos&eacute;e</span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                </div>
-                                                                                                                                                            </div>
-                                                                                                                                                            <div class="rqexpritem"></div>
-                                                                                                                                                            <div class="rqexprbuiltin"></div>
-                                                                                                                                                        </div>
-                                                                                                                                                    </li>
-
-                                                                                                                                                    <li class="rqexpr">
-                                                                                                                                                        <div class="rqexpritemcnt">
-                                                                                                                                                            <div class="rqexpritem"></div>
-                                                                                                                                                            <div class="rqexpritem"></div>
-                                                                                                                                                            <div class="rqexpritem"></div>
-                                                                                                                                                            <div class="rqexpritem"></div>
-                                                                                                                                                            <div class="rqexpritem"></div>
-                                                                                                                                                            <div class="rqexprbuiltin">
-                                                                                                                                                                <div>
-
-                                                                                                                                                                    <div class="subdetail">
-                                                                                                                                                                        <table cellpadding="0" cellspacing="0">
-                                                                                                                                                                            <tbody>
-
-                                                                                                                                                                                <tr>
-                                                                                                                                                                                    <td class="rqlbl" align="right">
-                                                                                                                                                                                        <span class="rqedit" id="rqlbl8a0ba0cd7d9922a2017d9a3d8ace6638">Groupe:</span>
-                                                                                                                                                                                    </td>
-                                                                                                                                                                                    <td class="val">
-                                                                                                                                                                                        <select name="flt.sysExpression[2].sysBuiltinCriteria.iotGroup" class="rqarbocombo" onchange="RQ.nav.pb(this);">
-                                                                                                                                                                                            <option value=""></option>
-                                                                                                                                                                                            <option value="ff80808177b543fb0177c5f1281a4d7a">valence</option>
-                                                                                                                                                                                        </select>
-                                                                                                                                                                                    </td>
-                                                                                                                                                                                </tr>
-
-                                                                                                                                                                            </tbody>
-                                                                                                                                                                        </table>
-                                                                                                                                                                    </div>
-                                                                                                                                                                </div>
-                                                                                                                                                            </div>
-                                                                                                                                                        </div>
-                                                                                                                                                    </li>
-
-                                                                                                                                                </ul>
-                                                                                                                                                <div class="rqexpritemand">
-                                                                                                                                                    <a class="itool plus" href="/do//Network?op=addinlineitem&amp;opparam=flt.sysExpression&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9" onclick="return RQ.nav.addinlineitem('rqsrch67c0d1ac5c7d4d4cb6ac31409c7802b9','flt.sysExpression')">
-                                                                                                                                                        <span class="txt">[et ...]</span>
-                                                                                                                                                    </a>
-                                                                                                                                                </div>
-                                                                                                                                            </div>
-
-                                                                                                                                        </div>
-
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                            </form>
-                                                                                                                            <div class="rqsep"></div>
-                                                                                                                            <script type="text/javascript">
-                                                                                                                            function showOkCancel(pid) {
-                                                                                                                                $("#" + pid + "_btnsave").css("display", "none");
-                                                                                                                                $("#" + pid + "_btnload").css("display", "none");
-                                                                                                                                $("#" + pid + "_showtitle").css("display", "none");
-                                                                                                                                $("#" + pid + "_edittitle").css("display", "inline");
-                                                                                                                                $("#" + pid + "_edittitle").attr("name", "flt.usercrittitle");
-                                                                                                                                $("#" + pid + "_btnok").css("display", "inline");
-                                                                                                                                $("#" + pid + "_btncancel").css("display", "inline");
-                                                                                                                                $("#" + pid + "_edittitle").focus();
-                                                                                                                            }
-                                                                                                                            function hideOkCancel(pid) {
-                                                                                                                                $("#" + pid + "_btnsave").css("display", "inline");
-                                                                                                                                $("#" + pid + "_btnload").css("display", "inline");
-                                                                                                                                $("#" + pid + "_showtitle").css("display", "inline");
-                                                                                                                                $("#" + pid + "_edittitle").css("display", "none");
-                                                                                                                                $("#" + pid + "_edittitle").attr("name", "flt.usercrittitlero");
-                                                                                                                                $("#" + pid + "_btnok").css("display", "none");
-                                                                                                                                $("#" + pid + "_btncancel").css("display", "none");
-                                                                                                                            }
-                                                                                                                            </script>
-                                                                                                                        </div>
-
-                                                                                                                    </div>
-                                                                                                                    <div class="col-3 align-self-end">
-                                                                                                                        <div class="rqxlsexport px-0 pb-1 text-right ml-lg-auto">
-                                                                                                                            <a class="btn rqbtnexcelexport" href="/file/xls/67c0d1ac5c7d4d4cb6ac31409c7802b9/Liste_des_passerelles.xlsx?page=Network">
-                                                                                                                                <div class="float-left d-lg-block d-none">Export Excel</div>
-                                                                                                                                <div class="rqexcelexporticon float-right ml-lg-1 ml-0"></div>
-                                                                                                                            </a>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                                <form method="get" autocomplete="off" name="rqfrm67c0d1ac5c7d4d4cb6ac31409c7802b9" class="rqform rqautorefresh" id="rqform67c0d1ac5c7d4d4cb6ac31409c7802b9" action="/do/Network/Home">
-                                                                                                                    <input type="hidden" name="CSRFToken" value="614b8c633d574165a17dc76731fc3a9e"/>
-                                                                                                                    <input type="hidden" value="67c0d1ac5c7d4d4cb6ac31409c7802b9" name="ctx"/>
-                                                                                                                    <input type="hidden" value="0" name="ctxver"/>
-                                                                                                                    <input type="hidden" value="" name="target"/>
-                                                                                                                    <input type="hidden" value="0" name="scrollPos"/>
-                                                                                                                    <input type="hidden" name="newctx" value="true"/>
-                                                                                                                    <input type="hidden" name="ApplicationName" value="iotGateway"/>
-                                                                                                                    <input type="hidden" value="submit" name="op"/>
-                                                                                                                    <input type="hidden" value="1234" class="rqajidx" name="ajtxid"/>
-                                                                                                                    <input type="hidden" name="opparam" value=""/>
-                                                                                                                    <input type="hidden" value="por3c258d956f14bd3d016f1d42cbd8071d" name="portlet"/>
-                                                                                                                    <input type="hidden" value="Network" name="page"/>
-                                                                                                                    <input type="hidden" value="60" name="autorefresh"/>
-
-                                                                                                                    <div class="rqdesignformtool"></div>
-                                                                                                                    <div class="rqtblreqout rqtablestyle1" style="position:relative;">
-
-                                                                                                                        <div class="table-responsive">
-                                                                                                                            <table cellpadding="0" cellspacing="0" class="tblreq">
-                                                                                                                                <thead>
-                                                                                                                                    <tr id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_hdr">
-                                                                                                                                        <th class="rqtblcelllnk" style=""></th>
-                                                                                                                                        <th class="rqtblh"></th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Nom
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotName','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotName" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotName" type="text" placeholder="Nom" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Etat
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotStatus','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input type="hidden" data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotStatus" name="flt.column.exacttext.iotStatus"/>
-                                                                                                                                                <select onchange="RQ.util.tablelist.cbOnHeaderSelectChange(event);" class="pl-2 w-100 rqfltdataheadervalue">
-                                                                                                                                                    <option value="RQ_NONE"></option>
-                                                                                                                                                    <option value="new">Nouvelle</option>
-                                                                                                                                                    <option value="candidate">Potentiel</option>
-                                                                                                                                                    <option value="rejected">Annulée</option>
-                                                                                                                                                    <option value="planned">Planifiée</option>
-                                                                                                                                                    <option value="provisioned">Provisionnée</option>
-                                                                                                                                                    <option value="active">Active</option>
-                                                                                                                                                    <option value="disposed">Déposée</option>
-                                                                                                                                                </select>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Identifiant
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotAddress','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotAddress" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotAddress" type="text" placeholder="Identifiant" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">Num&eacute;ro de s&eacute;rie	</div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotSerialNumber" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotSerialNumber" type="text" placeholder="Num&eacute;ro de s&eacute;rie" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">Groupes	</div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input type="hidden" data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotGatewayGroup" name="flt.column.exacttext.iotGatewayGroup"/>
-                                                                                                                                                <input value="" data-appact="iotGatewayGroup:selectmany" type="text" placeholder="Groupes" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Etat de connexion
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotConnectionStatus','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Type de support
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotSupport.iotType','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input type="hidden" data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotSupport.iotType" name="flt.column.exacttext.iotSupport.iotType"/>
-                                                                                                                                                <select onchange="RQ.util.tablelist.cbOnHeaderSelectChange(event);" class="pl-2 w-100 rqfltdataheadervalue">
-                                                                                                                                                    <option value="RQ_NONE"></option>
-                                                                                                                                                    <option value="watertower">Chateau eau</option>
-                                                                                                                                                    <option value="watertank">Réservoir semi entérré</option>
-                                                                                                                                                    <option value="hlm">HLM</option>
-                                                                                                                                                    <option value="church">Eglise</option>
-                                                                                                                                                    <option value="townhall">Mairie</option>
-                                                                                                                                                    <option value="sportarena">Gymnase</option>
-                                                                                                                                                    <option value="pole">Poteau</option>
-                                                                                                                                                    <option value="other">Autre</option>
-                                                                                                                                                    <option value="shelter">Shelter</option>
-                                                                                                                                                    <option value="closet">Armoire de rue</option>
-                                                                                                                                                    <option value="middleschool">Collège</option>
-                                                                                                                                                    <option value="highschool">Lycée</option>
-                                                                                                                                                    <option value="school">École</option>
-                                                                                                                                                    <option value="stadium">Stade</option>
-                                                                                                                                                </select>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Propri&eacute;taire
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotSupport.iotOwner','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotSupport.iotOwner" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotSupport.iotOwner" type="text" placeholder="Propri&eacute;taire" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Hauteur du support / batiment
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotSupport.iotHeight','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Type de montage
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotSupport.iotMountType','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input type="hidden" data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotSupport.iotMountType" name="flt.column.exacttext.iotSupport.iotMountType"/>
-                                                                                                                                                <select onchange="RQ.util.tablelist.cbOnHeaderSelectChange(event);" class="pl-2 w-100 rqfltdataheadervalue">
-                                                                                                                                                    <option value="RQ_NONE"></option>
-                                                                                                                                                    <option value="rooftop">Installation toit terrasse</option>
-                                                                                                                                                    <option value="cheminey">Installation toit / cheminée</option>
-                                                                                                                                                    <option value="wall">Facade</option>
-                                                                                                                                                    <option value="pole">Poteau</option>
-                                                                                                                                                    <option value="water">Chateau / Réservoir d'Eau</option>
-                                                                                                                                                    <option value="church">Eglise</option>
-                                                                                                                                                </select>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Statut
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotSupport.iotStatus','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input type="hidden" data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotSupport.iotStatus" name="flt.column.exacttext.iotSupport.iotStatus"/>
-                                                                                                                                                <select onchange="RQ.util.tablelist.cbOnHeaderSelectChange(event);" class="pl-2 w-100 rqfltdataheadervalue">
-                                                                                                                                                    <option value="RQ_NONE"></option>
-                                                                                                                                                    <option value="unknown">Inconnu / A étudier</option>
-                                                                                                                                                    <option value="selected">Retenu</option>
-                                                                                                                                                    <option value="visited">Visité / Validé</option>
-                                                                                                                                                    <option value="installed">Installé / En production</option>
-                                                                                                                                                </select>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">Description	</div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotDescription" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotDescription" type="text" placeholder="Description" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                R&eacute;seau
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotOperator','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input type="hidden" data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotOperator" name="flt.column.exacttext.iotOperator"/>
-                                                                                                                                                <select onchange="RQ.util.tablelist.cbOnHeaderSelectChange(event);" class="pl-2 w-100 rqfltdataheadervalue">
-                                                                                                                                                    <option value="RQ_NONE"></option>
-                                                                                                                                                    <option value="RQL">REQUEA LoRaWAN</option>
-                                                                                                                                                </select>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Commune
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotSupport.iotCity','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotSupport.iotCity" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotSupport.iotCity" type="text" placeholder="Commune" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Version de firmware
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotFWVersion','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotFWVersion" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotFWVersion" type="text" placeholder="Version de firmware" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                SIM
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotSIMNumber','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotSIMNumber" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotSIMNumber" type="text" placeholder="SIM" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">Adresse IP passerelle	</div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotGwIPAddress" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotGwIPAddress" type="text" placeholder="Adresse IP passerelle" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Créé le
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','sysCreateTime','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">G&eacute;olocalisation	</div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                        <th class="rqtblh">
-                                                                                                                                            <div class="">
-                                                                                                                                                Vue Google Maps
-                                                                                                                                                <a href="javascript:RQ.nav.sortnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','iotSupport.iotGoogleMapsLink','asc')" class="rqtblsortnull ">
-                                                                                                                                                    <span>sort</span>
-                                                                                                                                                </a>
-                                                                                                                                            </div>
-
-                                                                                                                                            <div class="d-block rqfltdataheader position-relative">
-                                                                                                                                                <input data-id="67c0d1ac5c7d4d4cb6ac31409c7802b9" value="" data-header="iotSupport.iotGoogleMapsLink" onkeyup="RQ.util.tablelist.cbOnHeaderKeyPress(event);" name="flt.column.text.iotSupport.iotGoogleMapsLink" type="text" placeholder="Vue Google Maps" class="pl-2 w-100 rqfltdataheadervalue"/>
-                                                                                                                                            </div>
-
-                                                                                                                                        </th>
-
-                                                                                                                                    </tr>
-                                                                                                                                </thead>
-                                                                                                                                <tbody>
-
-                                                                                                                                    <tr valign="middle" class="odd" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_0bc2ef474f634a108616f2000760d568">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=0bc2ef474f634a108616f2000760d568&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:0bc2ef474f634a108616f2000760d568">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:0bc2ef474f634a108616f2000760d568">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											prov1						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Provisionn&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004E6318						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23402362						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											&#160;						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcap-6.3.0.d67						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											&#160;						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											192.168.123.1						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											25/11/2025 14:45:21						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.906984, 4.87342						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="even" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_16524c36818d400b9f97a960f2009ffa">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=16524c36818d400b9f97a960f2009ffa&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:16524c36818d400b9f97a960f2009ffa">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:16524c36818d400b9f97a960f2009ffa">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											prov2						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Provisionn&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004E64A9						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23402506						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											&#160;						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcap-6.3.0.d67						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											&#160;						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											192.168.123.1						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											26/11/2025 12:02:36						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.908817, 4.873413						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="odd" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_171716a74e724fe3a6d7ae8e0d252ed5">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=171716a74e724fe3a6d7ae8e0d252ed5&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:171716a74e724fe3a6d7ae8e0d252ed5">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:171716a74e724fe3a6d7ae8e0d252ed5">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											EP Mat Aiguille Monumentale						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004E6312						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23402356						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Poteau</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Eclairage Public						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											15						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Facade</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Install&eacute; / En production</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Valence						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcap-6.3.0.d67						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											89351060000829249034						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											195.8.30.110						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											26/11/2025 12:05:01						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.930366, 4.894349						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="even" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_184c67127b5c41f3ade57262bf1b9b15">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=184c67127b5c41f3ade57262bf1b9b15&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:184c67127b5c41f3ade57262bf1b9b15">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:184c67127b5c41f3ade57262bf1b9b15">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Immeuble le grand bleu 2						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004DB06F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23063295						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>HLM</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											VRH						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											47						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Installation toit terrasse</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Install&eacute; / En production</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Le Grand Bleu 2						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Valence						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcdt-6.3.0.40						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											8988247000016863517F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											10.200.250.14						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											17/12/2024 13:54:48						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.938439, 4.902975						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											https://goo.gl/maps/8aUV7hwzkHLQVMJd9						
-                                                                                                                                        										</td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="odd" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_2a1bc97a2f814365893ab56c2d073199">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=2a1bc97a2f814365893ab56c2d073199&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:2a1bc97a2f814365893ab56c2d073199">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:2a1bc97a2f814365893ab56c2d073199">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Avenue Gambetta bis						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004E608F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23395439						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Poteau</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Eclairage Public						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											12						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Poteau</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Visit&eacute; / Valid&eacute;</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Valence						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcap-6.3.0.d67						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											89351060000829248846						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											192.168.123.1						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											26/11/2025 11:58:41						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.930496, 4.890159						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="even" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_2efea247930d43f38ff7c9c7d5f93751">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=2efea247930d43f38ff7c9c7d5f93751&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:2efea247930d43f38ff7c9c7d5f93751">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:2efea247930d43f38ff7c9c7d5f93751">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Mairie de Marches						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004DB0E3						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23066721						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Mairie</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Commune de Marches						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Facade</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Install&eacute; / En production</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Installation le 08/07/2025 en remplacement de 00000008004D0B2E						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Marches						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcdt-6.3.0.40						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											8988247000016863467F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											10.225.250.38						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											17/12/2024 13:54:18						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.976549, 5.108918						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											https://goo.gl/maps/PE1G6MJUse4h8LxV6						
-                                                                                                                                        										</td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="odd" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_37c60d126d0b43588652af7b0505dc5c">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=37c60d126d0b43588652af7b0505dc5c&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:37c60d126d0b43588652af7b0505dc5c">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:37c60d126d0b43588652af7b0505dc5c">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004DB069						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Provisionn&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004DB069						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23063289						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											&#160;						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcdt-6.3.0.28						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											8988247000016863509F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											192.168.2.17						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											17/12/2024 13:53:45						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="even" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_389348b34df84ac7b8427bf5c057f07d">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=389348b34df84ac7b8427bf5c057f07d&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:389348b34df84ac7b8427bf5c057f07d">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:389348b34df84ac7b8427bf5c057f07d">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											prov3						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Provisionn&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004E64AD						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23402510						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											&#160;						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcap-6.3.0.d67						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											&#160;						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											192.168.123.1						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											26/11/2025 12:01:10						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.907052, 4.873392						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="odd" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_54e5b54e150247d296c26564ba8213d3">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=54e5b54e150247d296c26564ba8213d3&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:54e5b54e150247d296c26564ba8213d3">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:54e5b54e150247d296c26564ba8213d3">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											MVA - H&ocirc;tel de Ville						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004E27CA						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23293567						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Mairie</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Ville de Valence						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											39						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Poteau</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Install&eacute; / En production</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Valence						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcdt-6.3.0.40						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											89351060000829248317						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											195.8.10.134						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											19/12/2025 16:21:04						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.933254, 4.892083						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											https://maps.app.goo.gl/Bkx2qqiLMysFjvDk9						
-                                                                                                                                        										</td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="even" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_6bba1018ebad43458b1ce02341371a75">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=6bba1018ebad43458b1ce02341371a75&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:6bba1018ebad43458b1ce02341371a75">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:6bba1018ebad43458b1ce02341371a75">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Reprise toutes Aures Saint Vincent						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004DB116						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23066757						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>R&eacute;servoir semi ent&eacute;rr&eacute;</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											VRE						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											3						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Facade</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Install&eacute; / En production</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Saint-Vincent-la-Commanderie						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcdt-6.3.0.28						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											8988247000016863491F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											10.200.250.10						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											17/12/2024 13:54:53						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.924672, 5.111987						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											https://maps.app.goo.gl/z9AnnXahMEKfHZGx9						
-                                                                                                                                        										</td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="odd" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_6bddff2e2f1b4ce1a3c30436e188a105">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=6bddff2e2f1b4ce1a3c30436e188a105&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:6bddff2e2f1b4ce1a3c30436e188a105">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:6bddff2e2f1b4ce1a3c30436e188a105">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											PLV EP Monte chaffine						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004E607D						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23395421						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											10						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcap-6.3.0.d67						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											89351060000829248937						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											195.8.30.178						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											26/11/2025 12:03:48						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.87688, 4.889969						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="even" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_72e34017c05a43998492e45b3605cd70">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=72e34017c05a43998492e45b3605cd70&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:72e34017c05a43998492e45b3605cd70">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:72e34017c05a43998492e45b3605cd70">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Bourg de P&eacute;age - M&acirc;t vid&eacute;o						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004DB070						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23063296						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Poteau</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Mairie de Bourg de P&eacute;age						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											16						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Poteau</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Visit&eacute; / Valid&eacute;</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Bourg de P&eacute;age						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcdt-6.3.0.40						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											8988247000016863459F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											10.200.250.10						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											17/12/2024 13:53:56						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											45.02506, 5.042132						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											https://maps.app.goo.gl/bDBiUoaY5i7riNm2A						
-                                                                                                                                        										</td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="odd" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_77f8888501234fbf83da0806aca68e64">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=77f8888501234fbf83da0806aca68e64&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:77f8888501234fbf83da0806aca68e64">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:77f8888501234fbf83da0806aca68e64">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Le Grand Bleu						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004D0B2F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											22790011						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>HLM</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											VRH						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											47						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Installation toit terrasse</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Install&eacute; / En production</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Le Grand Bleu						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Valence						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcdt-5.3.31.17						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											89351060000852879434						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											07/02/2025 09:00:19						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.938399, 4.903033						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											https://goo.gl/maps/8aUV7hwzkHLQVMJd9						
-                                                                                                                                        										</td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="even" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_83e056eaf67447d0909faa073b2e746f">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=83e056eaf67447d0909faa073b2e746f&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:83e056eaf67447d0909faa073b2e746f">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:83e056eaf67447d0909faa073b2e746f">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Cimeti&egrave;re Romans						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004DB063						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23063283						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Poteau</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Ville de Romans						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											10						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Poteau</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Install&eacute; / En production</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Romans-sur-Is&egrave;re						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcdt-6.3.0.40						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											8988247000016863293F						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											10.200.250.14						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											17/12/2024 13:53:48						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											45.041027, 5.042179						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											https://maps.app.goo.gl/dREoJkuvt8vvnZtq9						
-                                                                                                                                        										</td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                    <tr valign="middle" class="odd" id="rqtr_67c0d1ac5c7d4d4cb6ac31409c7802b9_84c7c7af1813416bb3e52e582078ffae">
-                                                                                                                                        <td class="rqtblcelllnk" style="" width="0" onclick="RQ.nav.detail('/do/Network/iotGateway:get?sysId=84c7c7af1813416bb3e52e582078ffae&amp;pctx=67c0d1ac5c7d4d4cb6ac31409c7802b9')"></td>
-                                                                                                                                        <td width="18" class="rqtblmenu" id="iotGateway:84c7c7af1813416bb3e52e582078ffae">
-                                                                                                                                            <a class="rqtblmenulnk" href="#" rel="/ajax?op=ctip&amp;mode=actmenu&amp;ctx=67c0d1ac5c7d4d4cb6ac31409c7802b9&amp;page=Network&amp;name=iotGateway:84c7c7af1813416bb3e52e582078ffae">
-                                                                                                                                                <span>a</span>
-                                                                                                                                            </a>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Eglise Barbi&egrave;res						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Active</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											00000008004E64B3						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											23402516						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:8px;height:8px;background:url('/data/entries/402881945ca511a3015ca5380f3636ad.png') no-repeat;background-size: 8px 8px;position:relative;top:5px;">&#160;</div>
-                                                                                                                                            <span>Connect&eacute;e</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Eglise</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Commune de Barbi&egrave;res						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											15						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Eglise</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span>Install&eacute; / En production</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <span class="rqempty">-</span>
-                                                                                                                                            &#160;						
-                                                                                                                                            										
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">
-                                                                                                                                            <div class="rqopticon" style="width:16px;height:16px;background:url('/data/entries/8a899e0466598b9f01665996316225c8.png') no-repeat;background-size: 16px 16px;">&#160;</div>
-                                                                                                                                            <span>REQUEA LoRaWAN</span>
-                                                                                                                                        </td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											Barbi&egrave;res						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											mtcap-6.3.0.d67						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											89351060000829249117						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											195.8.30.110						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											25/11/2025 14:43:20						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											44.955048, 5.141973						
-                                                                                                                                        										</td>
-
-                                                                                                                                        <td class="rqtblcel">					
-                                                                                                                                        											https://maps.app.goo.gl/o32Mtt1YNDsJKLEH8						
-                                                                                                                                        										</td>
-
-                                                                                                                                    </tr>
-
-                                                                                                                                </tbody>
-                                                                                                                            </table>
-                                                                                                                        </div>
-                                                                                                                        <div class="rqsep"></div>
-                                                                                                                        <div class="rqrecordcount col-auto px-0 col-12">
-                                                                                                                            1 - 15 /  total: 
-                                                                                                                            <span class="rqcount" id="rqcount67c0d1ac5c7d4d4cb6ac31409c7802b9">
-                                                                                                                                <a href="#" onclick="return RQ.nav.count('67c0d1ac5c7d4d4cb6ac31409c7802b9');">????</a>
-                                                                                                                            </span>
-                                                                                                                        </div>
-                                                                                                                        <div class="navbottom float-left">
-                                                                                                                            <a href="javascript:RQ.nav.listnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','0')" class="rqbtn rqnavprev rqdisabled">
-                                                                                                                                <span>&lt;</span>
-                                                                                                                            </a>
-                                                                                                                            <a href="javascript:RQ.nav.listnav('67c0d1ac5c7d4d4cb6ac31409c7802b9','2')" class="rqbtn rqnavnext">
-                                                                                                                                <span>&gt;</span>
-                                                                                                                            </a>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                    <div class="rqactsel"></div>
-
-                                                                                                                </form>
-
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                        <div class="rqsep"></div>
-                                                                                                    </div>
-                                                                                                    <div></div>
-
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-
-                                                                                </li>
-
-                                                                            </ul>
-                                                                        </td>
-
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-
-                                                        <div id="footer">
-                                                            <div id="ifooter">
-
-                                                                <div id="cfooter">
-                                                                    <span class="f1">REQUEA Portail</span>
-                                                                    <span class="f2">Copyright REQUEA - 2025</span>
-                                                                    <span class="f2">
-                                                                        <a class="rqlnkfooter" href="https://www.requea.com">Une technologie Requea 4.1</a>
-                                                                    </span>
-                                                                    <span class="f2">
-                                                                        <a class="rqlnkfooter" target="_blank" href=""></a>
-                                                                    </span>
-                                                                </div>
-
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<body>
+<div class="shell">
+<section class="hero">
+    <div class="topbar">
+        <div class="brand">
+            <div class="logo">RQ</div>
+            <div>
+                <div class="eyebrow">Supervision LoRaWAN</div>
+                <h1>Monitoring Requea</h1>
+                <div class="subtitle">Vue opérationnelle des clusters et passerelles actives.</div>
             </div>
         </div>
+        <div class="updated">Mise à jour · {NOW.strftime("%d/%m/%Y %H:%M")}</div>
     </div>
-    <script type="text/javascript" src="/sys/js/highstock.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/highcharts-3d.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/highcharts-more.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/highcharts-exporting.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/highcharts-export-data.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/rqchart.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/highcharts-heatmap.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/fileuploader.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/tiny_mce-3.5.8/jquery.tinymce.js"></script>
-    <script type="text/javascript" src="/sys/js/codemirror.4.1.159.min.js"></script>
-    <script type="text/javascript" src="/sys/js/mode-4.1.159.min.js"></script>
-    <script type="text/javascript" src="/yui/build/slider/slider-min.js?ver=4.1.1115"></script>
-    <script type="text/javascript" src="/yui/build/colorpicker/colorpicker-min.js?ver=4.1.1115"></script>
-    <script type="text/javascript">
-    RQ.Messages = {};
-    RQ.Messages['ui.fileuploader.upload'] = '[t&eacute;l&eacute;charger]';
-    RQ.Messages['ui.fileuploader.drop'] = 'D&eacute;poser les fichiers ici pour les t&eacute;l&eacute;charger';
-    RQ.Messages['ui.fileuploader.processing'] = 'traitement en cours...';
-    RQ.Messages['ui.fileuploader.invalid.name'] = 'Le nom du fichier contient des caract\u00E8res interdits';
-    RQ.Messages['ui.mobile.ptr.pull'] = 'Tirer pour actualiser';
-    RQ.Messages['ui.mobile.ptr.release'] = 'Rel\u00E2cher pour actualiser';
-    RQ.Messages['ui.mobile.ptr.refreshing'] = 'Actualisation';
-    RQ.Messages['ui.tooltipster.loading'] = 'Chargement ...';
-    RQ.Messages['ui.cordova.imagepicker'] = 'S\u00E9lectionner la source de l\'image';
-    RQ.Messages['ui.cordova.imagesource.camera'] = 'Cam\u00E9ra';
-    RQ.Messages['ui.cordova.imagesource.storage'] = 'Stockage interne';
-    </script>
-    <script type="text/javascript">
+    <div class="kpis">
+        <div class="kpi g-blue">
+            <div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div>
+            <div class="kpi-label">Clusters</div>
+            <div class="kpi-value">{len(clusters)}</div>
+            <div class="kpi-sub">territoires supervisés</div>
+        </div>
+        <div class="kpi g-cyan">
+            <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M6 20h12M12 20V10"/><path d="M8 10a4 4 0 0 1 8 0M5 7a8 8 0 0 1 14 0"/></svg></div>
+            <div class="kpi-label">Passerelles actives</div>
+            <div class="kpi-value">{total}</div>
+            <div class="kpi-sub">inventaire consolidé</div>
+        </div>
+        <div class="kpi g-green">
+            <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <div class="kpi-label">Connectées</div>
+            <div class="kpi-value">{ok}</div>
+            <div class="kpi-sub">{round(ok / total * 100, 1) if total else 0}% opérationnelles</div>
+        </div>
+        <div class="kpi g-red">
+            <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><path d="M10.3 4.3 2.8 17.2A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.8L13.7 4.3a2 2 0 0 0-3.4 0Z"/></svg></div>
+            <div class="kpi-label">Déconnectées</div>
+            <div class="kpi-value">{down}</div>
+            <div class="kpi-sub">{round(down / total * 100, 1) if total else 0}% à traiter</div>
+        </div>
+        <div class="kpi g-orange">
+            <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg></div>
+            <div class="kpi-label">Service instantané</div>
+            <div class="kpi-value">{service}%</div>
+            <div class="kpi-sub">sur passerelles actives</div>
+        </div>
+        <div class="kpi g-violet">
+            <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5 5L4 17v3h3l5.7-5.7a4 4 0 0 0 5-5l-3 3-3-3 3-3Z"/></svg></div>
+            <div class="kpi-label">Maintenance &gt;24h</div>
+            <div class="kpi-value">{maintenance}</div>
+            <div class="kpi-sub">priorité intervention</div>
+        </div>
+    </div>
+</section>
+<section class="panel">
+    <div class="section-head"><div><h2>Synthèse clusters</h2><div class="section-caption">Identification rapide, état de service et incidents par territoire.</div></div></div>
+    <div class="cluster-grid">
+"""
 
-    Coloris({
-        el: '.coloris',
-        wrap: true,
-        swatchesOnly: false,
-        swatches: [
-        '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#d62828', '#023e8a', '#0077b6', '#0096c7', '#00b4d8', '#48cae4',
-        ]
-    });
-    </script>
+for c in clusters:
+    s = cluster_stats[c]
+    html_page += f"""
+        <article class="cluster-card">
+            <div class="cluster-top"><div class="cluster-mark"><svg viewBox="0 0 24 24"><path d="M6 20h12M12 20V10"/><path d="M8 10a4 4 0 0 1 8 0M5 7a8 8 0 0 1 14 0"/></svg></div><div class="cluster-name">{esc(c)}</div></div>
+            <div class="cluster-stats">
+                <div><div class="cluster-num">{s["total"]}</div><div class="cluster-sub">Total</div></div>
+                <div><div class="cluster-num" style="color:var(--green)">{s["ok"]}</div><div class="cluster-sub">OK</div></div>
+                <div><div class="cluster-num" style="color:var(--red)">{s["down"]}</div><div class="cluster-sub">HS</div></div>
+            </div>
+            <div class="progress"><span style="width:{s["service"]}%"></span></div>
+            <div class="progress-label">{s["service"]}%</div>
+        </article>
+"""
+
+html_page += """
+    </div>
+</section>
+<section class="panel">
+    <div class="section-head"><div><h2>Filtre clusters</h2><div class="section-caption">Sélection fluide avec indicateur glissant.</div></div></div>
+    <div class="filter-row"><div class="filter-shell"><div class="filter"><div class="slider"></div><button class="seg-btn active" data-cluster="ALL">Tous</button>
+"""
+
+for c in clusters:
+    html_page += f'<button class="seg-btn" data-cluster="{esc(c)}">{esc(c)}</button>\n'
+
+html_page += """
+    </div></div><div class="search"><input id="searchInput" placeholder="Rechercher une passerelle, ville, firmware, ID..."></div></div>
+</section>
+<section class="panel">
+    <div class="section-head"><div><h2>Passerelles HS</h2><div class="section-caption">Priorisation maintenance et durée d’indisponibilité.</div></div></div>
+    <div class="table-wrap"><table>
+        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Connexion</th><th>Dernière connexion</th><th>Durée HS</th><th>Service 24h</th><th>Firmware</th><th>SIM</th><th>IMEI</th><th>Commentaire</th><th>Connection serveur</th><th>Alimentation</th></tr>
+"""
+
+for g in active_gateways:
+    if not g["down"]:
+        continue
+    row_class = "maintenance" if g["maintenance"] else "down"
+    html_page += f"""
+        <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+            <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell"><strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(gps_display(g["geolocation"]))}{gps_actions(g["geolocation"])}</span></td>
+            <td><span class="badge ko">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{fmt_duration(g["down_hours"])}</td><td>{g["service_24h"]}%</td><td>{esc(g["firmware"])}</td><td>{esc(g.get("sim"))}</td><td>{esc(g.get("imei"))}</td><td>{esc(g.get("commentaire"))}</td><td>{esc(g.get("connection_serveur"))}</td><td>{esc(g.get("alimentation"))}</td>
+        </tr>
+"""
+
+html_page += """
+    </table></div>
+</section>
+<section class="panel">
+    <div class="section-head"><div><h2>Toutes les passerelles</h2><div class="section-caption">Inventaire consolidé des passerelles actives.</div></div></div>
+    <div class="table-wrap"><table>
+        <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Statut</th><th>Connexion</th><th>Firmware</th><th>ID</th></tr>
+"""
+
+for g in active_gateways:
+    badge = "ko" if g["down"] else "ok"
+    row_class = "maintenance" if g["maintenance"] else ("down" if g["down"] else "")
+    html_page += f"""
+        <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
+            <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell"><strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(gps_display(g["geolocation"]))}{gps_actions(g["geolocation"])}</span></td>
+            <td><span class="badge ok">{esc(g["status"])}</span></td><td><span class="badge {badge}">{esc(g["connection"])}</span></td><td>{esc(g["firmware"])}</td><td>{esc(g["gateway_id"])}</td>
+        </tr>
+"""
+
+html_page += """
+    </table></div>
+</section>
+</div>
 </body>
 </html>
+"""
+
+os.makedirs("public", exist_ok=True)
+with open("public/index.html", "w", encoding="utf-8") as f:
+    f.write(html_page)
+
+print(f"Dashboard généré : {total} passerelles actives")
