@@ -92,92 +92,127 @@ def stats_from_messages(messages):
 
 
 def login(page, cluster):
-    page.goto(cluster["url"], wait_until="domcontentloaded", timeout=60000)
-    page.wait_for_timeout(2500)
-
-    body = clean(page.locator("body").inner_text())
-
-    # Si la session est déjà ouverte, inutile de chercher le formulaire.
-    if (
-        "Sign out" in body
-        or "Déconnexion" in body
-        or "Deconnexion" in body
-        or "Network Map" in body
-        or "Gateways" in body
-    ):
-        return
-
-    username_selectors = [
-        'input[name*="login" i]:visible',
-        'input[name*="user" i]:visible',
-        'input[name*="email" i]:visible',
-        'input[type="email"]:visible',
-        'input[type="text"]:visible',
-        'input:visible:not([type="password"]):not([type="hidden"])',
+    start_urls = [
+        cluster["url"].rstrip("/"),
+        cluster["url"].rstrip("/") + "/page/Network_Gateways",
+        cluster["url"].rstrip("/") + "/do/NetworkMap/Home",
+        cluster["url"].rstrip("/") + "/do/NetworkMap/Home/iotGateway:list",
     ]
 
-    password_selectors = [
-        'input[type="password"]:visible',
-        'input[name*="password" i]:visible',
-        'input[name*="pass" i]:visible',
-    ]
+    last_debug = {}
 
-    username = None
-    password = None
-
-    for selector in username_selectors:
+    for start_url in start_urls:
         try:
-            loc = page.locator(selector)
-            if loc.count() > 0:
-                username = loc.first
-                break
-        except Exception:
-            pass
+            print("Tentative connexion Valence:", start_url)
 
-    for selector in password_selectors:
-        try:
-            loc = page.locator(selector)
-            if loc.count() > 0:
-                password = loc.first
-                break
-        except Exception:
-            pass
+            page.goto(start_url, wait_until="domcontentloaded", timeout=60000)
+            page.wait_for_timeout(3500)
 
-    if not username or not password:
-        debug = {
-            "url": page.url,
-            "title": page.title(),
-            "body_start": body[:2000],
-            "input_count": page.locator("input").count(),
-        }
+            body = clean(page.locator("body").inner_text())
 
-        os.makedirs("public", exist_ok=True)
+            if (
+                "Sign out" in body
+                or "Déconnexion" in body
+                or "Deconnexion" in body
+                or "Network Map" in body
+                or "Gateways" in body
+                or "Passerelles" in body
+            ):
+                print("Session Valence déjà ouverte ou page applicative atteinte")
+                return
 
-        with open("public/valence_traffic.html", "w", encoding="utf-8") as f:
-            f.write(
-                "<!doctype html><html><head><meta charset='utf-8'>"
-                "<title>Erreur connexion Valence</title></head><body>"
-                "<h1>Erreur connexion Valence</h1>"
-                "<p>Formulaire de connexion introuvable.</p>"
-                "<pre>"
-                + esc(json.dumps(debug, indent=2, ensure_ascii=False))
-                + "</pre>"
-                "</body></html>"
-            )
+            username_selectors = [
+                'input[name*="login" i]:visible',
+                'input[name*="user" i]:visible',
+                'input[name*="email" i]:visible',
+                'input[id*="login" i]:visible',
+                'input[id*="user" i]:visible',
+                'input[id*="email" i]:visible',
+                'input[type="email"]:visible',
+                'input[type="text"]:visible',
+                'input:not([type]):visible',
+                'input:visible:not([type="password"]):not([type="hidden"])',
+            ]
 
-        raise Exception("Formulaire de connexion Valence introuvable. Voir public/valence_traffic.html")
+            password_selectors = [
+                'input[type="password"]:visible',
+                'input[name*="password" i]:visible',
+                'input[name*="pass" i]:visible',
+                'input[id*="password" i]:visible',
+                'input[id*="pass" i]:visible',
+            ]
 
-    username.fill(cluster.get("login", ""))
-    password.fill(cluster.get("password", ""))
+            username = None
+            password = None
 
-    page.wait_for_timeout(300)
-    password.press("Enter")
-    page.wait_for_timeout(7000)
+            for selector in username_selectors:
+                try:
+                    loc = page.locator(selector)
+                    if loc.count() > 0:
+                        username = loc.first
+                        break
+                except Exception:
+                    pass
 
-    body = page.locator("body").inner_text()
+            for selector in password_selectors:
+                try:
+                    loc = page.locator(selector)
+                    if loc.count() > 0:
+                        password = loc.first
+                        break
+                except Exception:
+                    pass
 
-    if "Mot de passe oublié" in body or "Forgot your password" in body:
-        raise Exception("Connexion refusée")
+            last_debug = {
+                "tested_url": start_url,
+                "current_url": page.url,
+                "title": page.title(),
+                "body_start": body[:2500],
+                "input_count": page.locator("input").count(),
+            }
+
+            if not username or not password:
+                continue
+
+            username.fill(cluster.get("login", ""))
+            password.fill(cluster.get("password", ""))
+
+            page.wait_for_timeout(300)
+            password.press("Enter")
+            page.wait_for_timeout(8000)
+
+            body = clean(page.locator("body").inner_text())
+
+            if "Mot de passe oublié" in body or "Forgot your password" in body:
+                raise Exception("Connexion refusée")
+
+            print("Connexion Valence OK")
+            return
+
+        except Exception as e:
+            last_debug["exception"] = str(e)
+
+    os.makedirs("public", exist_ok=True)
+
+    with open("public/valence_traffic.html", "w", encoding="utf-8") as f:
+        f.write(
+            "<!doctype html><html><head><meta charset='utf-8'>"
+            "<title>Diagnostic connexion Valence</title>"
+            "<style>body{font-family:Arial;padding:24px;background:#f6f8fb;color:#111827}"
+            "pre{white-space:pre-wrap;background:white;border:1px solid #ddd;border-radius:12px;padding:16px}</style>"
+            "</head><body>"
+            "<h1>Diagnostic connexion Valence</h1>"
+            "<p>Le formulaire de connexion est introuvable depuis GitHub Actions.</p>"
+            "<pre>"
+            + esc(json.dumps(last_debug, indent=2, ensure_ascii=False))
+            + "</pre>"
+            "</body></html>"
+        )
+
+    print("DIAGNOSTIC CONNEXION VALENCE")
+    print(json.dumps(last_debug, indent=2, ensure_ascii=False))
+
+    raise Exception("Connexion Valence impossible : diagnostic écrit dans public/valence_traffic.html")
 
 
 def click_next(page):
@@ -415,7 +450,10 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     context = browser.new_context(viewport={"width": 1600, "height": 1000})
 
-    cluster = None
+    # Valence est forcé dans ce fichier pour éviter de dépendre du nom présent dans REQUEA_CONFIG.
+    # Les identifiants sont repris depuis le premier cluster du secret GitHub.
+    # Si Valence a des identifiants différents, ajoute-le dans REQUEA_CONFIG avec son propre login/password.
+    source_credentials = CONFIG[0] if CONFIG else {}
 
     for c in CONFIG:
         url = str(c.get("url", "")).rstrip("/").lower()
@@ -426,11 +464,15 @@ with sync_playwright() as p:
             or "valenceromans" in url
             or "valence" in name
         ):
-            cluster = c
+            source_credentials = c
             break
 
-    if not cluster:
-        raise Exception("Cluster Valence introuvable dans REQUEA_CONFIG")
+    cluster = {
+        "name": "Valence Romans",
+        "url": VALENCE_URL,
+        "login": source_credentials.get("login", ""),
+        "password": source_credentials.get("password", "")
+    }
 
     page = context.new_page()
     login(page, cluster)
