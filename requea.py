@@ -865,6 +865,32 @@ def fmt_duration(hours):
     return f"{days} jours {remaining_hours} h"
 
 
+
+def support_icon(g):
+    text = " ".join([
+        str(g.get("name", "")),
+        str(g.get("city", "")),
+        str(g.get("model", "")),
+        str(g.get("firmware", "")),
+        str(g.get("commentaire", "")),
+    ]).lower()
+
+    if "église" in text or "eglise" in text or "church" in text:
+        svg = '<svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M8 7h8"/><path d="M5 21h14"/><path d="M7 21V10l5-4 5 4v11"/></svg>'
+    elif "mairie" in text or "hôtel de ville" in text or "hotel de ville" in text:
+        svg = '<svg viewBox="0 0 24 24"><path d="M4 21h16"/><path d="M6 21V10h12v11"/><path d="M5 10l7-5 7 5"/><path d="M9 21v-6h6v6"/></svg>'
+    elif "poteau" in text or "ep " in text or "eclairage" in text or "éclairage" in text:
+        svg = '<svg viewBox="0 0 24 24"><path d="M12 21V8"/><path d="M8 8h8"/><path d="M15 8a4 4 0 0 0-4-4H9"/><path d="M16 12h2"/></svg>'
+    elif "hlm" in text or "immeuble" in text or "bâtiment" in text or "batiment" in text:
+        svg = '<svg viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/><path d="M3 21h18"/></svg>'
+    elif "réservoir" in text or "reservoir" in text or "chateau" in text or "château" in text or "eau" in text:
+        svg = '<svg viewBox="0 0 24 24"><path d="M7 8h10"/><path d="M8 8c0-3 8-3 8 0v4c0 3-8 3-8 0V8Z"/><path d="M9 15 6 21M15 15l3 6M9 18h6"/></svg>'
+    else:
+        svg = '<svg viewBox="0 0 24 24"><path d="M6 20h12M12 20V10"/><path d="M8 10a4 4 0 0 1 8 0"/><path d="M5 7a8 8 0 0 1 14 0"/></svg>'
+
+    return '<span class="gateway-icon">' + svg + '</span>'
+
+
 html_page = f"""
 <!DOCTYPE html>
 <html lang="fr">
@@ -1010,37 +1036,42 @@ h2{{margin:0;font-size:30px;line-height:1.05;font-weight:900;letter-spacing:-.04
     left:7px;
     height:calc(100% - 14px);
     border-radius:999px;
+    overflow:hidden;
+    isolation:isolate;
     background:
-        radial-gradient(circle at 28% 18%, rgba(255,255,255,.98), rgba(255,255,255,.50) 22%, rgba(255,255,255,.22) 58%, rgba(255,255,255,.10) 100%);
+        radial-gradient(circle at 28% 18%, rgba(255,255,255,.96), rgba(255,255,255,.58) 20%, rgba(255,255,255,.25) 58%, rgba(255,255,255,.10) 100%);
     border:1px solid rgba(255,255,255,.86);
     box-shadow:
-        0 14px 34px rgba(15,23,42,.12),
+        0 16px 38px rgba(15,23,42,.13),
         inset 0 1px 1px rgba(255,255,255,.98),
-        inset 0 -12px 22px rgba(255,255,255,.28),
+        inset 0 -16px 24px rgba(180,210,255,.22),
         inset 0 0 0 1px rgba(255,255,255,.42);
-    backdrop-filter:blur(28px) saturate(210%) contrast(112%);
-    -webkit-backdrop-filter:blur(28px) saturate(210%) contrast(112%);
-    transition:transform .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1);
+    backdrop-filter:blur(30px) saturate(220%) contrast(112%);
+    -webkit-backdrop-filter:blur(30px) saturate(220%) contrast(112%);
+    transition:
+        transform .34s cubic-bezier(.2,.8,.2,1),
+        width .34s cubic-bezier(.2,.8,.2,1);
 }}
 .slider::before{{
     content:"";
     position:absolute;
-    inset:2px 12px auto 12px;
-    height:42%;
+    inset:2px 10px auto 10px;
+    height:45%;
     border-radius:999px;
-    background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.18));
+    background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(255,255,255,.18));
     pointer-events:none;
+    mix-blend-mode:screen;
 }}
 .slider::after{{
     content:"";
     position:absolute;
-    right:10px;
+    right:9px;
     bottom:7px;
     width:18px;
     height:18px;
     border-radius:999px;
-    background:rgba(255,255,255,.36);
-    filter:blur(.2px);
+    background:rgba(255,255,255,.38);
+    box-shadow:0 0 18px rgba(255,255,255,.45);
     pointer-events:none;
 }}
 .seg-btn{{position:relative;z-index:2;border:0;background:transparent;border-radius:999px;padding:11px 17px;color:#334155;font-weight:850;white-space:nowrap;cursor:pointer;transition:color .22s ease,text-shadow .22s ease;}}
@@ -1071,6 +1102,49 @@ tr:hover{{background:rgba(255,255,255,.34);}}
 .icon-link.disabled{{opacity:.28;cursor:not-allowed;color:#98a2b3;}}
 .gps-cell,.gateway-cell{{display:inline-flex;align-items:center;gap:6px;}}
 .gps-actions{{display:inline-flex;align-items:center;white-space:nowrap;}}
+
+
+/* Export, Liquid Glass interactions, responsive tables */
+.glass-export{{
+    display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.76);border-radius:999px;padding:12px 16px;
+    color:#07101f;font-weight:900;
+    background:radial-gradient(circle at 28% 18%, rgba(255,255,255,.92), rgba(255,255,255,.40) 45%, rgba(255,255,255,.18) 100%);
+    box-shadow:0 14px 34px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.90), inset 0 -12px 22px rgba(200,220,255,.18);
+    backdrop-filter:blur(28px) saturate(205%);-webkit-backdrop-filter:blur(28px) saturate(205%);
+    cursor:pointer;transition:transform .22s ease, box-shadow .22s ease, background .22s ease;
+}}
+.glass-export:hover{{transform:translateY(-1px) scale(1.012);box-shadow:0 18px 42px rgba(15,23,42,.14), inset 0 1px 0 rgba(255,255,255,.95), inset 0 -14px 24px rgba(200,220,255,.22);}}
+.glass-export svg{{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}}
+.panel{{animation:fadeUp .46s ease both;}}
+.panel:nth-of-type(2){{animation-delay:.04s}}
+.panel:nth-of-type(3){{animation-delay:.08s}}
+.panel:nth-of-type(4){{animation-delay:.12s}}
+@keyframes fadeUp{{from{{opacity:0;transform:translateY(12px) scale(.995)}}to{{opacity:1;transform:none}}}}
+.kpi,.cluster-card{{transition:transform .24s ease, box-shadow .24s ease, filter .24s ease;}}
+.kpi:hover,.cluster-card:hover{{transform:translateY(-2px);filter:saturate(1.04);}}
+.seg-btn{{transition:transform .20s ease,color .20s ease,text-shadow .20s ease;}}
+.seg-btn:hover{{transform:scale(1.025);}}
+.gateway-row{{transition:background .18s ease, transform .18s ease;}}
+.gateway-row:hover{{transform:translateX(2px);}}
+.gateway-icon{{
+    display:inline-grid;place-items:center;width:26px;height:26px;border-radius:999px;margin-right:8px;vertical-align:middle;color:#2563eb;
+    background:rgba(255,255,255,.46);border:1px solid rgba(255,255,255,.74);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 8px 18px rgba(15,23,42,.07);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}}
+.gateway-icon svg{{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round;}}
+td,th{{font-variant-numeric:tabular-nums;}}
+td{{overflow-wrap:anywhere;}}
+@media(max-width:760px){{
+    table{{min-width:1180px}}
+    th{{font-size:10px;padding:10px 8px;letter-spacing:.02em}}
+    td{{font-size:11px;padding:10px 8px;line-height:1.25}}
+    .badge{{font-size:10px;padding:6px 9px}}
+    .icon-link{{width:27px;height:27px}}
+    .gateway-icon{{width:23px;height:23px;margin-right:6px}}
+    .glass-export{{width:100%;justify-content:center;margin-top:12px}}
+}}
+@media(prefers-reduced-motion:reduce){{*,*::before,*::after{{animation:none!important;transition:none!important;scroll-behavior:auto!important}}}}
 
 </style>
 <script>
@@ -1112,6 +1186,44 @@ function initSegmented() {{
     apply();
 }}
 window.addEventListener("load", initSegmented);
+
+function initExportGateways(){{
+    const btn = document.querySelector("#exportGateways");
+    if (!btn) return;
+
+    btn.addEventListener("click", () => {{
+        const section = Array.from(document.querySelectorAll("section.panel")).find(s => {{
+            const h = s.querySelector("h2");
+            return h && h.textContent.trim().toLowerCase().includes("toutes les passerelles");
+        }});
+        if (!section) return;
+
+        const table = section.querySelector("table");
+        if (!table) return;
+
+        const rows = Array.from(table.querySelectorAll("tr")).filter(row => row.style.display !== "none");
+        const csv = rows.map(row => {{
+            return Array.from(row.querySelectorAll("th,td")).map(cell => {{
+                let value = cell.innerText.replace(/\s+/g, " ").trim();
+                value = value.replace(/"/g, '""');
+                return `"${{value}}"`;
+            }}).join(";");
+        }}).join("\\n");
+
+        const blob = new Blob(["\\ufeff" + csv], {{type:"text/csv;charset=utf-8"}});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const date = new Date().toISOString().slice(0,10);
+        a.href = url;
+        a.download = "passerelles_requea_affichees_" + date + ".csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }});
+}}
+window.addEventListener("load", initExportGateways);
+
 </script>
 </head>
 <body>
@@ -1191,7 +1303,7 @@ html_page += """
     </div>
 </section>
 <section class="panel">
-    <div class="section-head"><div><h2>Filtrer les clusters</h2><div class="section-caption">Filtrage par cluster avec effet Liquid Glass.</div></div></div>
+    <div class="section-head"><div><h2>Filtrer les clusters</h2><div class="section-caption">Affichage dynamique du réseau.</div></div></div>
     <div class="filter-row"><div class="filter-shell"><div class="filter"><div class="slider"></div><button class="seg-btn active" data-cluster="ALL">Tous</button>
 """
 
@@ -1213,7 +1325,7 @@ for g in active_gateways:
     row_class = "maintenance" if g["maintenance"] else "down"
     html_page += f"""
         <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
-            <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell"><strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(gps_display(g["geolocation"]))}{gps_actions(g["geolocation"])}</span></td>
+            <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell">{support_icon(g)}<strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(gps_display(g["geolocation"]))}{gps_actions(g["geolocation"])}</span></td>
             <td><span class="badge ko">{esc(g["connection"])}</span></td><td>{fmt_date(g["last_connection"])}</td><td>{fmt_duration(g["down_hours"])}</td><td>{g["service_24h"]}%</td><td>{esc(g["firmware"])}</td><td>{esc(g.get("sim"))}</td><td>{esc(g.get("imei"))}</td><td>{esc(g.get("commentaire"))}</td><td>{esc(g.get("connection_serveur"))}</td><td>{esc(g.get("alimentation"))}</td>
         </tr>
 """
@@ -1222,7 +1334,13 @@ html_page += """
     </table></div>
 </section>
 <section class="panel">
-    <div class="section-head"><div><h2>Toutes les passerelles</h2><div class="section-caption">Inventaire consolidé des passerelles actives.</div></div></div>
+    <div class="section-head">
+        <div><h2>Toutes les passerelles</h2><div class="section-caption">Inventaire consolidé des passerelles actives.</div></div>
+        <button id="exportGateways" class="glass-export" type="button" title="Exporter les passerelles affichées">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            Export affiché
+        </button>
+    </div>
     <div class="table-wrap"><table>
         <tr><th>Cluster</th><th>Passerelle</th><th>Ville</th><th>GPS</th><th>Statut</th><th>Connexion</th><th>Firmware</th><th>ID</th></tr>
 """
@@ -1232,7 +1350,7 @@ for g in active_gateways:
     row_class = "maintenance" if g["maintenance"] else ("down" if g["down"] else "")
     html_page += f"""
         <tr class="gateway-row {row_class}" data-cluster="{esc(g["cluster"])}">
-            <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell"><strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(gps_display(g["geolocation"]))}{gps_actions(g["geolocation"])}</span></td>
+            <td><strong>{esc(g["cluster"])}</strong></td><td><span class="gateway-cell">{support_icon(g)}<strong>{esc(g["name"])}</strong>{gateway_link(g)}</span></td><td>{esc(g["city"])}</td><td><span class="gps-cell">{esc(gps_display(g["geolocation"]))}{gps_actions(g["geolocation"])}</span></td>
             <td><span class="badge ok">{esc(g["status"])}</span></td><td><span class="badge {badge}">{esc(g["connection"])}</span></td><td>{esc(g["firmware"])}</td><td>{esc(g["gateway_id"])}</td>
         </tr>
 """
