@@ -3,10 +3,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -17,18 +13,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=54e726e08d5546a3921a51ba71d8655b&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=54e726e08d5546a3921a51ba71d8655b&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004D7347": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -39,17 +35,17 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=61a6014fa93248a39189dd9567c34b9e&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=61a6014fa93248a39189dd9567c34b9e&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004D79EE": {
     "down_since": null,
     "samples": [
-      {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
       {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
@@ -61,9 +57,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=65e6032088c3491d9ad02f6332f4117c&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=65e6032088c3491d9ad02f6332f4117c&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-09-01T11:20:52+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666087927848</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836655482</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -72,10 +72,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -86,18 +82,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=a84e3aa1c87e42c58f8cd0e187f5083f&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=a84e3aa1c87e42c58f8cd0e187f5083f&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004C8531": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -108,18 +104,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682cd78d864f3&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682cd78d864f3&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004C8532": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -130,18 +126,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682cf952a7dc3&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682cf952a7dc3&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004C7447": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -152,9 +148,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682d1871060a5&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682d1871060a5&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-07-23T11:46:59+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666054520048</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103375645</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -164,10 +164,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -178,18 +174,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682d1d5081219&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4867f9026018682d1d5081219&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004CF990": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -200,10 +196,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
     "last_connection": "2026-06-13T17:22:59+02:00",
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba2b9bd13c88&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba2b9bd13c88&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">8988247000015976369</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103650039</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
     "commentaire": "Network REQUEA LoRaWAN REQUEA Roaming Firmware Version Municipality Geo location Hauteur 00000008004CD2D9 Active 00000008004CD2D9 Multitech IP67 Outdoor L4E1 Co"
@@ -212,10 +212,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -226,9 +222,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba2bc2e54225&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba2bc2e54225&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-07-10T23:19:40+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">8988247000015976310</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103438070</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -237,10 +237,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -251,18 +247,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba300e8c6cfd&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba300e8c6cfd&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004CF98F": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -273,9 +269,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba30f40e28f8&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba30f40e28f8&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-06-12T08:46:51+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666054520139</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103649593</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -285,10 +285,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -299,9 +295,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488bddf530188c34595476a6f&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488bddf530188c34595476a6f&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-07-08T16:27:45+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666054520055</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103494032</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -311,10 +311,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -325,9 +321,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90867f8420018682d374a97e4c&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90867f8420018682d374a97e4c&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-08-13T19:03:59+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666054520071</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103383078</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -337,10 +337,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -351,9 +347,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90867f8420018682d40d3405a0&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90867f8420018682d40d3405a0&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-08-08T11:00:22+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666054520063</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103377088</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -363,10 +363,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -377,9 +373,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba2b8e40439d&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba2b8e40439d&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-08-10T19:07:21+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">8988247000016859689</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103653330</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -388,10 +388,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -402,9 +398,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba32b62559be&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba32b62559be&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-08-24T20:22:57+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">8988247000015976294</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103654395</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -414,10 +414,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -428,18 +424,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba3583b83e0f&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=b3cd0b9088b5ecbf0188ba3583b83e0f&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004D7367": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -450,9 +446,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=c24d1d427533493c86913bbc3009345b&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=c24d1d427533493c86913bbc3009345b&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-08-24T20:41:04+02:00",
     "sim": "89882280666087927921",
     "imei": "359795836672164 3G/4G",
@@ -462,10 +462,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -476,9 +472,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=d54f697f9a4d41a690189c176578577e&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=d54f697f9a4d41a690189c176578577e&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-08-17T06:54:55+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666087927871</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836655441</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -488,10 +488,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -502,9 +498,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=e0ac05237cae425b8ece3df63c5c289c&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=e0ac05237cae425b8ece3df63c5c289c&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-07-06T10:14:37+02:00",
     "sim": "89882280666087927863",
     "imei": "359795836654022 3G/4G",
@@ -514,10 +514,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -528,18 +524,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f0becbbc9970419aaed468cb11883c55&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f0becbbc9970419aaed468cb11883c55&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004D734A": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -550,18 +546,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f3603dc939184af18177d6cc1e7f0349&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f3603dc939184af18177d6cc1e7f0349&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004D79EF": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -572,9 +568,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f7e2ddf1f9a441a2bad37a83e375d214&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=f7e2ddf1f9a441a2bad37a83e375d214&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-07-25T21:49:14+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666087927855</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836674137</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -584,10 +584,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -598,17 +594,17 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=5d8b9281ae7b4b43ba60fed63ee40284&pctx=a9109697a10545a59f39844ba794108e"
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=5d8b9281ae7b4b43ba60fed63ee40284&pctx=943d1c06878f460ba5ed9e80123990ce"
   },
   "00000008004C5179": {
-    "down_since": null,
+    "down_since": "2026-09-02T10:14:59+02:00",
     "samples": [
-      {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
       {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
@@ -620,10 +616,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": false
       }
     ],
-    "last_connection": "2026-09-01T10:27:56+02:00",
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=6af035c756f54a4692be479f7e91c78c&pctx=a9109697a10545a59f39844ba794108e",
+    "last_connection": "2026-09-02T10:14:59+02:00",
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=6af035c756f54a4692be479f7e91c78c&pctx=943d1c06878f460ba5ed9e80123990ce",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">8988247000016859440</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103420797</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
     "commentaire": "Network Actility ThingPark API-K Autre Bouygues Objenious CloverNet Helium Kerlink SPN LaPoste Loriot.io Multitech LNS Orange Live Objects REQUEA LoRaWAN REQUEA"
@@ -632,10 +632,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -646,9 +642,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af48196367d0181a4dd5d823613&pctx=a9109697a10545a59f39844ba794108e",
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af48196367d0181a4dd5d823613&pctx=943d1c06878f460ba5ed9e80123990ce",
     "last_connection": "2026-07-08T08:27:53+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">8933263207210208135</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103414394</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -658,10 +658,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -672,18 +668,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a66018849606bcc1812&pctx=a9109697a10545a59f39844ba794108e"
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a66018849606bcc1812&pctx=943d1c06878f460ba5ed9e80123990ce"
   },
   "00000008004CE666": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -694,18 +690,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a660188496495460f6e&pctx=a9109697a10545a59f39844ba794108e"
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a660188496495460f6e&pctx=943d1c06878f460ba5ed9e80123990ce"
   },
   "00000008004CE65E": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -716,9 +712,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a660188496ddc063433&pctx=a9109697a10545a59f39844ba794108e",
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a660188496ddc063433&pctx=943d1c06878f460ba5ed9e80123990ce",
     "last_connection": "2026-07-27T13:37:45+02:00",
     "sim": "89882280666054520147",
     "imei": "351626103659436 3G/4G",
@@ -728,10 +728,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -742,18 +738,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a6601884973862a4f70&pctx=a9109697a10545a59f39844ba794108e"
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488471a6601884973862a4f70&pctx=943d1c06878f460ba5ed9e80123990ce"
   },
   "00000008004CFA2C": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -764,9 +760,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba1c13551ddd&pctx=a9109697a10545a59f39844ba794108e",
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0af488ba13780188ba1c13551ddd&pctx=943d1c06878f460ba5ed9e80123990ce",
     "last_connection": "2026-08-11T08:31:20+02:00",
     "sim": "8988247000015976336",
     "imei": "351626103409543 3G/4G",
@@ -776,10 +776,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -790,9 +786,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e801884962993266b6&pctx=a9109697a10545a59f39844ba794108e",
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e801884962993266b6&pctx=943d1c06878f460ba5ed9e80123990ce",
     "last_connection": "2026-08-20T18:28:02+02:00",
     "sim": "8988247000015976252",
     "imei": "351626103658842 3G/4G",
@@ -802,10 +802,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -816,18 +812,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e801884966710231e6&pctx=a9109697a10545a59f39844ba794108e"
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e801884966710231e6&pctx=943d1c06878f460ba5ed9e80123990ce"
   },
   "00000008004CE669": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -838,9 +834,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e80188496b4d3d5f54&pctx=a9109697a10545a59f39844ba794108e",
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e80188496b4d3d5f54&pctx=943d1c06878f460ba5ed9e80123990ce",
     "last_connection": "2026-08-26T08:34:41+02:00",
     "sim": "8988247000015976377",
     "imei": "351626103658388 3G/4G",
@@ -850,10 +850,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -864,9 +860,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e80188496c20c8734b&pctx=a9109697a10545a59f39844ba794108e",
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90884711e80188496c20c8734b&pctx=943d1c06878f460ba5ed9e80123990ce",
     "last_connection": "2026-07-13T22:56:14+02:00",
     "sim": "8988247000070803326",
     "imei": "351626103658123 3G/4G",
@@ -876,10 +876,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -890,9 +886,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=ee7a2b1e96fd4b22843eadba41b92a83&pctx=a9109697a10545a59f39844ba794108e",
+    "detail_url": "https://valvanoise.requea.com/do/Network/iotGateway:get?sysId=ee7a2b1e96fd4b22843eadba41b92a83&pctx=943d1c06878f460ba5ed9e80123990ce",
     "last_connection": "2026-06-28T19:38:55+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">8988247000070803318</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836672172</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -901,10 +901,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -915,10 +911,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
     "last_connection": "2026-07-22T18:32:57+02:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e90a0f05780&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e90a0f05780&pctx=1564c592cf94460d86024db5787a5037",
     "sim": "8988247000070961041",
     "imei": "351626103418593 3G/4G",
     "commentaire": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">Carte SIM Transatel</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert"
@@ -927,10 +927,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -941,18 +937,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e98765e2423&pctx=d58d847f028f4ff487bd2e68d9db9357"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e98765e2423&pctx=1564c592cf94460d86024db5787a5037"
   },
   "00000008004C537A": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -963,9 +959,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e99961238a3&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823e99961238a3&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-08-31T14:44:31+02:00",
     "sim": "8988247000070960456",
     "imei": "351626103419682 3G/4G",
@@ -975,10 +975,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -989,9 +985,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823ea4151f4dfb&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823ea4151f4dfb&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-07-22T18:32:58+02:00",
     "sim": "8988247000070961025",
     "imei": "351626103420607 3G/4G",
@@ -1031,10 +1031,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1045,9 +1041,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823efd750b10e4&pctx=d58d847f028f4ff487bd2e68d9db9357"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823efd750b10e4&pctx=1564c592cf94460d86024db5787a5037"
   },
   "00000008004C5376": {
     "down_since": "2023-08-17T17:31:00+02:00",
@@ -1083,10 +1083,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1097,9 +1093,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f08d0e05c9f&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f08d0e05c9f&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-07-16T15:33:32+02:00",
     "sim": "8988247000070961009",
     "imei": "351626103420235 3G/4G",
@@ -1109,10 +1109,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1123,18 +1119,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f1bff410c40&pctx=d58d847f028f4ff487bd2e68d9db9357"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f1bff410c40&pctx=1564c592cf94460d86024db5787a5037"
   },
   "00000008004C5182": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1145,9 +1141,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f1cf7292082&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0af4823b1c1601823f1cf7292082&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-07-03T13:00:18+02:00",
     "sim": "8988247000016859671",
     "imei": "351626103412612 3G/4G",
@@ -1157,10 +1157,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1171,18 +1167,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e8eb8d40d51&pctx=d58d847f028f4ff487bd2e68d9db9357"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e8eb8d40d51&pctx=1564c592cf94460d86024db5787a5037"
   },
   "00000008004C5175": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1193,18 +1189,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e91c6c16d55&pctx=d58d847f028f4ff487bd2e68d9db9357"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e91c6c16d55&pctx=1564c592cf94460d86024db5787a5037"
   },
   "00000008004C517E": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1215,9 +1211,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e997d8e37e1&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e997d8e37e1&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-07-03T13:03:46+02:00",
     "sim": "8988247000070961033",
     "imei": "351626103415201 3G/4G",
@@ -1227,10 +1227,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1241,9 +1237,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e9a906e5c57&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823e9a906e5c57&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-07-22T18:33:04+02:00",
     "sim": "8988247000016763741",
     "imei": "351626103420565 3G/4G",
@@ -1253,10 +1253,6 @@
     "down_since": "2023-08-17T16:47:28+02:00",
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
       },
@@ -1267,10 +1263,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": false
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": false
       }
     ],
     "last_connection": "2023-08-17T16:47:28+02:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823ea427a76eb3&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823ea427a76eb3&pctx=1564c592cf94460d86024db5787a5037",
     "sim": "8988247000015976492",
     "imei": "351626103418387 3G/4G",
     "commentaire": "Network REQUEA LoRaWAN Firmware Version Municipality Geo location Hauteur Test GreenCitizen Active 00000008004BAB17 Multitech Mtcap L4E1 Connected - REQUEA LoRa"
@@ -1279,10 +1279,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1293,9 +1289,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823ea494077682&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823ea494077682&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-07-31T23:38:55+02:00",
     "sim": "8933263209210193820",
     "imei": "351626103435076 3G/4G",
@@ -1305,10 +1305,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1319,9 +1315,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823efd6b107cd7&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823efd6b107cd7&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-07-22T20:05:19+02:00",
     "sim": "8933263209210193895",
     "imei": "351626103419658 3G/4G",
@@ -1331,10 +1331,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1345,18 +1341,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823efea713167a&pctx=d58d847f028f4ff487bd2e68d9db9357"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823efea713167a&pctx=1564c592cf94460d86024db5787a5037"
   },
   "00000008004C516E": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1367,10 +1363,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
     "last_connection": "2026-02-15T14:32:37+01:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f07b7c10a28&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f07b7c10a28&pctx=1564c592cf94460d86024db5787a5037",
     "sim": "8988247000016763675",
     "imei": "351626103418346 3G/4G",
     "commentaire": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">Carte SIM Requea dans Routeur</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx"
@@ -1379,10 +1379,6 @@
     "down_since": "2026-03-18T18:14:16+01:00",
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
       },
@@ -1393,10 +1389,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": false
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": false
       }
     ],
     "last_connection": "2026-03-18T18:14:16+01:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f08dea23157&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f08dea23157&pctx=1564c592cf94460d86024db5787a5037",
     "sim": "8988247000070961074",
     "imei": "351626103420771 3G/4G",
     "commentaire": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">Carte SIM + Routeur</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 propert"
@@ -1405,10 +1405,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1419,9 +1415,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f1b9a6d1174&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f1b9a6d1174&pctx=1564c592cf94460d86024db5787a5037",
     "last_connection": "2026-07-03T13:15:50+02:00",
     "sim": "8988247000016763717",
     "imei": "351626103420946 3G/4G",
@@ -1431,10 +1431,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1445,18 +1441,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f1ba0be11c2&pctx=d58d847f028f4ff487bd2e68d9db9357"
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=b3cd0b90823b057301823f1ba0be11c2&pctx=1564c592cf94460d86024db5787a5037"
   },
   "00000008004D7A02": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1467,18 +1463,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=1072f95bcbd04bd2bf28bf0bb21e1ab3&pctx=913e0a1d70b84931ae951eb0639575f4"
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=1072f95bcbd04bd2bf28bf0bb21e1ab3&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a"
   },
   "00000008004D7A09": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1489,18 +1485,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=1c2401ca239444589bbb9110a53adc15&pctx=913e0a1d70b84931ae951eb0639575f4"
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=1c2401ca239444589bbb9110a53adc15&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a"
   },
   "00000008004D7995": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1511,18 +1507,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=2cd34979c66a460ba44d343debda7bd4&pctx=913e0a1d70b84931ae951eb0639575f4"
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=2cd34979c66a460ba44d343debda7bd4&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a"
   },
   "00000008004D7A08": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1533,9 +1529,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=2d37d0f747824ef9aad71bfb4d66c710&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=2d37d0f747824ef9aad71bfb4d66c710&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "last_connection": "2026-08-03T22:38:14+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836720294</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -1545,10 +1545,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1559,10 +1555,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
     "last_connection": "2026-07-16T19:07:57+02:00",
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=3d6d1fecf21b4b73b349e646f930e691&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=3d6d1fecf21b4b73b349e646f930e691&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">868998082025285</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
     "commentaire": "Phase 2"
@@ -1571,10 +1571,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1585,9 +1581,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=56a9487f50a34dbc8371e69c9b3a0a9c&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=56a9487f50a34dbc8371e69c9b3a0a9c&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "last_connection": "2026-08-03T22:36:12+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">867929061724995</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -1597,10 +1597,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1611,18 +1607,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=8dbedc074d774da5abfdb0deecabce35&pctx=913e0a1d70b84931ae951eb0639575f4"
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=8dbedc074d774da5abfdb0deecabce35&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a"
   },
   "00000008004D7A03": {
     "down_since": "2026-08-24T21:01:15+02:00",
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
       },
@@ -1633,9 +1629,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": false
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": false
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=92c6464db6a74a348ca743339a095792&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=92c6464db6a74a348ca743339a095792&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "last_connection": "2026-08-24T21:01:15+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836720617</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -1645,10 +1645,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1659,9 +1655,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=9328a567ba5e4667bec7681573d6965e&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=9328a567ba5e4667bec7681573d6965e&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "last_connection": "2026-06-04T11:08:25+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">867652073218976</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -1671,10 +1671,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1685,9 +1681,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=9921e27423044a86b8260df3cdd1e91f&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=9921e27423044a86b8260df3cdd1e91f&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "last_connection": "2026-08-03T23:37:56+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">867652073218729</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -1697,10 +1697,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1711,9 +1707,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=a2cc401bf6f741e2b8096d0868fd1d2f&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=a2cc401bf6f741e2b8096d0868fd1d2f&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "last_connection": "2026-07-07T09:15:41+02:00",
     "sim": "oui",
     "imei": "359795836724338"
@@ -1722,10 +1722,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1736,18 +1732,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=a5e9d81aa4e44275a02f081d31229d1c&pctx=913e0a1d70b84931ae951eb0639575f4"
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=a5e9d81aa4e44275a02f081d31229d1c&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a"
   },
   "00000008004D7996": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1758,10 +1754,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
     "last_connection": "2026-08-15T18:24:33+02:00",
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=a82c0ffd040c49c89a7281e057b20409&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=a82c0ffd040c49c89a7281e057b20409&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836674111</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
     "commentaire": "Réseau REQUEA LoRaWAN Version de firmware Commune Géolocalisation Hauteur du support / batiment BAT boost center Active 00000008004D7A02 Multitech IP67 Outdoor "
@@ -1770,10 +1770,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1784,9 +1780,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=c4e900839a56424790bb0374d7624dfe&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=c4e900839a56424790bb0374d7624dfe&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "last_connection": "2026-07-02T09:48:12+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836672206</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -1796,10 +1796,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1810,9 +1806,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=f283707bd0d344d98091892db4af1d1c&pctx=913e0a1d70b84931ae951eb0639575f4",
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=f283707bd0d344d98091892db4af1d1c&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a",
     "last_connection": "2026-08-03T23:09:06+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">867652073224842</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -1822,10 +1822,6 @@
     "down_since": "2025-09-23T17:40:26+02:00",
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
       },
@@ -1836,10 +1832,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": false
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": false
       }
     ],
     "last_connection": "2025-09-23T17:40:26+02:00",
-    "detail_url": "https://siea.requea.com/do/Network/iotGateway:get?sysId=2d9abb9e080047a0b23f4f6d007ec781&pctx=09d84c6146e244a8a46fde792c83a2ca",
+    "detail_url": "https://siea.requea.com/do/Network/iotGateway:get?sysId=2d9abb9e080047a0b23f4f6d007ec781&pctx=1fea821929f441e59c17e7585e889fae",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">354959940536039</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
   },
@@ -1847,10 +1847,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1861,9 +1857,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://siea.requea.com/do/Network/iotGateway:get?sysId=81a4596a9ce34207a21ba40e97544952&pctx=09d84c6146e244a8a46fde792c83a2ca"
+    "detail_url": "https://siea.requea.com/do/Network/iotGateway:get?sysId=81a4596a9ce34207a21ba40e97544952&pctx=1fea821929f441e59c17e7585e889fae"
   },
   "00000008004E17AA": {
     "down_since": "2025-10-01T14:49:27+02:00",
@@ -1896,10 +1896,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1910,9 +1906,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://siea.requea.com/do/Network/iotGateway:get?sysId=ce9d74a0af3d4fffab1a69bacaf0a034&pctx=09d84c6146e244a8a46fde792c83a2ca",
+    "detail_url": "https://siea.requea.com/do/Network/iotGateway:get?sysId=ce9d74a0af3d4fffab1a69bacaf0a034&pctx=1fea821929f441e59c17e7585e889fae",
     "last_connection": "2026-08-30T00:32:09+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">867652073217713</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -1922,10 +1922,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1936,18 +1932,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=2e12e6a5579d484a9a2729338e1cb25f&pctx=abf72fdfe7fa455e95ce85dee1ce2d26"
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=2e12e6a5579d484a9a2729338e1cb25f&pctx=734ae95f9fb94b95bafb25214dc47ad8"
   },
   "00000008004CFA2D": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1958,9 +1954,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=41ef483bc9aa4b4f8578c31c77973b07&pctx=abf72fdfe7fa455e95ce85dee1ce2d26",
+    "detail_url": "https://ccvba.requea.com/do/Network/iotGateway:get?sysId=41ef483bc9aa4b4f8578c31c77973b07&pctx=734ae95f9fb94b95bafb25214dc47ad8",
     "last_connection": "2026-07-30T12:29:56+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89882280666054520154</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103645898</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -1969,10 +1969,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -1983,18 +1979,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvcmb.requea.com/do/Network/iotGateway:get?sysId=550ef9ae32a044e385a67b9854063dbe&pctx=b095f627320e435dad3eb073580d6c10"
+    "detail_url": "https://ccvcmb.requea.com/do/Network/iotGateway:get?sysId=550ef9ae32a044e385a67b9854063dbe&pctx=fdc05b57db4344848f55f6d625ffc4c2"
   },
   "00000008004D9E51": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2005,20 +2001,20 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://ccvcmb.requea.com/do/Network/iotGateway:get?sysId=9c913eca9dc54c15abc3e1803a169c0f&pctx=b095f627320e435dad3eb073580d6c10",
+    "detail_url": "https://ccvcmb.requea.com/do/Network/iotGateway:get?sysId=9c913eca9dc54c15abc3e1803a169c0f&pctx=fdc05b57db4344848f55f6d625ffc4c2",
     "last_connection": "2026-08-12T19:08:49+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359795836823551</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
   },
   "00000008004E6318": {
-    "down_since": "2025-11-26T11:14:45+01:00",
+    "down_since": null,
     "samples": [
-      {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
       {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
@@ -2030,9 +2026,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": false
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=0bc2ef474f634a108616f2000760d568&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=0bc2ef474f634a108616f2000760d568&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829249034",
     "last_connection": "2025-11-26T11:14:45+01:00"
   },
@@ -2040,10 +2040,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2054,19 +2050,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=171716a74e724fe3a6d7ae8e0d252ed5&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=171716a74e724fe3a6d7ae8e0d252ed5&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829249034"
   },
   "00000008004DB06F": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2077,9 +2073,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=184c67127b5c41f3ade57262bf1b9b15&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=184c67127b5c41f3ade57262bf1b9b15&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-07-30T05:19:19+02:00",
     "sim": "oui",
     "imei": "867929061784528",
@@ -2089,10 +2089,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2103,19 +2099,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=2a1bc97a2f814365893ab56c2d073199&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=2a1bc97a2f814365893ab56c2d073199&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248846"
   },
   "00000008004DB0E3": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2126,21 +2122,21 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=2efea247930d43f38ff7c9c7d5f93751&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=2efea247930d43f38ff7c9c7d5f93751&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-07-16T12:17:07+02:00",
     "sim": "oui",
     "imei": "867929061761260",
     "commentaire": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">Installation le 08/07/2025 en remplacement de 00000008004D0B2E</div></td> </tr> <tr "
   },
   "00000008004E27CA": {
-    "down_since": "2026-08-31T10:30:51+02:00",
+    "down_since": null,
     "samples": [
-      {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
       {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
@@ -2152,9 +2148,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": false
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=54e5b54e150247d296c26564ba8213d3&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=54e5b54e150247d296c26564ba8213d3&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248317",
     "last_connection": "2026-08-31T10:30:51+02:00",
     "imei": "867652073219818",
@@ -2164,10 +2164,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2178,9 +2174,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=6bba1018ebad43458b1ce02341371a75&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=6bba1018ebad43458b1ce02341371a75&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-07-18T00:15:55+02:00",
     "sim": "oui",
     "imei": "867929061782738"
@@ -2189,10 +2189,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2203,19 +2199,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=6bddff2e2f1b4ce1a3c30436e188a105&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=6bddff2e2f1b4ce1a3c30436e188a105&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248937"
   },
   "00000008004DB070": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2226,9 +2222,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=72e34017c05a43998492e45b3605cd70&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=72e34017c05a43998492e45b3605cd70&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-07-29T08:20:57+02:00",
     "sim": "oui",
     "imei": "867929061784635",
@@ -2238,10 +2238,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2252,9 +2248,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=77f8888501234fbf83da0806aca68e64&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=77f8888501234fbf83da0806aca68e64&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879434",
     "last_connection": "2026-07-19T21:55:55+02:00",
     "imei": "351626103764699",
@@ -2264,10 +2264,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2278,9 +2274,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=83e056eaf67447d0909faa073b2e746f&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=83e056eaf67447d0909faa073b2e746f&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-08-11T11:35:29+02:00",
     "sim": "oui",
     "imei": "867929061784718"
@@ -2289,10 +2289,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2303,19 +2299,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=84c7c7af1813416bb3e52e582078ffae&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=84c7c7af1813416bb3e52e582078ffae&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829249117"
   },
   "00000008004DB103": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2326,9 +2322,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=953bc2fdee8e40828d119df7f50aa5ba&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=953bc2fdee8e40828d119df7f50aa5ba&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-08-21T04:31:21+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">867929061783165</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -2337,10 +2337,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2351,9 +2347,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=97424d58c4154166b2a1ff2da18237ec&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=97424d58c4154166b2a1ff2da18237ec&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248978",
     "last_connection": "2026-08-09T11:02:07+02:00",
     "imei": "354959940540841"
@@ -2362,10 +2362,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2376,19 +2372,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=b4fc32121b1544be99cd59c9a7330c54&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=b4fc32121b1544be99cd59c9a7330c54&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248960"
   },
   "00000008004DB072": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2399,9 +2395,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=b6424d1cee3347fb8b0b001d01b75dd5&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=b6424d1cee3347fb8b0b001d01b75dd5&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-07-01T13:54:47+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">867929061784494</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -2412,10 +2412,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2426,19 +2422,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=c2916e1a641e40dea33f30ed51efb90d&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=c2916e1a641e40dea33f30ed51efb90d&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829249059"
   },
   "00000008004DB067": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2449,9 +2445,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ca6e9c5f067b439eac881fbb21c263a8&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ca6e9c5f067b439eac881fbb21c263a8&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-08-21T01:51:27+02:00",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">oui</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" data-rqpropn",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">867929061784767</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -2460,10 +2460,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2474,9 +2470,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ce93fbb26fb24a8495b0c0b304a8a80f&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ce93fbb26fb24a8495b0c0b304a8a80f&pctx=0bfef7637a0944f0981389554faee600",
     "last_connection": "2026-07-18T03:15:55+02:00",
     "sim": "oui",
     "imei": "867929061783157",
@@ -2486,10 +2486,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2500,9 +2496,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=e85b69014af54ca6ae4346322e9a0e73&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=e85b69014af54ca6ae4346322e9a0e73&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248747",
     "last_connection": "2026-08-23T06:42:10+02:00",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">354959940099285</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -2512,10 +2512,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2526,9 +2522,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080816d73dfd3016d73dfd35f0000&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080816d73dfd3016d73dfd35f0000&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879442",
     "last_connection": "2026-07-03T04:32:46+02:00",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">359852054758405</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -2538,10 +2538,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2552,9 +2548,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080816ef94309016ef94309600000&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080816ef94309016ef94309600000&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879426",
     "last_connection": "2026-08-09T11:01:36+02:00",
     "imei": "359852054755534",
@@ -2564,10 +2564,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2578,19 +2574,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808174fcc99a0174fd03994e46ad&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808174fcc99a0174fd03994e46ad&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248184"
   },
   "00000008004B1064": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2601,9 +2597,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808174fd1e77017502f25d8a0ec2&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808174fd1e77017502f25d8a0ec2&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248226",
     "last_connection": "2026-07-20T10:43:30+02:00",
     "imei": "351626100083408",
@@ -2613,10 +2613,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2627,9 +2623,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817502f39201750759c36e6e80&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817502f39201750759c36e6e80&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248234",
     "last_connection": "2026-08-22T14:45:42+02:00",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626100083515</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -2638,10 +2638,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2652,9 +2648,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817565aca00175738baafb75ca&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817565aca00175738baafb75ca&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248218",
     "last_connection": "2026-08-27T15:42:30+02:00",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626100085627</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -2664,10 +2664,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2678,9 +2674,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808175dc2e4f0175fe9d56d82920&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808175dc2e4f0175fe9d56d82920&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248267",
     "last_connection": "2026-08-26T11:18:52+02:00",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626100083531</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -2690,10 +2690,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2704,19 +2700,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808177c96eb90177ce3a0edb18b3&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808177c96eb90177ce3a0edb18b3&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248192"
   },
   "00000008004B0FF5": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2727,9 +2723,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808177d4f3fe0177d8547b226016&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80808177d4f3fe0177d8547b226016&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000980142291",
     "last_connection": "2026-07-28T14:53:45+02:00",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626100083689</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -2739,10 +2739,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2753,19 +2749,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817a1a8c92017a3d2db93f6b03&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817a1a8c92017a3d2db93f6b03&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248176"
   },
   "00000008004B0FF0": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2776,19 +2772,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817d7c071d017da3a840ff1a8a&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817d7c071d017da3a840ff1a8a&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248275"
   },
   "00000008004BFD20": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2799,9 +2795,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817f2b24e8017f635cd5a537e1&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817f2b24e8017f635cd5a537e1&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248333",
     "last_connection": "2026-08-11T11:43:13+02:00",
     "imei": "351626103279409",
@@ -2811,10 +2811,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2825,9 +2821,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817f2b24e8017f6384e72644da&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8080817f2b24e8017f6384e72644da&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248341",
     "last_connection": "2026-08-30T11:58:25+02:00",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103281108</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
@@ -2837,10 +2837,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2851,9 +2847,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff808181829056340182913647a94598&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff808181829056340182913647a94598&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248325",
     "last_connection": "2026-08-07T15:16:19+02:00",
     "imei": "351626103421423"
@@ -2862,10 +2862,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2876,9 +2872,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818182905634018291827bb85274&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818182905634018291827bb85274&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248291",
     "last_connection": "2026-07-01T10:21:27+02:00",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103422447</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" "
@@ -2887,10 +2887,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2901,9 +2897,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8081818290563401829250e66727e4&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8081818290563401829250e66727e4&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000829248309",
     "last_connection": "2026-07-25T16:42:45+02:00",
     "imei": "351626103433980"
@@ -2912,10 +2912,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2926,19 +2922,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818184d1557a0184d1df44ff21b3&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818184d1557a0184d1df44ff21b3&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879186"
   },
   "00000008004BFD1B": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2949,19 +2945,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818184d1557a0184d1f722315216&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818184d1557a0184d1f722315216&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879194"
   },
   "00000008004BFE2E": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2972,9 +2968,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818184d1557a0184d28baed4728b&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818184d1557a0184d28baed4728b&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879210",
     "last_connection": "2026-08-16T15:14:45+02:00",
     "imei": "351626103279482"
@@ -2983,10 +2983,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -2997,19 +2993,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818184d1557a0184d34fbc53276b&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818184d1557a0184d34fbc53276b&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879228"
   },
   "00000008004C743D": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -3020,19 +3016,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818185b9132f0185b95dd38767a6&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff80818185b9132f0185b95dd38767a6&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879293"
   },
   "00000008004D0B53": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -3043,9 +3039,13 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8081818ab5651d018ab7a069d63d09&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8081818ab5651d018ab7a069d63d09&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000852879251",
     "last_connection": "2026-08-14T21:43:17+02:00",
     "imei": "351626103942121"
@@ -3054,10 +3054,6 @@
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -3068,19 +3064,19 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8081818ab5651d018ab7c315a01ae7&pctx=2771dbca55a54a809d1ca638888efa4f",
+    "detail_url": "https://lora.valenceromansagglo.fr/do/NetworkMap/iotGateway:get?sysId=ff8081818ab5651d018ab7c315a01ae7&pctx=0bfef7637a0944f0981389554faee600",
     "sim": "89351060000980121105"
   },
   "00000008004E27C8": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -3091,18 +3087,18 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=64b9e4af6aba42c78de1fb8def50e326&pctx=913e0a1d70b84931ae951eb0639575f4"
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=64b9e4af6aba42c78de1fb8def50e326&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a"
   },
   "00000008004F12B9": {
     "down_since": null,
     "samples": [
       {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": true
-      },
-      {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": true
       },
@@ -3113,17 +3109,17 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": true
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": true
       }
     ],
-    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=a43a8218b4d9498482bde50f7475e514&pctx=913e0a1d70b84931ae951eb0639575f4"
+    "detail_url": "https://hautbugey.requea.com/do/Network/iotGateway:get?sysId=a43a8218b4d9498482bde50f7475e514&pctx=7dcc2c37060b4e3b8d261bf455f6ff5a"
   },
   "00000008004BAB17": {
-    "down_since": "2026-09-02T00:39:47+02:00",
+    "down_since": "2026-09-02T10:53:17+02:00",
     "samples": [
-      {
-        "time": "2026-09-01T01:51:40.747459+02:00",
-        "up": false
-      },
       {
         "time": "2026-09-01T11:24:56.226978+02:00",
         "up": false
@@ -3135,10 +3131,14 @@
       {
         "time": "2026-09-02T00:36:53.730571+02:00",
         "up": false
+      },
+      {
+        "time": "2026-09-02T10:47:18.291903+02:00",
+        "up": false
       }
     ],
-    "last_connection": "2026-09-02T00:39:47+02:00",
-    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=9afb90f6dd3f47458db123e8cab6d803&pctx=d58d847f028f4ff487bd2e68d9db9357",
+    "last_connection": "2026-09-02T10:53:17+02:00",
+    "detail_url": "https://nevers.requea.com/do/Network/iotGateway:get?sysId=9afb90f6dd3f47458db123e8cab6d803&pctx=1564c592cf94460d86024db5787a5037",
     "sim": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">89852351024010337106</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 proper",
     "imei": "</span></div></td> <td class=\"rqval\" style=\"width:66%;\"><div class=\"rqtext\">351626103079734</div></td> </tr> <tr valign=\"top\" class=\"rqprop row mx-0 property \" ",
     "commentaire": "Network REQUEA LoRaWAN Firmware Version Municipality Geo location Hauteur Test GreenCitizen Active 00000008004BAB17 Multitech Mtcap L4E1 Connected - REQUEA LoRa"
